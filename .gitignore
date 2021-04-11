@@ -1,6 +1,15 @@
 # Prerequisites
 *.d
 
+# Visual Studio
+.vs/
+
+# Builds
+x64/
+x86/
+Volume Rendering/x64/
+Volume Rendering/x86/
+
 # Compiled Object files
 *.slo
 *.lo
