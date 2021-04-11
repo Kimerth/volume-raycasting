@@ -7,8 +7,12 @@
 # Builds
 x64/
 x86/
+Debug/
+Release/
 Volume Rendering/x64/
 Volume Rendering/x86/
+Volume Rendering/Debug/
+Volume Rendering/Release/
 
 # Compiled Object files
 *.slo
