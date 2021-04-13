@@ -11,21 +11,31 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "Volume.h"
+
 const int windowWidth = 512, windowHeight = 512;
+
+Volume v;
 
 void display()
 {
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	v.draw();
 
 	glFlush();
 }
 
 void init()
 {
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_3D | GL_DEPTH_TEST);
+
 	glViewport(0, 0, windowWidth, windowHeight);
-	glClearColor(1, 1, 1, 0);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.5f);
+	glClearDepth(1.0f);
 	glewInit();
+
+	v.load("res/backpack.nrrd");
 }
 
 int main(int argc, char** argv)

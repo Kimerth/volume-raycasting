@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <GL/glew.h>
+#include <GL/freeglut.h>
 #include <glm/glm.hpp>
 
 class Shader
@@ -17,5 +19,5 @@ public:
 	void setMat4(const std::string& name, const glm::mat4& mat) const;
 
 private:
-	GLuint shader_programme
+	GLuint shader_programme;
 };
