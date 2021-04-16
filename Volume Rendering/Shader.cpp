@@ -4,8 +4,9 @@
 #include <iostream>
 #include <vector>
 
+GLuint Shader::shader_programme = NULL;
+
 Shader::Shader()
-	:shader_programme(NULL)
 {
 
 }
@@ -17,25 +18,54 @@ void Shader::load(const char* vertexPath, const char* fragmentPath)
 	const char* vertex_shader = vstext.c_str();
 	const char* fragment_shader = fstext.c_str();
 
-	GLuint vs = glCreateShader(GL_VERTEX_SHADER);
+	vs = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vs, 1, &vertex_shader, NULL);
 	glCompileShader(vs);
 	if (hasErrors(vs))
 		exit(EXIT_FAILURE);
 
-	GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
+	fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &fragment_shader, NULL);
 	glCompileShader(fs);
 	if (hasErrors(fs))
 		exit(EXIT_FAILURE);
-
-	shader_programme = glCreateProgram();
-	glAttachShader(shader_programme, fs);
-	glAttachShader(shader_programme, vs);
 }
 
-void Shader::use() const
+void Shader::use()
 {
+	if(shader_programme == NULL)
+		shader_programme = glCreateProgram();
+
+	const GLsizei maxCount = 2;
+	GLsizei count;
+	GLuint shaders[maxCount];
+	glGetAttachedShaders(shader_programme, maxCount, &count, shaders);
+
+	for (int i = 0; i < count; i++)
+		glDetachShader(shader_programme, shaders[i]);
+
+	glAttachShader(shader_programme, vs);
+	glAttachShader(shader_programme, fs);
+
+	glLinkProgram(shader_programme);
+	
+	GLint isLinked = 0;
+	glGetProgramiv(shader_programme, GL_LINK_STATUS, &isLinked);
+	if (isLinked == GL_FALSE)
+	{
+		GLint maxLength = 0;
+		glGetProgramiv(shader_programme, GL_INFO_LOG_LENGTH, &maxLength);
+
+		std::vector<GLchar> infoLog(maxLength);
+		glGetProgramInfoLog(shader_programme, maxLength, &maxLength, &infoLog[0]);
+
+		std::cerr << infoLog.data() << std::endl;
+
+		glDeleteProgram(shader_programme);
+
+		exit(EXIT_FAILURE);
+	}
+
 	glUseProgram(shader_programme);
 }
 

@@ -7,12 +7,12 @@
 class Shader
 {
 public:
-	GLuint shader_programme;
+	static GLuint shader_programme;
 
 	Shader();
 	void load(const char* vertexPath, const char* fragmentPath);
 
-	void use() const;
+	void use();
 
 	void setFloat(const std::string& name, float value) const;
 
@@ -24,5 +24,7 @@ public:
 	void setMat4(const std::string& name, const glm::mat4& mat) const;
 
 private:
+	GLuint vs;
+	GLuint fs;
 	bool hasErrors(GLuint shader);
 };

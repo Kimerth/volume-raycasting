@@ -5,10 +5,14 @@
 class Volume
 {
 public:
-	Volume();
-	void load(const char* path);
-	void draw();
-private:
+	GLuint vao;
 	GLuint texID;
+	GLuint backFaceID;
+
+	Volume();
+	void load(const char* path, const char* tffPath);
+private:
 	int sizeX, sizeY, sizeZ, sizeData;
+
+	void init();
 };

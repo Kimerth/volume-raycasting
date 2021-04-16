@@ -151,6 +151,8 @@
   <ItemGroup>
     <None Include="basic.frag" />
     <None Include="basic.vert" />
+    <None Include="raycasting.frag" />
+    <None Include="raycasting.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h" />

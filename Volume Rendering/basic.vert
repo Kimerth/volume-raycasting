@@ -1,7 +1,14 @@
 #version 400
+
 in vec3 vp;
+in vec3 vc;
+
+out vec3 clr;
+
 uniform mat4 modelMatrix;
-out vec3 position;
-void main() {
-	gl_Position = modelMatrix * vec4(vp, 1.0);
+
+void main()
+{
+    clr = vc;
+    gl_Position = modelMatrix * vec4(vp, 1.0);
 }

@@ -14,6 +14,9 @@ Volume Rendering/x86/
 Volume Rendering/Debug/
 Volume Rendering/Release/
 
+# Resources
+Volume Rendering/res/
+
 # Compiled Object files
 *.slo
 *.lo
