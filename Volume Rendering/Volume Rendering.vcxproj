@@ -144,6 +144,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Loader.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Volume.cpp" />
@@ -155,6 +156,7 @@
     <None Include="raycasting.vert" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Loader.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="Volume.h" />

@@ -1,15 +1,12 @@
 ﻿#include "Volume.h"
-#include <fstream>
-#include <sstream>
-#include <string>
-#include <iostream>
+#include "Loader.h"
 
 Volume::Volume()
-    : texID(NULL), sizeX(0), sizeY(0), sizeZ(0), sizeData(0), vao(NULL), backFaceID(NULL)
+    : texID(NULL), sizeX(0), sizeY(0), sizeZ(0), vao(NULL), backFaceID(NULL)
 {   
 }
 
-void Volume::load(const char* path, const char* tffPath)
+void Volume::load(const char* path)
 {
     init();
 
@@ -24,40 +21,23 @@ void Volume::load(const char* path, const char* tffPath)
     }
 
     {
-        std::ifstream file(path, std::ios::binary);
+        glGenTextures(1, &texID);
+        glBindTexture(GL_TEXTURE_3D, texID);
 
-        if (!file.good()) return;
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
-        for (std::string line; std::getline(file, line) && !line.empty(); )
-        {
-            if (line.compare(0, 6, "sizes:") == 0)
-            {
-                std::istringstream iss(line.substr(6));
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-                iss >> sizeX >> sizeY >> sizeZ;
-                sizeData = sizeX * sizeY * sizeZ;
-            }
-        }
+        GLubyte* buffer = readVolume(path, sizeX, sizeY, sizeZ);
 
-        {
-            GLubyte* buffer = new GLubyte[sizeData];
-            file.read(reinterpret_cast<char*>(buffer), sizeData);
+        readNRRD(path, sizeX, sizeY, sizeZ);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
 
-            glGenTextures(1, &texID);
-            glBindTexture(GL_TEXTURE_3D, texID);
-
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_REPEAT);
-
-            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-            glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
-
-            delete[] buffer;
-        }
-        file.close();
+        delete[] buffer;
     }
 }
 

@@ -10,9 +10,9 @@ public:
 	GLuint backFaceID;
 
 	Volume();
-	void load(const char* path, const char* tffPath);
+	void load(const char* path);
 private:
-	int sizeX, sizeY, sizeZ, sizeData;
+	int sizeX, sizeY, sizeZ;
 
 	void init();
 };
