@@ -8,6 +8,7 @@ public:
 	GLuint vao;
 	GLuint texID;
 	GLuint backFaceID;
+	GLuint tfID;
 
 	Volume();
 	void load(const char* path);

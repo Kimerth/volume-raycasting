@@ -39,6 +39,23 @@ void Volume::load(const char* path)
 
         delete[] buffer;
     }
+
+    {
+        glGenTextures(1, &tfID);
+        glBindTexture(GL_TEXTURE_1D, tfID);
+
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+        float* buffer = readTF((std::string(path) + ".sav").c_str());
+
+        glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+        delete[] buffer;
+    }
 }
 
 void Volume::init()

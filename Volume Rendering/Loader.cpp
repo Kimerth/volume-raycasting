@@ -344,3 +344,51 @@ uchar* readVolume(const char* path, int& width, int& height, int& depth)
         break;
     }
 }
+
+float* readTF(const char* path)
+{
+    float* data = new float[4 * 256];
+
+    std::ifstream file(path, std::ios::binary);
+    if (!file.good())
+        exit(EXIT_FAILURE);
+
+    file.seekg(0, file.end);
+    int length = file.tellg();
+    file.seekg(0, file.beg);
+
+    char* buffer = new char[length];
+    file.read(buffer, length);
+
+    float rescale, gescale, bescale;
+    float rascale, gascale, bascale;
+
+    char* ptr = strstr(buffer, "rescale=");
+    sscanf_s(ptr,
+        "rescale=%f\n"
+        "gescale=%f\n"
+        "bescale=%f\n"
+        "rascale=%f\n"
+        "gascale=%f\n"
+        "bascale=%f\n", &rescale, &gescale, &bescale, &rascale, &gascale, &bascale);
+
+    ptr = strstr(ptr, "re=");
+    for (int i = 0; ptr != NULL && i < 4 * 256; i+=4, ptr = strstr(ptr + 1, "re="))
+    {
+        float re, ge, be;
+        float ra, ga, ba;
+        sscanf_s(ptr,
+            "re=%f\n"
+            "ge=%f\n"
+            "be=%f\n"
+            "ra=%f\n"
+            "ga=%f\n"
+            "ba=%f\n", &re, &ge, &be, &ra, &ga, &ba);
+        data[i]     = re * rescale;
+        data[i + 1] = ge * gescale;
+        data[i + 2] = be * bescale;
+        data[i + 3] = (ra * rascale + ga * gascale + ba * bascale) / 3;
+    }
+
+    return data;
+}
