@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector>
 
 uchar* readNRRD(const char* path, int& width, int& height, int& depth)
 {
@@ -29,16 +30,8 @@ uchar* readNRRD(const char* path, int& width, int& height, int& depth)
     return buffer;
 }
 
-uchar* readDDSfile(std::ifstream &file, uint* bytes);
-void DDS_decode(uchar* chunk, uint size,
-    uchar** data, uint* bytes,
-    uint block = 0);
-uchar* readRAWfile(std::ifstream &file, uint* bytes);
-
-uchar* readRAWfile(std::ifstream &file, uint* bytes)
+uchar* readRAWfile(std::ifstream &file, uint &bytes)
 {
-    uint cnt;
-
     uint pos = file.tellg();
     file.seekg(0, file.end);
     int length = file.tellg();
@@ -46,26 +39,15 @@ uchar* readRAWfile(std::ifstream &file, uint* bytes)
     file.ignore(std::numeric_limits<int>::max(), '\n');
 
     uchar* data = new uchar[length];
-    cnt = 0;
+    bytes = 0;
 
-    do
-    {
-        file.read(reinterpret_cast<char*>(data + cnt), DDS_BLOCKSIZE);
-        cnt += DDS_BLOCKSIZE;
-    } while (file);
+    for(bytes = 0; file; bytes += DDS_BLOCKSIZE)
+        file.read(reinterpret_cast<char*>(data + bytes), DDS_BLOCKSIZE);
 
-    if (cnt == 0)
-    {
-        free(data);
-        return(NULL);
-    }
-
-    if ((data = (uchar*)realloc(data, cnt)) == NULL) 
+    if (bytes == 0)
         exit(EXIT_FAILURE);
 
-    *bytes = cnt;
-
-    return(data);
+    return data;
 }
 
 #pragma region DDS
@@ -74,8 +56,7 @@ constexpr char DDS_ID[] = "DDS v3d";
 constexpr char DDS_ID2[] = "DDS v3e";
 const int headerLen = strlen(DDS_ID);
 
-uchar* DDS_cache;
-uint DDS_cachepos, DDS_cachesize;
+uint DDS_cachepos;
 
 uint DDS_buffer;
 uint DDS_bufsize;
@@ -86,13 +67,6 @@ void DDS_initbuffer()
 {
     DDS_buffer = 0;
     DDS_bufsize = 0;
-}
-
-inline void DDS_clearbits()
-{
-    DDS_cache = NULL;
-    DDS_cachepos = 0;
-    DDS_cachesize = 0;
 }
 
 inline uint DDS_shiftl(const uint value, const uint bits)
@@ -115,7 +89,7 @@ inline void DDS_swapuint(uint* x)
         ((tmp & 0xff000000) >> 24);
 }
 
-inline uint DDS_readbits(uint bits)
+uint DDS_readbits(uint bits, uchar* data, size_t size)
 {
     uint value;
 
@@ -128,10 +102,10 @@ inline uint DDS_readbits(uint bits)
     {
         value = DDS_shiftl(DDS_buffer, bits - DDS_bufsize);
 
-        if (DDS_cachepos >= DDS_cachesize) DDS_buffer = 0;
+        if (DDS_cachepos >= size) DDS_buffer = 0;
         else
         {
-            DDS_buffer = *((uint*)&DDS_cache[DDS_cachepos]);
+            DDS_buffer = *((uint*)&data[DDS_cachepos]);
             if (DDS_ISINTEL) DDS_swapuint(&DDS_buffer);
             DDS_cachepos += 4;
         }
@@ -142,21 +116,7 @@ inline uint DDS_readbits(uint bits)
 
     DDS_buffer &= DDS_shiftl(1, DDS_bufsize) - 1;
 
-    return(value);
-}
-
-inline void DDS_loadbits(uchar* data, uint size)
-{
-    DDS_cache = data;
-    DDS_cachesize = size;
-
-    if ((DDS_cache = (uchar*)realloc(DDS_cache, DDS_cachesize + 4)) == NULL) 
-        exit(EXIT_FAILURE);
-    *((uint*)&DDS_cache[DDS_cachesize]) = 0;
-
-    DDS_cachesize = 4 * ((DDS_cachesize + 3) / 4);
-    if ((DDS_cache = (uchar*)realloc(DDS_cache, DDS_cachesize)) == NULL) 
-        exit(EXIT_FAILURE);
+    return value;
 }
 
 void DDS_deinterleave(uchar* data, uint bytes, uint skip, uint block = 0, bool restore = false)
@@ -169,8 +129,7 @@ void DDS_deinterleave(uchar* data, uint bytes, uint skip, uint block = 0, bool r
 
     if (block == 0)
     {
-        if ((data2 = (uchar*)malloc(bytes)) == NULL) 
-            exit(EXIT_FAILURE);
+        data2 = new uchar[bytes];
 
         if (!restore)
             for (ptr = data2, i = 0; i < skip; i++)
@@ -179,12 +138,11 @@ void DDS_deinterleave(uchar* data, uint bytes, uint skip, uint block = 0, bool r
             for (ptr = data, i = 0; i < skip; i++)
                 for (j = i; j < bytes; j += skip) data2[j] = *ptr++;
 
-        memcpy(data, data2, bytes);
+        std::copy(data2, data2 + bytes, data);
     }
     else
     {
-        if ((data2 = (uchar*)malloc((bytes < skip * block) ? bytes : skip * block)) == NULL) 
-            exit(EXIT_FAILURE);
+        data2 = new uchar[bytes < skip* block ? bytes : skip * block];
 
         if (!restore)
         {
@@ -193,13 +151,13 @@ void DDS_deinterleave(uchar* data, uint bytes, uint skip, uint block = 0, bool r
                 for (ptr = data2, i = 0; i < skip; i++)
                     for (j = i; j < skip * block; j += skip) *ptr++ = data[k * skip * block + j];
 
-                memcpy(data + k * skip * block, data2, skip * block);
+                std::copy(data2, data2 + skip * block, data + k * skip * block);
             }
 
             for (ptr = data2, i = 0; i < skip; i++)
                 for (j = i; j < bytes - k * skip * block; j += skip) *ptr++ = data[k * skip * block + j];
 
-            memcpy(data + k * skip * block, data2, bytes - k * skip * block);
+            std::copy(data2, data2 + bytes - k * skip * block, data + k * skip * block);
         }
         else
         {
@@ -208,100 +166,95 @@ void DDS_deinterleave(uchar* data, uint bytes, uint skip, uint block = 0, bool r
                 for (ptr = data + k * skip * block, i = 0; i < skip; i++)
                     for (j = i; j < skip * block; j += skip) data2[j] = *ptr++;
 
-                memcpy(data + k * skip * block, data2, skip * block);
+                std::copy(data2, data2 + skip * block, data + k * skip * block);
             }
 
             for (ptr = data + k * skip * block, i = 0; i < skip; i++)
                 for (j = i; j < bytes - k * skip * block; j += skip) data2[j] = *ptr++;
 
-            memcpy(data + k * skip * block, data2, bytes - k * skip * block);
+            std::copy(data2, data2 + bytes - k * skip * block, data + k * skip * block);
         }
     }
 
-    free(data2);
-}
-
-void DDS_interleave(uchar* data, uint bytes, uint skip, uint block = 0)
-{
-    DDS_deinterleave(data, bytes, skip, block, true);
+    delete[] data2;
 }
 
 void DDS_decode(uchar* chunk, uint size,
-    uchar** data, uint* bytes,
+    uchar** data, uint &bytes,
     uint block)
 {
     uint skip, strip;
 
     uchar* ptr1, * ptr2;
 
-    uint cnt, cnt1, cnt2;
+    uint cnt1, cnt2;
     int bits, act;
 
     DDS_initbuffer();
 
-    DDS_clearbits();
-    DDS_loadbits(chunk, size);
-
-    skip = DDS_readbits(2) + 1;
-    strip = DDS_readbits(16) + 1;
-
-    ptr1 = ptr2 = NULL;
-    cnt = act = 0;
-
-    while ((cnt1 = DDS_readbits(DDS_RL)) != 0)
+    DDS_cachepos = 0;
+    
+    auto readbits = [&](uint bits) 
     {
-        bits = DDS_readbits(3);
+        return DDS_readbits(bits, chunk, size);
+    };
+
+    skip = readbits(2) + 1;
+    strip = readbits(16) + 1;
+
+    ptr1 = ptr2 = new uchar[3 * size];
+    bytes = act = 0;
+
+    while ((cnt1 = readbits(DDS_RL)) != 0)
+    {
+        bits = readbits(3);
         bits = bits >= 1 ? bits + 1 : bits;
 
         for (cnt2 = 0; cnt2 < cnt1; cnt2++)
         {
-            if (strip == 1 || cnt <= strip) act += DDS_readbits(bits) - (1 << bits) / 2;
-            else act += *(ptr2 - strip) - *(ptr2 - strip - 1) + DDS_readbits(bits) - (1 << bits) / 2;
+            if (strip == 1 || bytes <= strip) act += readbits(bits) - (1 << bits) / 2;
+            else act += *(ptr2 - strip) - *(ptr2 - strip - 1) + readbits(bits) - (1 << bits) / 2;
 
             while (act < 0) act += 256;
             while (act > 255) act -= 256;
 
-            if ((cnt & (DDS_BLOCKSIZE - 1)) == 0)
-                if (ptr1 == NULL)
-                {
-                    if ((ptr1 = (uchar*)malloc(DDS_BLOCKSIZE)) == NULL) 
-                        exit(EXIT_FAILURE);
-                    ptr2 = ptr1;
-                }
-                else
-                {
-                    if ((ptr1 = (uchar*)realloc(ptr1, cnt + DDS_BLOCKSIZE)) == NULL) 
-                        exit(EXIT_FAILURE);
-                    ptr2 = &ptr1[cnt];
-                }
+            if ((bytes & (DDS_BLOCKSIZE - 1)) == 0)
+                ptr2 = &ptr1[bytes];
 
             *ptr2++ = act;
-            cnt++;
+            bytes++;
+
+            if (bytes % size == 0)
+            {
+                ptr2 = new uchar[bytes + size];
+                std::copy(ptr1, ptr1 + bytes, ptr2);
+                delete[] ptr1;
+                ptr1 = ptr2;
+                ptr2 = ptr2 + bytes;
+            }
         }
     }
 
-    if (ptr1 != NULL && (ptr1 = (uchar*)realloc(ptr1, cnt)) == NULL)
-        exit(EXIT_FAILURE);
+    *data = new uchar[bytes];
+    std::copy(ptr1, ptr1 + bytes, *data);
+    delete[] ptr1;
 
-    DDS_interleave(ptr1, cnt, skip, block);
-
-    *data = ptr1;
-    *bytes = cnt;
+    DDS_deinterleave(*data, bytes, skip, block, true);
 }
 
-uchar* readDDSfile(std::ifstream& file, uint* bytes, uint block)
+uchar* readDDSfile(std::ifstream& file, uint &bytes, uint block)
 {
     int cnt;
 
     uchar* chunk, * data;
     uint size;
 
-    if ((chunk = readRAWfile(file, &size)) == NULL)
+    if ((chunk = readRAWfile(file, size)) == NULL)
         exit(EXIT_FAILURE);
 
     DDS_decode(chunk, size, &data, bytes, block);
 
-    free(chunk);
+    delete[] chunk;
 
     return data;
 }
@@ -316,11 +269,7 @@ uchar* readPVM(const char* path, int& width, int& height, int& depth)
 
     bool is_DDS = false;
 
-    int version = 1;
-
     float sx = 1.0f, sy = 1.0f, sz = 1.0f;
-
-    uint len1 = 0, len2 = 0, len3 = 0, len4 = 0;
 
     std::ifstream file(path, std::ios::binary);
     if (!file.good())
@@ -332,34 +281,20 @@ uchar* readPVM(const char* path, int& width, int& height, int& depth)
         block = DDS_INTERLEAVE, is_DDS = true;
 
     if (is_DDS)
-        data = readDDSfile(file, &bytes, block);
+        data = readDDSfile(file, bytes, block);
     else
-        data = readRAWfile(file, &bytes);
+        data = readRAWfile(file, bytes);
 
     if (bytes < 5)
         return nullptr;
 
     ptr = strchr((char*)data, '\n') + 1;;
-    if (!is_DDS)
-    {
-        if (strcmp(header.c_str(), "PVM2") == 0) version = 2;
-        else if (strcmp((char*)data, "PVM3") == 0) version = 3;
-        else return(NULL);
 
-        if (sscanf_s((char*)ptr, "%d %d %d\n%g %g %g\n", &width, &height, &depth, &sx, &sy, &sz) != 6)
-            exit(EXIT_FAILURE);
-        if (width < 1 || height < 1 || depth < 1 || sx <= 0.0f || sy <= 0.0f || sz <= 0.0f)
-            exit(EXIT_FAILURE);
-        ptr = strchr((char*)ptr, '\n') + 1;
-    }
-    else
-    {
-        if (sscanf_s((char*)ptr, "%d %d %d\n", &width, &height, &depth) != 3)
-            exit(EXIT_FAILURE);
-        if (width < 1 || height < 1 || depth < 1)
-            exit(EXIT_FAILURE);
-        ptr = strchr((char*)ptr, '\n') + 1;
-    }
+    if (sscanf_s((char*)ptr, "%d %d %d\n%g %g %g\n", &width, &height, &depth, &sx, &sy, &sz) != 6)
+        exit(EXIT_FAILURE);
+    if (width < 1 || height < 1 || depth < 1 || sx <= 0.0f || sy <= 0.0f || sz <= 0.0f)
+        exit(EXIT_FAILURE);
+    ptr = strchr((char*)ptr, '\n') + 1;
 
     ptr = strchr((char*)ptr, '\n') + 1;
     if (sscanf_s((char*)ptr, "%d\n", &numc) != 1) exit(EXIT_FAILURE);
@@ -369,19 +304,10 @@ uchar* readPVM(const char* path, int& width, int& height, int& depth)
         exit(EXIT_FAILURE);
 
     ptr = strchr((char*)ptr, '\n') + 1;
-    if (version == 3)
-    {
-        len1 = strlen((char*)(ptr + (width) * (height) * (depth)*numc)) + 1;
-        len2 = strlen((char*)(ptr + (width) * (height) * (depth)*numc + len1)) + 1;
-        len3 = strlen((char*)(ptr + (width) * (height) * (depth)*numc + len1 + len2)) + 1;
-        len4 = strlen((char*)(ptr + (width) * (height) * (depth)*numc + len1 + len2 + len3)) + 1;
-    }
 
-    uchar* volume = new uchar[width * height * depth * numc + len1 + len2 + len3 + len4];
-    //if (data + bytes != (uchar*)ptr + (width) * (height) * (depth)*numc + len1 + len2 + len3 + len4)
-    //    exit(EXIT_FAILURE);
+    uchar* volume = new uchar[width * height * depth * numc];
 
-    memcpy(volume, ptr, (width) * (height) * (depth)*numc + len1 + len2 + len3 + len4);
+    std::copy(ptr, ptr + width * height * depth * numc, volume);
     free(data);
 
     return volume;
