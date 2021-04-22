@@ -22,8 +22,6 @@ glm::mat4 projection, view, model;
 float angle;
 GLuint frameBuffer;
 
-float power = 0.5f;
-
 void render(GLenum cullFace, const Shader &s);
 void setShaderValues(const Shader &s);
 
@@ -52,7 +50,6 @@ void display()
 void setShaderValues(const Shader &s)
 {
 	s.setVec2("screen", windowWidth, windowHeight);
-	s.setFloat("power", power);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, v.backFaceID);
@@ -61,6 +58,10 @@ void setShaderValues(const Shader &s)
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_3D, v.texID);
 	glUniform1i(glGetUniformLocation(s.shader_programme, "volumeTex"), 2);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_1D, v.tfID);
+	glUniform1i(glGetUniformLocation(s.shader_programme, "tf"), 0);
 }
 
 void render(GLenum cullFace, const Shader &s) 
@@ -71,6 +72,7 @@ void render(GLenum cullFace, const Shader &s)
 
 	model = glm::mat4(1.0f);
 	model *= glm::rotate((float)angle, glm::vec3(0.0f, 1.0f, 0.0f));
+	model *= glm::rotate(3.14f, glm::vec3(1.0f, 0.0f, 0.0f));
 	model *= glm::translate(glm::vec3(-0.5f, -0.5f, -0.5f));
 
 	s.setMat4("modelMatrix", projection * view * model);
@@ -87,7 +89,7 @@ void init()
 	glViewport(0, 0, windowWidth, windowHeight);
 	glewInit();
 
-	v.load("res/backpack.nrrd", "res/tff.dat");
+	v.load("res/Bonsai2-HI.pvm");
 
 	b.load("basic.vert", "basic.frag");
 	r.load("raycasting.vert", "raycasting.frag");
