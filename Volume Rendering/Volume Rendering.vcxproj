@@ -150,8 +150,6 @@
     <ClCompile Include="Volume.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="basic.frag" />
-    <None Include="basic.vert" />
     <None Include="raycasting.frag" />
     <None Include="raycasting.vert" />
   </ItemGroup>

@@ -7,7 +7,6 @@ class Volume
 public:
 	GLuint vao;
 	GLuint texID;
-	GLuint backFaceID;
 	GLuint tfID;
 
 	Volume();

@@ -32,12 +32,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="basic.frag">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
-    <None Include="basic.vert">
-      <Filter>Resource Files\Shaders</Filter>
-    </None>
     <None Include="raycasting.frag">
       <Filter>Resource Files\Shaders</Filter>
     </None>
