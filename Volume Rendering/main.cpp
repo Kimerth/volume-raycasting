@@ -63,11 +63,12 @@ void render()
 	model *= glm::rotate(3.14f, glm::vec3(1.0f, 0.0f, 0.0f));
 	model *= glm::translate(glm::vec3(-0.5f, -0.5f, -0.5f));
 
+	s.setMat4("modelMatrix", model);
 	s.setVec3("origin", glm::vec4(eyePos, 0) * model);
 
 	model = view * model;
 	s.setMat4("viewMatrix", model);
-	s.setMat4("modelMatrix", projection * model);
+	s.setMat4("MVP", projection * model);
 
 	glBindVertexArray(v.vao);
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLuint*)NULL);
