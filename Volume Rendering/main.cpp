@@ -31,6 +31,8 @@ bool autoRotate = true;
 
 glm::vec3 eyePos(0.0f, 0.0f, 1.5f);
 
+float zoom = 0.5f;
+
 void render();
 void setShaderValues();
 
@@ -108,7 +110,7 @@ void init()
 
 	glEnable(GL_DEPTH_TEST);
 
-	projection = glm::perspective(1.57f, (GLfloat)windowWidth / windowHeight, 1.0f, 100.f);
+	projection = glm::perspective(1.57f, (GLfloat)windowWidth / windowHeight, 0.1f, 100.f);
 	view = glm::lookAt(eyePos,
 				       glm::vec3(0.0f, 0.0f, 0.0f),
 					   glm::vec3(0.0f, 1.0f, 0.0f));
@@ -130,11 +132,26 @@ bool doMove = false;
 int oldX, oldY;
 void mouse(int button, int state, int x, int y)
 {
-	if (button == GLUT_LEFT_BUTTON )
+	switch(button)
 	{
-		doMove = state == GLUT_DOWN;
-		oldX = x, oldY = y;
+		case GLUT_LEFT_BUTTON:
+			doMove = state == GLUT_DOWN;
+			oldX = x, oldY = y;
+			break;
+		case 3:
+			zoom -= 0.05f;
+			break;
+		case 4:
+			zoom += 0.05f;
+			break;
+		default:
+			break;
 	}
+	zoom = std::max(0.0f, std::min(2.0f, zoom));
+	eyePos = glm::vec3(0.0f, 0.0f, 1.0f + zoom);
+	view = glm::lookAt(eyePos,
+					   glm::vec3(0.0f, 0.0f, 0.0f),
+					   glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 void motion(int x, int y)
