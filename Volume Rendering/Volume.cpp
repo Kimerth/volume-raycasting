@@ -1,10 +1,6 @@
 ﻿#include "Volume.h"
 #include "Loader.h"
 
-Volume::Volume()
-    : texID(NULL), sizeX(0), sizeY(0), sizeZ(0), vao(NULL)
-{   
-}
 
 void Volume::load(const char* path)
 {
@@ -45,6 +41,19 @@ void Volume::load(const char* path)
         glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
 
         delete[] buffer;
+    }
+
+    {
+        glGenTextures(1, &gradsID);
+        glBindTexture(GL_TEXTURE_3D, gradsID);
+
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB16F, sizeX, sizeY, sizeZ, 0, GL_RGB, GL_FLOAT, NULL);
     }
 }
 

@@ -3,14 +3,15 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
+#include "Volume.h"
 
 class Shader
 {
 public:
 	static GLuint shader_programme;
 
-	Shader();
 	void load(const char* vertexPath, const char* fragmentPath);
+	void load(const char* vertexPath, const char* fragmentPath, Volume& vol);
 
 	void use();
 
@@ -28,5 +29,6 @@ public:
 private:
 	GLuint vs;
 	GLuint fs;
-	bool hasErrors(GLuint shader);
+	bool hasCompileErrors(GLuint shader);
+	bool hasLinkErrors();
 };

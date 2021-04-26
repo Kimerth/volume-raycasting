@@ -150,6 +150,7 @@
     <ClCompile Include="Volume.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="grads.comp" />
     <None Include="raycasting.frag" />
     <None Include="raycasting.vert" />
   </ItemGroup>

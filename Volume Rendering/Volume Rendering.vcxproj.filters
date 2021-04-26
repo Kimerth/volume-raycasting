@@ -38,6 +38,9 @@
     <None Include="raycasting.vert">
       <Filter>Resource Files\Shaders</Filter>
     </None>
+    <None Include="grads.comp">
+      <Filter>Resource Files\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">

@@ -3,9 +3,13 @@
 #define MAX_PASSES 1000
 #define STEP 0.01
 #define THRESHOLD 0.07
+#define EXPOSURE 2
+#define GAMMA 1
 
 uniform sampler1D tf;
 uniform sampler3D volumeTex;  
+uniform sampler3D gradsTex;
+
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 
@@ -45,31 +49,6 @@ Intersection rayBBIntersection(Ray r, AABB aabb)
                         r.origin + r.dir * t1 + 0.5);
 }
 
-vec3 gradient(vec3 pos)
-{
-    vec3 s1, s2;
-
-    s1.x = texture(volumeTex, pos - vec3(STEP, 0, 0)).x;
-    s2.x = texture(volumeTex, pos + vec3(STEP, 0, 0)).x;
-
-    s1.y = texture(volumeTex, pos - vec3(0, STEP, 0)).x;
-    s2.y = texture(volumeTex, pos + vec3(0, STEP, 0)).x;
-
-    s1.z = texture(volumeTex, pos - vec3(0, 0, STEP)).x;
-    s2.z = texture(volumeTex, pos + vec3(0, 0, STEP)).x;
-
-    return normalize(s2 - s1);
-}
-
-float gradient_magnitude(vec3 position, float intensity)
-{
-    float d = STEP;
-    float dx = texture(volumeTex, position + vec3(d,0,0)).r - intensity;
-    float dy = texture(volumeTex, position + vec3(0,d,0)).r - intensity;
-    float dz = texture(volumeTex, position + vec3(0,0,d)).r - intensity;
-    return sqrt(dx * dx + dy * dy + dz * dz);
-}
-
 void main()
 {
     vec3 direction;
@@ -97,22 +76,20 @@ void main()
         {
             vec4 tfSample = texture(tf, intensity);
             
-            vec3 grad = gradient(pos);
+            vec3 grad = texture(gradsTex, pos).xyz;
 
             vec3 N = normalize(modelMatrix * vec4(grad, 0)).xyz;
             vec3 V = normalize(origin - gl_FragCoord.xyz);
-            float coef = max(dot(V, N), 0.0) * tfSample.a;
+            float coef = max(0.0, max(dot(V, N), dot(-V, N))) * tfSample.a;
 
             vec4 color = (1.0 - fragColor.a) * vec4(tfSample.rgb * coef, 1) * intensity;
             color.a = 1 - pow((1 - color.a), STEP / 0.5);
 
-//            float ak = gradient_magnitude(pos, intensity) * tfSample.a;
-//
-//            if(ak > THRESHOLD)
-//                continue;
-
-            //fragColor = ak * color + (1 - ak) * fragColor;
             fragColor += color;
         }
     }
+
+    fragColor.rgb = vec3(1.0) - exp(-fragColor.rgb * EXPOSURE);
+
+    fragColor = vec4(pow(fragColor.rgb, vec3(1.0 / GAMMA)) ,1.0);
 }

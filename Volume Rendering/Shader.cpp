@@ -4,12 +4,9 @@
 #include <iostream>
 #include <vector>
 
+
 GLuint Shader::shader_programme = NULL;
 
-Shader::Shader()
-{
-
-}
 
 void Shader::load(const char* vertexPath, const char* fragmentPath)
 {
@@ -21,14 +18,45 @@ void Shader::load(const char* vertexPath, const char* fragmentPath)
 	vs = glCreateShader(GL_VERTEX_SHADER);
 	glShaderSource(vs, 1, &vertex_shader, NULL);
 	glCompileShader(vs);
-	if (hasErrors(vs))
+	if (hasCompileErrors(vs))
 		exit(EXIT_FAILURE);
 
 	fs = glCreateShader(GL_FRAGMENT_SHADER);
 	glShaderSource(fs, 1, &fragment_shader, NULL);
 	glCompileShader(fs);
-	if (hasErrors(fs))
+	if (hasCompileErrors(fs))
 		exit(EXIT_FAILURE);
+}
+
+void Shader::load(const char* vertexPath, const char* fragmentPath, Volume& vol)
+{
+	load(vertexPath, fragmentPath);
+
+	std::string stext = textFileRead("grads.comp");
+	const char* comp_shader = stext.c_str();
+
+	GLuint cs = glCreateShader(GL_COMPUTE_SHADER);
+	glShaderSource(cs, 1, &comp_shader, NULL);
+	glCompileShader(cs);
+	if (hasCompileErrors(cs))
+		exit(EXIT_FAILURE);
+
+	if (shader_programme == NULL)
+		shader_programme = glCreateProgram();
+	glAttachShader(shader_programme, cs);
+	glLinkProgram(shader_programme);
+
+	if (hasLinkErrors())
+		exit(EXIT_FAILURE);
+
+	glUseProgram(shader_programme);
+
+	glBindImageTexture(0, vol.texID, 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8UI);
+	glBindImageTexture(1, vol.gradsID, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
+
+	glDispatchCompute(ceil(vol.sizeX / 8), ceil(vol.sizeY / 8), ceil(vol.sizeZ / 8));
+
+	glMemoryBarrier(GL_ALL_BARRIER_BITS);
 }
 
 void Shader::use()
@@ -49,22 +77,8 @@ void Shader::use()
 
 	glLinkProgram(shader_programme);
 	
-	GLint isLinked = 0;
-	glGetProgramiv(shader_programme, GL_LINK_STATUS, &isLinked);
-	if (isLinked == GL_FALSE)
-	{
-		GLint maxLength = 0;
-		glGetProgramiv(shader_programme, GL_INFO_LOG_LENGTH, &maxLength);
-
-		std::vector<GLchar> infoLog(maxLength);
-		glGetProgramInfoLog(shader_programme, maxLength, &maxLength, &infoLog[0]);
-
-		std::cerr << infoLog.data() << std::endl;
-
-		glDeleteProgram(shader_programme);
-
+	if (hasLinkErrors())
 		exit(EXIT_FAILURE);
-	}
 
 	glUseProgram(shader_programme);
 }
@@ -99,7 +113,7 @@ void Shader::setMat4(const std::string& name, const glm::mat4& mat) const
 	glUniformMatrix4fv(glGetUniformLocation(shader_programme, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
 }
 
-bool Shader::hasErrors(GLuint shader)
+bool Shader::hasCompileErrors(GLuint shader)
 {
 	GLint isCompiled = 0;
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
@@ -114,6 +128,27 @@ bool Shader::hasErrors(GLuint shader)
 		std::cerr << errorLog.data() << std::endl;
 
 		glDeleteShader(shader);
+		return true;
+	}
+
+	return false;
+}
+
+bool Shader::hasLinkErrors()
+{
+	GLint isLinked = 0;
+	glGetProgramiv(shader_programme, GL_LINK_STATUS, &isLinked);
+	if (isLinked == GL_FALSE)
+	{
+		GLint maxLength = 0;
+		glGetProgramiv(shader_programme, GL_INFO_LOG_LENGTH, &maxLength);
+
+		std::vector<GLchar> errorLog(maxLength);
+		glGetProgramInfoLog(shader_programme, maxLength, &maxLength, &errorLog[0]);
+
+		std::cerr << errorLog.data() << std::endl;
+
+		glDeleteProgram(shader_programme);
 		return true;
 	}
 

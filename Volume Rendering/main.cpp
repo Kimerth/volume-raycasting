@@ -45,12 +45,15 @@ void setShaderValues()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, v.texID);
-	glUniform1i(glGetUniformLocation(s.shader_programme, "volumeTex"), 2);
 	s.setInt("volumeTex", 0);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_1D, v.tfID);
 	s.setInt("tf", 1);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_3D, v.gradsID);
+	s.setInt("gradsTex", 2);
 }
 
 void render() 
@@ -81,7 +84,7 @@ void init()
 
 	v.load("res/Bonsai2-HI.pvm");
 
-	s.load("raycasting.vert", "raycasting.frag");
+	s.load("raycasting.vert", "raycasting.frag", v);
 	s.use();
 	setShaderValues();
 

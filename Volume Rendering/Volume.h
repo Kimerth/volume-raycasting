@@ -8,11 +8,10 @@ public:
 	GLuint vao;
 	GLuint texID;
 	GLuint tfID;
-
-	Volume();
-	void load(const char* path);
-private:
+	GLuint gradsID;
 	int sizeX, sizeY, sizeZ;
 
+	void load(const char* path);
+private:
 	void init();
 };
