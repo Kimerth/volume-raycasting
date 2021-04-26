@@ -25,7 +25,9 @@ const int windowWidth = 800, windowHeight = 800;
 Volume v;
 Shader s;
 glm::mat4 projection, view, model;
-float angle;
+float angleY, angleX = 3.14f;
+
+bool autoRotate = true;
 
 glm::vec3 eyePos(0.0f, 0.0f, 1.5f);
 
@@ -51,7 +53,8 @@ void display()
 
 	int deltaTime = std::max(FRAME_DURATON * 1000, passed);
 
-	angle += ANGLE_SPEED * deltaTime / 1e+6;
+	if(autoRotate)
+		angleY += ANGLE_SPEED * deltaTime / 1e+6;
 }
 
 void setShaderValues()
@@ -77,8 +80,8 @@ void render()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	model = glm::rotate((float)angle, glm::vec3(0.0f, 1.0f, 0.0f));
-	model *= glm::rotate(3.14f, glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+	model *= glm::rotate(angleY, glm::vec3(0.0f, 1.0f, 0.0f));
 	model *= glm::translate(glm::vec3(-0.5f, -0.5f, -0.5f));
 
 	s.setMat4("modelMatrix", model);
@@ -97,7 +100,7 @@ void init()
 	glViewport(0, 0, windowWidth, windowHeight);
 	glewInit();
 
-	v.load("res/Bonsai2-HI.pvm");
+	v.load("res/Cross.pvm");
 
 	s.load("raycasting.vert", "raycasting.frag", v);
 	s.use();
@@ -109,6 +112,36 @@ void init()
 	view = glm::lookAt(eyePos,
 				       glm::vec3(0.0f, 0.0f, 0.0f),
 					   glm::vec3(0.0f, 1.0f, 0.0f));
+}
+
+void keyboard(unsigned char key, int x, int y) 
+{
+	switch (key) 
+	{
+		case ' ':
+			autoRotate = !autoRotate;	
+			break; 
+		default:
+			break;
+	}
+}
+
+bool doMove = false;
+int oldX, oldY;
+void mouse(int button, int state, int x, int y)
+{
+	if (button == GLUT_LEFT_BUTTON )
+	{
+		doMove = state == GLUT_DOWN;
+		oldX = x, oldY = y;
+	}
+}
+
+void motion(int x, int y)
+{
+	angleY += ((float)x - oldX) / windowWidth;
+	angleX += ((float)y - oldY) / windowHeight;
+	oldX = x, oldY = y;
 }
 
 int main(int argc, char** argv)
@@ -123,6 +156,11 @@ int main(int argc, char** argv)
 
 	glutDisplayFunc(display);
 	glutIdleFunc(glutPostRedisplay);
+
+	glutKeyboardFunc(keyboard);
+	glutMouseFunc(mouse);
+	glutMotionFunc(motion);
+
 	glutMainLoop();
 
 	return 0;
