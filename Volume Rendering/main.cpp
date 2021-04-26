@@ -2,6 +2,9 @@
 #include <fstream>
 #include <string>
 
+#include <chrono>
+#include <thread>
+
 #include <stdio.h>
 
 #include <GL/glew.h>
@@ -13,6 +16,9 @@
 
 #include "Volume.h"
 #include "Shader.h"
+
+#define FRAME_DURATON 32
+#define ANGLE_SPEED 0.68 // approx 40degrees/sec
 
 const int windowWidth = 800, windowHeight = 800;
 
@@ -28,15 +34,24 @@ void setShaderValues();
 
 void display()
 {
+	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
 	glEnable(GL_DEPTH_TEST);
 
 	glViewport(0, 0, windowWidth, windowHeight);
-	
+
 	render();
 
 	glutSwapBuffers();
 
-	angle += 0.01;
+	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+	int passed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+	std::this_thread::sleep_for(std::chrono::microseconds(std::max(0, FRAME_DURATON * 1000 - passed)));
+
+	int deltaTime = std::max(FRAME_DURATON * 1000, passed);
+
+	angle += ANGLE_SPEED * deltaTime / 1e+6;
 }
 
 void setShaderValues()
