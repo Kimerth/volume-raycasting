@@ -53,6 +53,7 @@ void main()
 {
     vec3 direction;
     direction.xy = 2.0 * gl_FragCoord.xy / screen - 1.0;
+    direction.x *= screen.x / screen.y;
     direction.z = - 1 / tan(3.14 / 4);
     direction = (vec4(direction, 0) * viewMatrix).xyz;
 

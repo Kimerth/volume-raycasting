@@ -26,7 +26,7 @@
 #define FRAME_DURATON 32
 #define ANGLE_SPEED 0.68 // approx 40degrees/sec
 
-const int windowWidth = 800, windowHeight = 800;
+int windowWidth = 800, windowHeight = 800;
 
 Volume v;
 Shader s;
@@ -210,6 +210,18 @@ void init()
 					   glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
+void reshape(int w, int h)
+{
+	windowWidth = w, windowHeight = h;
+
+	glViewport(0, 0, windowWidth, windowHeight);
+	projection = glm::perspective(1.57f, (GLfloat)windowWidth / windowHeight, 0.1f, 100.f);
+
+	s.setVec2("screen", windowWidth, windowHeight);
+
+	ImGui_ImplGLUT_ReshapeFunc(w, h);
+}
+
 void keyboard(unsigned char key, int x, int y) 
 {
 	switch (key) 
@@ -220,6 +232,9 @@ void keyboard(unsigned char key, int x, int y)
 		default:
 			break;
 	}
+
+	ImGui_ImplGLUT_KeyboardFunc(key, x, y);
+
 }
 
 bool doMove = false;
@@ -246,6 +261,8 @@ void mouse(int button, int state, int x, int y)
 	view = glm::lookAt(eyePos,
 					   glm::vec3(0.0f, 0.0f, 0.0f),
 					   glm::vec3(0.0f, 1.0f, 0.0f));
+
+	ImGui_ImplGLUT_MouseFunc(button, state, x, y);
 }
 
 void motion(int x, int y)
@@ -253,6 +270,8 @@ void motion(int x, int y)
 	angleY += ((float)x - oldX) / windowWidth;
 	angleX += ((float)y - oldY) / windowHeight;
 	oldX = x, oldY = y;
+
+	ImGui_ImplGLUT_MotionFunc(x, y);
 }
 
 int main(int argc, char** argv)
@@ -278,9 +297,10 @@ int main(int argc, char** argv)
 	ImGui_ImplGLUT_InstallFuncs();
 	ImGui_ImplOpenGL3_Init();
 
-	//glutKeyboardFunc(keyboard);
-	//glutMouseFunc(mouse);
-	//glutMotionFunc(motion);
+	glutReshapeFunc(reshape);
+	glutKeyboardFunc(keyboard);
+	glutMouseFunc(mouse);
+	glutMotionFunc(motion);
 
 	glutMainLoop();
 
