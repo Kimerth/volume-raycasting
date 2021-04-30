@@ -28,6 +28,17 @@ void Shader::load(const char* vertexPath, const char* fragmentPath)
 		exit(EXIT_FAILURE);
 }
 
+void detachShaders()
+{
+	const GLsizei maxCount = 2;
+	GLsizei count;
+	GLuint shaders[maxCount];
+	glGetAttachedShaders(Shader::shader_programme, maxCount, &count, shaders);
+
+	for (int i = 0; i < count; i++)
+		glDetachShader(Shader::shader_programme, shaders[i]);
+}
+
 void Shader::load(const char* vertexPath, const char* fragmentPath, Volume& vol)
 {
 	load(vertexPath, fragmentPath);
@@ -43,6 +54,9 @@ void Shader::load(const char* vertexPath, const char* fragmentPath, Volume& vol)
 
 	if (shader_programme == NULL)
 		shader_programme = glCreateProgram();
+
+	detachShaders();
+
 	glAttachShader(shader_programme, cs);
 	glLinkProgram(shader_programme);
 
@@ -64,13 +78,7 @@ void Shader::use()
 	if(shader_programme == NULL)
 		shader_programme = glCreateProgram();
 
-	const GLsizei maxCount = 2;
-	GLsizei count;
-	GLuint shaders[maxCount];
-	glGetAttachedShaders(shader_programme, maxCount, &count, shaders);
-
-	for (int i = 0; i < count; i++)
-		glDetachShader(shader_programme, shaders[i]);
+	detachShaders();
 
 	glAttachShader(shader_programme, vs);
 	glAttachShader(shader_programme, fs);

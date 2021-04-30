@@ -12,6 +12,7 @@ public:
 	int sizeX, sizeY, sizeZ;
 
 	void load(const char* path);
+	void loadTF(const char* path);
 private:
 	void init();
 };

@@ -1,9 +1,11 @@
 ﻿#include "Volume.h"
 #include "Loader.h"
 
+#include <fstream>
 
 void Volume::load(const char* path)
 {
+    //TODO: fix memory leak
     init();
 
     {
@@ -20,27 +22,17 @@ void Volume::load(const char* path)
 
         GLubyte* buffer = readVolume(path, sizeX, sizeY, sizeZ);
 
-        readNRRD(path, sizeX, sizeY, sizeZ);
         glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
 
         delete[] buffer;
     }
 
     {
-        glGenTextures(1, &tfID);
-        glBindTexture(GL_TEXTURE_1D, tfID);
-
-        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-        float* buffer = readTF((std::string(path) + ".sav").c_str());
-
-        glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-
-        delete[] buffer;
+        std::string savPath = (std::string(path) + ".sav");
+        if (std::fstream{ savPath })
+            loadTF(savPath.c_str());
+        else
+            loadTF(nullptr);
     }
 
     {
@@ -55,6 +47,32 @@ void Volume::load(const char* path)
 
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB16F, sizeX, sizeY, sizeZ, 0, GL_RGB, GL_FLOAT, NULL);
     }
+}
+
+void Volume::loadTF(const char* path)
+{
+    glGenTextures(1, &tfID);
+    glBindTexture(GL_TEXTURE_1D, tfID);
+
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+    float* buffer;
+    if(path != nullptr)
+        buffer = readTF(path);
+    else
+    {
+        buffer = new float[256];
+        for (int i = 0; i < 256; ++i)
+            buffer[i] = 1;
+    }
+
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+    delete[] buffer;
 }
 
 void Volume::init()

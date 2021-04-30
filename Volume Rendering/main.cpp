@@ -44,7 +44,6 @@ static bool show_tf_window = true;
 
 void displayUI();
 void render();
-void setShaderValues();
 
 void display()
 {
@@ -72,23 +71,6 @@ void display()
 
 	if(autoRotate)
 		angleY += ANGLE_SPEED * deltaTime / 1e+6;
-}
-
-void setShaderValues()
-{
-	s.setVec2("screen", windowWidth, windowHeight);
-
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_3D, v.texID);
-	s.setInt("volumeTex", 0);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_1D, v.tfID);
-	s.setInt("tf", 1);
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_3D, v.gradsID);
-	s.setInt("gradsTex", 2);
 }
 
 void displayUI()
@@ -127,8 +109,20 @@ void displayUI()
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-				// TODO: open volume
+				v.load(filePathName.c_str());
+
+				s.load("raycasting.vert", "raycasting.frag", v);
+				s.use();
+				
+				s.setVec2("screen", windowWidth, windowHeight);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_3D, v.texID);
+				s.setInt("volumeTex", 0);
+
+				glActiveTexture(GL_TEXTURE2);
+				glBindTexture(GL_TEXTURE_3D, v.gradsID);
+				s.setInt("gradsTex", 2);
 			}
 
 			ImGuiFileDialog::Instance()->Close();
@@ -159,8 +153,11 @@ void displayUI()
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-				// TODO: open tf
+				v.loadTF(filePathName.c_str());
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_1D, v.tfID);
+				s.setInt("tf", 1);
+
 			}
 
 			ImGuiFileDialog::Instance()->Close();
@@ -195,12 +192,6 @@ void init()
 {
 	glViewport(0, 0, windowWidth, windowHeight);
 	glewInit();
-
-	v.load("res/Cross.pvm");
-
-	s.load("raycasting.vert", "raycasting.frag", v);
-	s.use();
-	setShaderValues();
 
 	glEnable(GL_DEPTH_TEST);
 
