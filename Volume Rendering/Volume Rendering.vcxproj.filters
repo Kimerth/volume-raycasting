@@ -16,6 +16,12 @@
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{ad9bd2f8-635c-434e-8fd3-81d8dfc3915d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\imgui">
+      <UniqueIdentifier>{9d2b68a2-be7d-425e-adaf-755aee0585b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\imgui\File Dialog">
+      <UniqueIdentifier>{68896547-1428-4d7d-b432-7977bf75d373}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -29,6 +35,30 @@
     </ClCompile>
     <ClCompile Include="Loader.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_demo.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_draw.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_tables.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\imgui_widgets.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\backends\imgui_impl_glut.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="include\imgui\FD\ImGuiFileDialog.cpp">
+      <Filter>Source Files\imgui\File Dialog</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

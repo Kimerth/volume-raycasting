@@ -14,6 +14,12 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <imgui/imgui.h>
+#include <imgui/backends/imgui_impl_glut.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+
+#include <imgui/FD/ImGuiFileDialog.h>
+
 #include "Volume.h"
 #include "Shader.h"
 
@@ -33,6 +39,10 @@ glm::vec3 eyePos(0.0f, 0.0f, 1.5f);
 
 float zoom = 0.5f;
 
+static bool show_volume_window = true;
+static bool show_tf_window = true;
+
+void displayUI();
 void render();
 void setShaderValues();
 
@@ -40,11 +50,16 @@ void display()
 {
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-	glEnable(GL_DEPTH_TEST);
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGLUT_NewFrame();
 
-	glViewport(0, 0, windowWidth, windowHeight);
+	displayUI();
+	ImGui::Render();
+	ImGuiIO& io = ImGui::GetIO();
 
 	render();
+
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
 	glutSwapBuffers();
 
@@ -74,6 +89,85 @@ void setShaderValues()
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_3D, v.gradsID);
 	s.setInt("gradsTex", 2);
+}
+
+void displayUI()
+{
+	ImGui::Begin("Main", NULL, ImGuiWindowFlags_MenuBar);
+
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::MenuItem("Show Volume Window"))
+			show_volume_window = true;
+
+		if (ImGui::MenuItem("Show TF Window"))
+			show_tf_window = true;
+		ImGui::EndMenuBar();
+	}
+	if (ImGui::CollapsingHeader("Info"))
+	{
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+	}
+
+	ImGui::End();
+
+	if (show_volume_window)
+	{
+		ImGui::Begin("Volume", &show_volume_window, ImGuiWindowFlags_MenuBar);
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::MenuItem("Open.."))
+				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".nrrd,.pvm", ".");
+
+			ImGui::EndMenuBar();
+		}
+
+		if (ImGuiFileDialog::Instance()->Display("ChooseVolumeOpen"))
+		{
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+				std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+				// TODO: open volume
+			}
+
+			ImGuiFileDialog::Instance()->Close();
+		}
+
+		ImGui::End();
+	}
+
+	if (show_tf_window)
+	{
+		ImGui::Begin("Transfer Function", &show_volume_window, ImGuiWindowFlags_MenuBar);
+		if (ImGui::BeginMenuBar())
+		{
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Open.."))
+					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFOpen", "Choose TF", ".sav,.txt", ".");
+				if (ImGui::MenuItem("Save"))
+					// TODO: save
+					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFSave", "Choose TF", ".sav,.txt", ".");
+				ImGui::EndMenu();
+			}
+			ImGui::EndMenuBar();
+		}
+
+		if (ImGuiFileDialog::Instance()->Display("ChoseTFOpen"))
+		{
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+				std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+				// TODO: open tf
+			}
+
+			ImGuiFileDialog::Instance()->Close();
+		}
+
+		ImGui::End();
+	}
 }
 
 void render() 
@@ -174,11 +268,25 @@ int main(int argc, char** argv)
 	glutDisplayFunc(display);
 	glutIdleFunc(glutPostRedisplay);
 
-	glutKeyboardFunc(keyboard);
-	glutMouseFunc(mouse);
-	glutMotionFunc(motion);
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+	ImGui::StyleColorsDark();
+
+	ImGui_ImplGLUT_Init();
+	ImGui_ImplGLUT_InstallFuncs();
+	ImGui_ImplOpenGL3_Init();
+
+	//glutKeyboardFunc(keyboard);
+	//glutMouseFunc(mouse);
+	//glutMotionFunc(motion);
 
 	glutMainLoop();
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGLUT_Shutdown();
+	ImGui::DestroyContext();
 
 	return 0;
 }
