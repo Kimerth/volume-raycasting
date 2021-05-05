@@ -73,6 +73,26 @@ void display()
 		angleY += ANGLE_SPEED * deltaTime / 1e+6;
 }
 
+void loadShaders()
+{
+	s.load("raycasting.vert", "raycasting.frag", v);
+	s.use();
+
+	s.setVec2("screen", windowWidth, windowHeight);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_3D, v.texID);
+	s.setInt("volumeTex", 0);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_3D, v.gradsID);
+	s.setInt("gradsTex", 2);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_1D, v.tfID);
+	s.setInt("tf", 1);
+}
+
 void displayUI()
 {
 	ImGui::Begin("Main", NULL, ImGuiWindowFlags_MenuBar);
@@ -86,6 +106,12 @@ void displayUI()
 			show_tf_window = true;
 		ImGui::EndMenuBar();
 	}
+
+	if (ImGui::Button("Reload Shaders")) 
+	{
+		loadShaders();
+	}
+
 	if (ImGui::CollapsingHeader("Info"))
 	{
 		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -99,7 +125,7 @@ void displayUI()
 		if (ImGui::BeginMenuBar())
 		{
 			if (ImGui::MenuItem("Open.."))
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".nrrd,.pvm", ".");
+				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".pvm,.nrrd", ".");
 
 			ImGui::EndMenuBar();
 		}
@@ -111,18 +137,7 @@ void displayUI()
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 				v.load(filePathName.c_str());
 
-				s.load("raycasting.vert", "raycasting.frag", v);
-				s.use();
-				
-				s.setVec2("screen", windowWidth, windowHeight);
-
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_3D, v.texID);
-				s.setInt("volumeTex", 0);
-
-				glActiveTexture(GL_TEXTURE2);
-				glBindTexture(GL_TEXTURE_3D, v.gradsID);
-				s.setInt("gradsTex", 2);
+				loadShaders();
 			}
 
 			ImGuiFileDialog::Instance()->Close();
@@ -157,7 +172,6 @@ void displayUI()
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_1D, v.tfID);
 				s.setInt("tf", 1);
-
 			}
 
 			ImGuiFileDialog::Instance()->Close();
@@ -238,22 +252,24 @@ void mouse(int button, int state, int x, int y)
 			doMove = state == GLUT_DOWN;
 			oldX = x, oldY = y;
 			break;
-		case 3:
-			zoom -= 0.05f;
-			break;
-		case 4:
-			zoom += 0.05f;
-			break;
 		default:
 			break;
 	}
+
+	ImGui_ImplGLUT_MouseFunc(button, state, x, y);
+}
+
+void mouseWheel(int button, int dir, int x, int y)
+{
+	zoom += dir > 0 ? 0.05f : -0.05f;
+
 	zoom = std::max(0.0f, std::min(2.0f, zoom));
 	eyePos = glm::vec3(0.0f, 0.0f, 1.0f + zoom);
 	view = glm::lookAt(eyePos,
 					   glm::vec3(0.0f, 0.0f, 0.0f),
-					   glm::vec3(0.0f, 1.0f, 0.0f));
-
-	ImGui_ImplGLUT_MouseFunc(button, state, x, y);
+			  		   glm::vec3(0.0f, 1.0f, 0.0f));
+	  
+	ImGui_ImplGLUT_MouseWheelFunc(button, dir, x, y);
 }
 
 void motion(int x, int y)
@@ -291,6 +307,7 @@ int main(int argc, char** argv)
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
 	glutMouseFunc(mouse);
+	glutMouseWheelFunc(mouseWheel);
 	glutMotionFunc(motion);
 
 	glutMainLoop();

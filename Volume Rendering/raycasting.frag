@@ -69,7 +69,7 @@ void main()
     vec3 pos = intersection.p1;
     fragColor = vec4(0);
 
-    for(int i = 0; i < MAX_PASSES && len < rayLength; ++i, len += STEP, pos += deltaDir)
+    for(int i = 0; i < MAX_PASSES && len < rayLength && fragColor.a < 0.9; ++i, len += STEP, pos += deltaDir)
     {
     	float intensity = texture(volumeTex, pos).x;
 
@@ -80,17 +80,14 @@ void main()
             vec3 grad = texture(gradsTex, pos).xyz;
 
             vec3 N = normalize(modelMatrix * vec4(grad, 0)).xyz;
-            vec3 V = normalize(origin - gl_FragCoord.xyz);
-            float coef = max(0.0, max(dot(V, N), dot(-V, N))) * tfSample.a;
+            float coef = max(0.0, dot(direction, grad));
 
-            vec4 color = (1.0 - fragColor.a) * vec4(tfSample.rgb * coef, 1) * intensity;
-            color.a = 1 - pow((1 - color.a), STEP / 0.5);
-
-            fragColor += color;
+            intensity = max(0.0, 1 - pow((1 - intensity), tfSample.a));
+            fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, coef) * intensity;
         }
     }
 
+    fragColor = min(vec4(1), fragColor);
     fragColor.rgb = vec3(1.0) - exp(-fragColor.rgb * EXPOSURE);
-
-    fragColor = vec4(pow(fragColor.rgb, vec3(1.0 / GAMMA)) ,1.0);
+    fragColor = vec4(pow(fragColor.rgb, vec3(1.0 / GAMMA)), 1.0);
 }

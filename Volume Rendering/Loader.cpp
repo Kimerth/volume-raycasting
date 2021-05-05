@@ -384,10 +384,10 @@ float* readTF(const char* path)
             "ra=%f\n"
             "ga=%f\n"
             "ba=%f\n", &re, &ge, &be, &ra, &ga, &ba);
-        data[i]     = re * rescale;
-        data[i + 1] = ge * gescale;
-        data[i + 2] = be * bescale;
-        data[i + 3] = (ra * rascale + ga * gascale + ba * bascale) / 3;
+        data[i]     = re;
+        data[i + 1] = ge;
+        data[i + 2] = be;
+        data[i + 3] = (ra + ga + ba) / 3;
     }
 
     return data;

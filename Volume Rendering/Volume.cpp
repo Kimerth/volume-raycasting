@@ -5,8 +5,13 @@
 
 void Volume::load(const char* path)
 {
-    //TODO: fix memory leak
-    init();
+    if(vao == NULL)
+        init();
+    else
+    {
+        GLuint textures[] = { texID, gradsID, tfID };
+        glDeleteTextures(3, textures);
+    }
 
     {
         glGenTextures(1, &texID);
@@ -70,7 +75,7 @@ void Volume::loadTF(const char* path)
             buffer[i] = 1;
     }
 
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA8, 256, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, 256, 0, GL_RGBA, GL_FLOAT, buffer);
 
     delete[] buffer;
 }
