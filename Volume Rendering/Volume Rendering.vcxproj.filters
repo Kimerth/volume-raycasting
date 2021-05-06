@@ -16,10 +16,13 @@
     <Filter Include="Resource Files\Shaders">
       <UniqueIdentifier>{ad9bd2f8-635c-434e-8fd3-81d8dfc3915d}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\imgui">
+    <Filter Include="External">
+      <UniqueIdentifier>{823b3e46-c6bf-484e-b2fe-d5f22e9a70ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="External\imgui">
       <UniqueIdentifier>{9d2b68a2-be7d-425e-adaf-755aee0585b0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\imgui\File Dialog">
+    <Filter Include="External\imgui\File Dialog">
       <UniqueIdentifier>{68896547-1428-4d7d-b432-7977bf75d373}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -37,28 +40,31 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="include\imgui\imgui.cpp">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>External\imgui</Filter>
     </ClCompile>
     <ClCompile Include="include\imgui\imgui_demo.cpp">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>External\imgui</Filter>
     </ClCompile>
     <ClCompile Include="include\imgui\imgui_draw.cpp">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>External\imgui</Filter>
     </ClCompile>
     <ClCompile Include="include\imgui\imgui_tables.cpp">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>External\imgui</Filter>
     </ClCompile>
     <ClCompile Include="include\imgui\imgui_widgets.cpp">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>External\imgui</Filter>
     </ClCompile>
     <ClCompile Include="include\imgui\backends\imgui_impl_glut.cpp">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>External\imgui</Filter>
     </ClCompile>
     <ClCompile Include="include\imgui\backends\imgui_impl_opengl3.cpp">
-      <Filter>Source Files\imgui</Filter>
+      <Filter>External\imgui</Filter>
     </ClCompile>
     <ClCompile Include="include\imgui\FD\ImGuiFileDialog.cpp">
-      <Filter>Source Files\imgui\File Dialog</Filter>
+      <Filter>External\imgui\File Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="transfer_function_widget.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -83,6 +89,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="transfer_function_widget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

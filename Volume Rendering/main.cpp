@@ -1,6 +1,7 @@
 ﻿#include <iostream>
 #include <fstream>
 #include <string>
+#include <algorithm>
 
 #include <chrono>
 #include <thread>
@@ -22,6 +23,7 @@
 
 #include "Volume.h"
 #include "Shader.h"
+#include "transfer_function_widget.h"
 
 #define FRAME_DURATON 32
 #define ANGLE_SPEED 0.68 // approx 40degrees/sec
@@ -38,6 +40,8 @@ bool autoRotate = true;
 glm::vec3 eyePos(0.0f, 0.0f, 1.5f);
 
 float zoom = 0.5f;
+
+TransferFunctionWidget tfWidget;
 
 static bool show_volume_window = true;
 static bool show_tf_window = true;
@@ -143,6 +147,8 @@ void displayUI()
 			ImGuiFileDialog::Instance()->Close();
 		}
 
+		ImGui::PlotHistogram("Histogram", v.hist, 256, 0, NULL, 0.0f, *std::max_element(v.hist, v.hist + 256), ImVec2(0, 100.0f), 1);
+
 		ImGui::End();
 	}
 
@@ -162,6 +168,8 @@ void displayUI()
 			}
 			ImGui::EndMenuBar();
 		}
+
+		tfWidget.draw_ui();
 
 		if (ImGuiFileDialog::Instance()->Display("ChoseTFOpen"))
 		{

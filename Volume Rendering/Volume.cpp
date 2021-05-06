@@ -29,6 +29,12 @@ void Volume::load(const char* path)
 
         glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
 
+        std::memset(hist, 0, 256 * sizeof(float));
+        for (int i = 0; i < sizeX; ++i)
+            for (int j = 0; j < sizeY; ++j)
+                for (int k = 0; k < sizeZ; ++k)
+                    hist[buffer[(k * sizeX * sizeY) + (j * sizeX) + i]]++;
+
         delete[] buffer;
     }
 
