@@ -33,6 +33,8 @@ TransferFunctionWidget::vec2f::vec2f(float c, int idx) : x(c), y(c), idx(idx) {}
 
 TransferFunctionWidget::vec2f::vec2f(float x, float y) : x(x), y(y) {}
 
+TransferFunctionWidget::vec2f::vec2f(float x, float y, int idx) : x(x), y(y), idx(idx) {}
+
 TransferFunctionWidget::vec2f::vec2f(const ImVec2& v) : x(v.x), y(v.y) {}
 
 TransferFunctionWidget::vec2f::vec2f(const vec2f& v, int idx): x(v.x), y(v.y), idx(idx) {}
@@ -73,8 +75,11 @@ TransferFunctionWidget::vec2f::operator ImVec2() const
 
 void TransferFunctionWidget::draw_ui()
 {
-	update_colormap();
-	update_gpu_image();
+	if (!loadedFromFile)
+	{
+		update_colormap();
+		update_gpu_image();
+	}
 
 	const ImGuiIO& io = ImGui::GetIO();
 
@@ -115,7 +120,7 @@ void TransferFunctionWidget::draw_ui()
 	ImVec2 clipped_mouse_pos = ImVec2(std::min(std::max(io.MousePos.x, bbmin.x), bbmax.x),
 		std::min(std::max(io.MousePos.y, bbmin.y), bbmax.y));
 
-	if (clicked_on_item) {
+	if (clicked_on_item && !loadedFromFile) {
 		vec2f mouse_pos = (vec2f(clipped_mouse_pos) - view_offset) / view_scale;
 		mouse_pos.x = clamp(mouse_pos.x, 0.f, 1.f);
 		mouse_pos.y = clamp(mouse_pos.y, 0.f, 1.f);
@@ -216,11 +221,46 @@ void TransferFunctionWidget::draw_ui()
 	for (const auto& pt : alpha_control_pts) {
 		const vec2f pt_pos = pt * view_scale + view_offset;
 		polyline_pts.push_back(pt_pos);
-		draw_list->AddCircleFilled(pt_pos, point_radius, 0xFFFFFFFF);
+		if(!loadedFromFile)
+			draw_list->AddCircleFilled(pt_pos, point_radius, 0xFFFFFFFF);
 	}
 	draw_list->AddPolyline(
 		polyline_pts.data(), (int)polyline_pts.size(), 0xFFFFFFFF, false, 2.f);
 	draw_list->PopClipRect();
+}
+
+void TransferFunctionWidget::loadTF(float data[])
+{
+	loadedFromFile = true;
+
+	alpha_control_pts.clear();
+	alpha_control_pts.push_back(vec2f(0, data[3], 0));
+
+	color_points.clear();
+	color_points.insert(color_points.begin(), data, data + 3);
+
+	int nb = 1;
+	for (int i = 2; i < 255; ++i)
+	{
+		alpha_control_pts.push_back(vec2f(static_cast<float>(i) / 256, data[4 * i + 3], 3 * nb++));
+		color_points.insert(color_points.end(), data + 4 * i, data + 4 * i + 3);
+	}
+
+	alpha_control_pts.push_back(vec2f(1, data[256 * 4 - 1], nb * 3));
+	color_points.insert(color_points.begin(), data + 256 * 4 - 3, data + 256 * 4);
+
+	std::copy(data, data + 4 * 256, current_colormap);
+
+	update_gpu_image();
+}
+
+void TransferFunctionWidget::reset()
+{
+	loadedFromFile = false;
+	last_point = -1;
+	selected_point = -1;
+	color_points = { 1, 1, 1, 1, 1, 1, };
+	alpha_control_pts = { vec2f(0.f, 0), vec2f(1.f, 3) };
 }
 
 void TransferFunctionWidget::update_gpu_image()

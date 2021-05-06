@@ -360,19 +360,7 @@ float* readTF(const char* path)
     char* buffer = new char[length];
     file.read(buffer, length);
 
-    float rescale, gescale, bescale;
-    float rascale, gascale, bascale;
-
-    char* ptr = strstr(buffer, "rescale=");
-    sscanf_s(ptr,
-        "rescale=%f\n"
-        "gescale=%f\n"
-        "bescale=%f\n"
-        "rascale=%f\n"
-        "gascale=%f\n"
-        "bascale=%f\n", &rescale, &gescale, &bescale, &rascale, &gascale, &bascale);
-
-    ptr = strstr(ptr, "re=");
+    char* ptr = strstr(buffer, "re=");
     for (int i = 0; ptr != NULL && i < 4 * 256; i+=4, ptr = strstr(ptr + 1, "re="))
     {
         float re, ge, be;

@@ -23,6 +23,7 @@
 
 #include "Volume.h"
 #include "Shader.h"
+#include "Loader.h"
 #include "transfer_function_widget.h"
 
 #define FRAME_DURATON 32
@@ -104,10 +105,10 @@ void displayUI()
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::MenuItem("Show Volume Window"))
-			show_volume_window = true;
+			show_volume_window = !show_volume_window;
 
 		if (ImGui::MenuItem("Show TF Window"))
-			show_tf_window = true;
+			show_tf_window = !show_tf_window;
 		ImGui::EndMenuBar();
 	}
 
@@ -141,6 +142,13 @@ void displayUI()
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 				v.load(filePathName.c_str());
 
+				std::string savPath = (std::string(filePathName) + ".sav");
+				if (std::fstream{ savPath })
+				{
+					float* buffer = readTF(savPath.c_str());
+					tfWidget.loadTF(buffer);
+				}
+
 				loadShaders();
 			}
 
@@ -157,6 +165,9 @@ void displayUI()
 		ImGui::Begin("Transfer Function", &show_volume_window, ImGuiWindowFlags_MenuBar);
 		if (ImGui::BeginMenuBar())
 		{
+			if (ImGui::MenuItem("New"))
+				tfWidget.reset();
+
 			if (ImGui::BeginMenu("File"))
 			{
 				if (ImGui::MenuItem("Open.."))
@@ -166,6 +177,7 @@ void displayUI()
 					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFSave", "Choose TF", ".sav,.txt", ".");
 				ImGui::EndMenu();
 			}
+
 			ImGui::EndMenuBar();
 		}
 
@@ -176,7 +188,10 @@ void displayUI()
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				v.loadTF(filePathName.c_str());
+				float* tf = readTF(filePathName.c_str());
+
+				tfWidget.loadTF(tf);
+
 				glActiveTexture(GL_TEXTURE1);
 				glBindTexture(GL_TEXTURE_1D, v.tfID);
 				s.setInt("tf", 1);
@@ -185,12 +200,39 @@ void displayUI()
 			ImGuiFileDialog::Instance()->Close();
 		}
 
+		if (ImGuiFileDialog::Instance()->Display("ChoseTFSave"))
+		{
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+
+				std::ofstream f(filePathName);
+
+				for (int i = 0; i < 256; ++i)
+				{
+					f << "re=" << tfWidget.current_colormap[4 * i] << std::endl
+						<< "ge=" << tfWidget.current_colormap[4 * i + 1] << std::endl
+						<< "be=" << tfWidget.current_colormap[4 * i + 2] << std::endl
+						<< "ra=" << tfWidget.current_colormap[4 * i + 3] << std::endl
+						<< "ga=" << tfWidget.current_colormap[4 * i + 3] << std::endl
+						<< "ba=" << tfWidget.current_colormap[4 * i + 3] << std::endl;
+				}
+				
+				f.close();
+			}
+
+			ImGuiFileDialog::Instance()->Close();
+		}
+
+
 		ImGui::End();
 	}
 }
 
 void render() 
 {
+	v.loadTF(tfWidget.current_colormap);
+
 	glClearColor(0, 0, 0, 1.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

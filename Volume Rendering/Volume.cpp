@@ -9,8 +9,8 @@ void Volume::load(const char* path)
         init();
     else
     {
-        GLuint textures[] = { texID, gradsID, tfID };
-        glDeleteTextures(3, textures);
+        GLuint textures[] = { texID, gradsID };
+        glDeleteTextures(2, textures);
     }
 
     {
@@ -39,14 +39,6 @@ void Volume::load(const char* path)
     }
 
     {
-        std::string savPath = (std::string(path) + ".sav");
-        if (std::fstream{ savPath })
-            loadTF(savPath.c_str());
-        else
-            loadTF(nullptr);
-    }
-
-    {
         glGenTextures(1, &gradsID);
         glBindTexture(GL_TEXTURE_3D, gradsID);
 
@@ -60,30 +52,21 @@ void Volume::load(const char* path)
     }
 }
 
-void Volume::loadTF(const char* path)
+void Volume::loadTF(float data[])
 {
-    glGenTextures(1, &tfID);
-    glBindTexture(GL_TEXTURE_1D, tfID);
-
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-    float* buffer;
-    if(path != nullptr)
-        buffer = readTF(path);
-    else
+    if (tfID == NULL)
     {
-        buffer = new float[256];
-        for (int i = 0; i < 256; ++i)
-            buffer[i] = 1;
+        glGenTextures(1, &tfID);
+        glBindTexture(GL_TEXTURE_1D, tfID);
+
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
 
-    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, 256, 0, GL_RGBA, GL_FLOAT, buffer);
-
-    delete[] buffer;
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, 256, 0, GL_RGBA, GL_FLOAT, data);
 }
 
 void Volume::init()

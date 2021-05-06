@@ -14,7 +14,7 @@ public:
 	float hist[256];
 
 	void load(const char* path);
-	void loadTF(const char* path);
+	void loadTF(float data[]);
 private:
 	void init();
 };
