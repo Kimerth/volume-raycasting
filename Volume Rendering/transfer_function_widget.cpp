@@ -155,16 +155,18 @@ void TransferFunctionWidget::draw_ui()
 				[](const vec2f& a, const vec2f& b) { return a.x < b.x; });
 
 			for (int i = 0; i < alpha_control_pts.size(); ++i)
-			{
-				vec2f v = alpha_control_pts[i];
-				if (v.idx != 3 * i) 
+				while (alpha_control_pts[i].idx != 3 * i)
 				{
 					std::swap_ranges(color_points.begin() + i * 3,
 						color_points.begin() + (i + 1) * 3,
-						color_points.begin() + v.idx);
-					std::swap(alpha_control_pts[i].idx, alpha_control_pts[v.idx / 3].idx);
+						color_points.begin() + alpha_control_pts[i].idx);
+					for(int j = i + 1; j < alpha_control_pts.size(); ++j)
+						if (alpha_control_pts[j].idx == 3 * i)
+						{
+							std::swap(alpha_control_pts[i].idx, alpha_control_pts[j].idx);
+							break;
+						}
 				}
-			}
 
 			if (selected_point != 0 && selected_point != alpha_control_pts.size() - 1) 
 			{
@@ -193,7 +195,14 @@ void TransferFunctionWidget::draw_ui()
 			// We also want to prevent erasing the first and last points
 			if (fnd != alpha_control_pts.end() && fnd != alpha_control_pts.begin() &&
 				fnd != alpha_control_pts.end() - 1)
+			{
+				color_points.erase(color_points.begin() + fnd->idx, color_points.begin() + fnd->idx + 3);
+				for (int i = 0; i < alpha_control_pts.size(); ++i)
+					if (alpha_control_pts[i].idx > fnd->idx)
+						alpha_control_pts[i].idx -= 3;
 				alpha_control_pts.erase(fnd);
+				last_point = -1;
+			}
 		}
 		else 
 			selected_point = -1;
