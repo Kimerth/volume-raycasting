@@ -4,13 +4,14 @@
 #include <iostream>
 #include <vector>
 
-uchar* readNRRD(const char* path, int& width, int& height, int& depth)
+uchar* readNRRD(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     std::ifstream file(path, std::ios::binary);
 
     if (!file.good()) return nullptr;
 
     int sizeData = 0;
+    scaleX = 1, scaleY = 1, scaleZ = 1;
     for (std::string line; std::getline(file, line) && !line.empty(); )
     {
         if (line.compare(0, 6, "sizes:") == 0)
@@ -19,6 +20,12 @@ uchar* readNRRD(const char* path, int& width, int& height, int& depth)
 
             iss >> width >> height >> depth;
             sizeData = width * height * depth;
+        }
+        else if (line.compare(0, 9, "spacings:") == 0)
+        {
+            std::istringstream iss(line.substr(9));
+
+            iss >> scaleX >> scaleY>> scaleZ;
         }
     }
 
@@ -261,7 +268,7 @@ uchar* readDDSfile(std::ifstream& file, uint &bytes, uint block)
 
 #pragma endregion
 
-uchar* readPVM(const char* path, int& width, int& height, int& depth)
+uchar* readPVM(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     uchar* data;
     char* ptr;
@@ -269,7 +276,7 @@ uchar* readPVM(const char* path, int& width, int& height, int& depth)
 
     bool is_DDS = false;
 
-    float sx = 1.0f, sy = 1.0f, sz = 1.0f;
+    scaleX = 1.0f, scaleY = 1.0f, scaleZ = 1.0f;
 
     std::ifstream file(path, std::ios::binary);
     if (!file.good())
@@ -290,9 +297,9 @@ uchar* readPVM(const char* path, int& width, int& height, int& depth)
 
     ptr = strchr((char*)data, '\n') + 1;;
 
-    if (sscanf_s((char*)ptr, "%d %d %d\n%g %g %g\n", &width, &height, &depth, &sx, &sy, &sz) != 6)
+    if (sscanf_s((char*)ptr, "%d %d %d\n%g %g %g\n", &width, &height, &depth, &scaleX, &scaleY, &scaleZ) != 6)
         exit(EXIT_FAILURE);
-    if (width < 1 || height < 1 || depth < 1 || sx <= 0.0f || sy <= 0.0f || sz <= 0.0f)
+    if (width < 1 || height < 1 || depth < 1 || scaleX <= 0.0f || scaleY <= 0.0f || scaleZ <= 0.0f)
         exit(EXIT_FAILURE);
     ptr = strchr((char*)ptr, '\n') + 1;
 
@@ -330,15 +337,15 @@ Format getFileFormat(const char* path)
         return Format::UNKNOWN;
 }
 
-uchar* readVolume(const char* path, int& width, int& height, int& depth)
+uchar* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     switch (getFileFormat(path))
     {
     case Format::NRRD:
-        return readNRRD(path, width, height, depth);
+        return readNRRD(path, width, height, depth, scaleX, scaleY, scaleZ);
         break;
     case Format::PVM:
-        return readPVM(path, width, height, depth);
+        return readPVM(path, width, height, depth, scaleX, scaleY, scaleZ);
         break;
     default:
         break;

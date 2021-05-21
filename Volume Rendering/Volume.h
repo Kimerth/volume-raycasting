@@ -2,6 +2,10 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
+#include <glm/mat4x4.hpp>
+#include <glm/gtx/transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 class Volume
 {
 public:
@@ -10,6 +14,7 @@ public:
 	GLuint tfID;
 	GLuint gradsID;
 	int sizeX, sizeY, sizeZ;
+	glm::vec3 scale;
 
 	float hist[256];
 

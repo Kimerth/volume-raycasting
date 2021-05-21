@@ -20,9 +20,9 @@ enum class Format
 
 Format getFileFormat(const char* path);
 
-uchar* readPVM(const char* path, int& width, int& height, int& depth);
-uchar* readNRRD(const char* path, int& width, int& height, int& depth);
+uchar* readPVM(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
+uchar* readNRRD(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
 
-uchar* readVolume(const char* path, int& width, int& height, int& depth);
+uchar* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
 
 float* readTF(const char* path);

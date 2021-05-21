@@ -84,6 +84,7 @@ void loadShaders()
 	s.use();
 
 	s.setVec2("screen", windowWidth, windowHeight);
+	s.setVec3("scale", v.scale);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, v.texID);
@@ -155,7 +156,7 @@ void displayUI()
 			ImGuiFileDialog::Instance()->Close();
 		}
 
-		ImGui::PlotHistogram("Histogram", v.hist, 256, 0, NULL, 0.0f, *std::max_element(v.hist, v.hist + 256), ImVec2(0, 100.0f), 1);
+		ImGui::PlotHistogram("Histogram", v.hist, 256, 0, NULL, 0.0f, 1.0f, ImVec2(0, 100.0f), 1);
 
 		ImGui::End();
 	}
@@ -173,7 +174,6 @@ void displayUI()
 				if (ImGui::MenuItem("Open.."))
 					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFOpen", "Choose TF", ".sav,.txt", ".");
 				if (ImGui::MenuItem("Save"))
-					// TODO: save
 					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFSave", "Choose TF", ".sav,.txt", ".");
 				ImGui::EndMenu();
 			}

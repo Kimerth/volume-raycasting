@@ -2,6 +2,7 @@
 #include "Loader.h"
 
 #include <fstream>
+#include <algorithm>
 
 void Volume::load(const char* path)
 {
@@ -25,7 +26,10 @@ void Volume::load(const char* path)
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        GLubyte* buffer = readVolume(path, sizeX, sizeY, sizeZ);
+        GLubyte* buffer = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z);
+        int maxSize = std::max({sizeX, sizeY, sizeZ});
+        scale.x *= (float)sizeX / maxSize, scale.y *= (float)sizeY / maxSize, scale.z *= (float)sizeZ / maxSize;
+        scale /= std::max({ scale.x, scale.y, scale.z });
 
         glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
 
@@ -34,6 +38,10 @@ void Volume::load(const char* path)
             for (int j = 0; j < sizeY; ++j)
                 for (int k = 0; k < sizeZ; ++k)
                     hist[buffer[(k * sizeX * sizeY) + (j * sizeX) + i]]++;
+
+        float max = *std::max_element(hist, hist + 256);
+        for (int i = 0; i < 256; ++i)
+            hist[i] /= max;
 
         delete[] buffer;
     }

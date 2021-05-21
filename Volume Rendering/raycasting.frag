@@ -14,6 +14,7 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 
 uniform vec2 screen;
+uniform vec3 scale;
 out vec4 fragColor;
 
 uniform vec3 origin;
@@ -69,21 +70,26 @@ void main()
     vec3 pos = intersection.p1;
     fragColor = vec4(0);
 
-    for(int i = 0; i < MAX_PASSES && len < rayLength && fragColor.a < 0.9; ++i, len += STEP, pos += deltaDir)
+    for(int i = 0; 
+        i < MAX_PASSES && len < rayLength && fragColor.a < 0.9;
+        ++i, len += STEP, pos += deltaDir)
     {
-    	float intensity = texture(volumeTex, pos).x;
-
-        if(intensity >= THRESHOLD)
+        if(all(lessThan(pos / scale, vec3(1))))
         {
-            vec4 tfSample = texture(tf, intensity);
+    	    float intensity = texture(volumeTex, pos / scale).x;
+
+            if(intensity >= THRESHOLD)
+            {
+                vec4 tfSample = texture(tf, intensity);
             
-            vec3 grad = texture(gradsTex, pos).xyz;
+                vec3 grad = texture(gradsTex, pos).xyz;
 
-            vec3 N = normalize(modelMatrix * vec4(grad, 0)).xyz;
-            float coef = max(0.0, dot(direction, grad));
+                vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;
+                float coef = max(0.0, dot(N, N));
 
-            intensity = max(0.0, 1 - pow((1 - intensity), tfSample.a));
-            fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, coef) * intensity;
+                intensity = max(0.0, 1 - pow((1 - intensity), tfSample.a));
+                fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, coef) * intensity;
+            }
         }
     }
 
