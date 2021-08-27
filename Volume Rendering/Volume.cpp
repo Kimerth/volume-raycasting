@@ -39,9 +39,13 @@ void Volume::load(const char* path)
                 for (int k = 0; k < sizeZ; ++k)
                     hist[buffer[(k * sizeX * sizeY) + (j * sizeX) + i]]++;
 
-        float max = *std::max_element(hist, hist + 256);
+        hist[0] = 0;
         for (int i = 0; i < 256; ++i)
-            hist[i] /= max;
+            hist[i] = std::log(hist[i] + 1);
+        float max = *std::max_element(hist, hist + 256);
+        float min = *std::min_element(hist + 1, hist + 256);
+        for (int i = 1; i < 256; ++i)
+            hist[i] = (hist[i] - min) / max;
 
         delete[] buffer;
     }

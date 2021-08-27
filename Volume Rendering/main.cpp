@@ -156,7 +156,8 @@ void displayUI()
 			ImGuiFileDialog::Instance()->Close();
 		}
 
-		ImGui::PlotHistogram("Histogram", v.hist, 256, 0, NULL, 0.0f, 1.0f, ImVec2(0, 100.0f), 1);
+		ImGui::Text("Size: %dx%dx%d 8 bit", v.sizeX, v.sizeY, v.sizeZ);
+		ImGui::PlotHistogram("Histogram", v.hist, 256, 0, NULL, 0.0f, 1.0f, ImVec2(0, 100.0f), sizeof(float));
 
 		ImGui::End();
 	}
@@ -277,13 +278,21 @@ void reshape(int w, int h)
 	ImGui_ImplGLUT_ReshapeFunc(w, h);
 }
 
+void mouseWheel(int button, int dir, int x, int y);
+
 void keyboard(unsigned char key, int x, int y) 
 {
 	switch (key) 
 	{
 		case ' ':
 			autoRotate = !autoRotate;	
-			break; 
+			break;
+		case 'w':
+			mouseWheel(0, 1, 0, 0);
+			break;
+		case 's':
+			mouseWheel(0, -1, 0, 0);
+			break;
 		default:
 			break;
 	}
