@@ -1,3 +1,3 @@
-[submodule ".\\externals\\data\\tcia-ct-scan-dataset"]
-	path = .\\externals\\data\\tcia-ct-scan-dataset
+[submodule "externals/data/tcia-ct-scan-dataset"]
+	path = externals/data/tcia-ct-scan-dataset
 	url = https://github.com/deepmind/tcia-ct-scan-dataset.git
