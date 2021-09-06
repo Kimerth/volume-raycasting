@@ -1,0 +1,3 @@
+data:
+  base_path: ../external/data/tcia-ct-scan-dataset/nrrds/
+  output_path: ./data/
