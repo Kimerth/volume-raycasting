@@ -1,5 +1,7 @@
 defaults:
   - data: tcia-ct-scan
+  - hparams:
+    - data
   - /hydra/callbacks:
     - data_callback
   - override hydra/job_logging: colorlog

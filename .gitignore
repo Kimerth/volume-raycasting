@@ -46,3 +46,7 @@ Volume Rendering/res/
 *.exe
 *.out
 *.app
+
+*/__pycache__
+*/output
+*/outputs

@@ -1,2 +1,5 @@
-base_path: ../external/data/tcia-ct-scan-dataset/nrrds/
-output_path: ./data/
+base_path: "../external/data/tcia-ct-scan-dataset/nrrds/"
+scan_patten: "*/radiographer/*/"
+file_name: CT_IMAGE.nrrd
+labels_path: segmentations/
+output_path: "./data/"
