@@ -1,4 +1,0 @@
-queue_length: 5
-samples_per_volume: 5
-crop_or_pad_size: 256,256,256
-patch_size: 128,128,128

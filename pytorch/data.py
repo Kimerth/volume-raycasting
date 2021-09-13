@@ -1,6 +1,6 @@
 from glob import glob
 from os.path import dirname
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from omegaconf import DictConfig
 from torchio import LabelMap, ScalarImage, Subject, SubjectsDataset, Queue
@@ -25,7 +25,7 @@ def _load_base_data(data_map: Dict[str, List[str]]) -> List[Subject]:
 def _get_transform(cfg: DictConfig):
     return Compose([
         # ToCanonical(),
-        CropOrPad((cfg["hparams"]["crop_or_pad_size"]),
+        CropOrPad((cfg["data"]["crop_or_pad_size"]),
                   padding_mode='reflect'),
         # RandomMotion(),
         RandomBiasField(),
@@ -46,6 +46,6 @@ def load_dataset(cfg: DictConfig) -> Queue:
     dataset = SubjectsDataset(subjects, transform)
 
     return Queue(dataset,
-                 cfg["hparams"]["queue_length"],
-                 cfg["hparams"]["samples_per_volume"],
-                 UniformSampler(cfg["hparams"]["patch_size"]))
+                 cfg["data"]["queue_length"],
+                 cfg["data"]["samples_per_volume"],
+                 UniformSampler(cfg["data"]["patch_size"]))
