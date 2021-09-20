@@ -1,8 +1,9 @@
 defaults:
-  - data: 
-    - defaults
+  - data:
+    - generic
     - tcia-ct-scan
   - hparams:
+    - generic
     - UNet3D
   - /hydra/callbacks:
     - data_callback

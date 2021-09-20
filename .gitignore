@@ -47,6 +47,6 @@ Volume Rendering/res/
 *.out
 *.app
 
-*/__pycache__
-*/output
-*/outputs
+**/__pycache__
+**/output
+**/outputs

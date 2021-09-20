@@ -1,0 +1,3 @@
+checkpoints_dir: 'checkpoints'
+tb_output_dir: 'metrics'
+latest_checkpoint_file: 'checkpoint_latest.pt'
