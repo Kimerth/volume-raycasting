@@ -2,4 +2,4 @@ base_path: "${oc.env:TOP_PROJECT_PATH}/externals/data/tcia-ct-scan-dataset/nrrds
 scan_pattern: "*/radiographer/*/CT_IMAGE.nrrd"
 labels_path: segmentations/
 output_path: "./data/"
-batch: 5
+batch: 1

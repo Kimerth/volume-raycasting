@@ -48,13 +48,14 @@ class UNet3D(nn.Module):
         last_output = self.bottleneck(last_output)
 
         for (upconv, decoder) in zip(self.decoders[0::2], self.decoders[1::2]):
-            last_output = torch.cat(
+            last_output = decoder(
+                torch.cat(
                 (
                     upconv(last_output),
                     enc_outputs[-1]
                 ), dim=1)
+            )
             del enc_outputs[-1]
-            last_output = decoder(last_output)
 
         return self.output_conv(last_output)
 
