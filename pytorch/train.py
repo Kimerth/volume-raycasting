@@ -19,7 +19,13 @@ def train(cfg: DictConfig, dataloader: torch.utils.data.DataLoader) -> torch.nn.
     # device = torch.device('cpu')
     log.info(f'Using device: {device}')
 
-    model = UNet3D(cfg)
+    model = UNet3D(cfg).half().to(device)
+    # TODO figure out a way for better logging
+    if device.type == 'cuda':
+        log.info(f'{model.__class__.__name__} Memory Usage on {torch.cuda.get_device_name()}:')
+        model_memory_allocated = round(torch.cuda.memory_allocated()/1024**3,1)
+        log.info(f'\tAllocated: {model_memory_allocated} GB')
+
 
     optimizer: Optimizer = torch.optim.Adam(
         model.parameters(),
@@ -31,14 +37,7 @@ def train(cfg: DictConfig, dataloader: torch.utils.data.DataLoader) -> torch.nn.
         gamma=cfg['scheduer_gamma']
     )
 
-    model.to(device)
-    # TODO figure out a way for better logging
-    if device.type == 'cuda':
-        log.info(f'{model.__class__.__name__} Memory Usage on {torch.cuda.get_device_name()}:')
-        model_memory_allocated = round(torch.cuda.memory_allocated()/1024**3,1)
-        log.info(f'\tAllocated: {model_memory_allocated} GB')
-
-    criterion = BCEWithLogitsLoss().to(device)
+    criterion = BCEWithLogitsLoss().half().to(device)
 
     writer = SummaryWriter(cfg['tb_output_dir'])
 
@@ -58,33 +57,31 @@ def train(cfg: DictConfig, dataloader: torch.utils.data.DataLoader) -> torch.nn.
             x: torch.Tensor = batch['source']['data']
             y: torch.Tensor = batch['labels']['data']
 
-            if first_iter:
-                log.info(f'Getting summary of {model.__class__.__name__}...')
-                log.info(
-                    summary(model, input_size=x.shape[1:], device=str(device))
-                )
-
-            x.to(device)
-            y.to(device)
+            # FIXME add code in repo as external (not submodule) and change it to suit needs
+            # if first_iter:
+            #     log.info(f'Getting summary of {model.__class__.__name__}...')
+            #     log.info(
+            #         summary(model, input_size=x.shape[1:], device=str(device))
+            #     )
 
             # FIXME this is plain ugly
-            if first_iter and device.type == 'cuda':
-                memory_allocated = round(torch.cuda.memory_allocated()/1024**3,1)
+            # if first_iter and device.type == 'cuda':
+            #     memory_allocated = round(torch.cuda.memory_allocated()/1024**3,1)
 
-                log.info(f'Data Memory Usage on {torch.cuda.get_device_name()}:')
-                log.info(f'\tAllocated: {memory_allocated - model_memory_allocated} GB')
+            #     log.info(f'Data Memory Usage on {torch.cuda.get_device_name()}:')
+            #     log.info(f'\tAllocated: {memory_allocated - model_memory_allocated} GB')
 
-                log.info(f'Total Memory Usage on {torch.cuda.get_device_name()}:')
-                log.info(f'\tAllocated: {memory_allocated} GB')
+            #     log.info(f'Total Memory Usage on {torch.cuda.get_device_name()}:')
+            #     log.info(f'\tAllocated: {memory_allocated} GB')
 
-                first_iter = False
+            #     first_iter = False
 
-            outputs = model(x)
+            outputs = model(x.half().to(device))
 
             logits = torch.sigmoid(outputs)
             labels = (logits > 0.5).float()
 
-            loss: torch.Tensor = criterion(outputs, y)
+            loss: torch.Tensor = criterion(outputs, y.half().to(device))
 
             loss.backward()
             optimizer.step()

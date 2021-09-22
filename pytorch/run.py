@@ -10,11 +10,15 @@ from omegaconf import DictConfig, OmegaConf
 from data import load_dataset
 from train import train
 
+import torch
+
 repo = git.Repo('.', search_parent_directories=True)
 
 os.environ['HYDRA_FULL_ERROR'] = '1'
 os.environ['TOP_PROJECT_PATH'] = repo.working_tree_dir
 
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
 
 class DataCallback(Callback):
     def __init__(self) -> None:
