@@ -10,62 +10,55 @@ class UNet3D(nn.Module):
         super(UNet3D, self).__init__()
 
         features: int = int(cfg['init_features'])
+        self.nb_blocks = cfg['nb_blocks']
 
-        self.encoders = [
-            (
-                UNet3D._block(cfg['in_channels'],
-                              features, name='enc_1'),
-                nn.MaxPool3d(kernel_size=2, stride=2)
-            )
-        ]
-        for idx in range(1, cfg['nb_blocks']):
-            features *= 2
+        self.encoders = nn.ModuleList([
+            UNet3D._block(cfg['in_channels'], features, name='enc_1'),
+            nn.MaxPool3d(kernel_size=2, stride=2)
+        ])
+        for idx in range(1, self.nb_blocks):
             self.encoders += [
-                (
-                    UNet3D._block(features, features * 2,
-                                  name=f'enc_{idx + 1}'),
-                    nn.MaxPool3d(kernel_size=2, stride=2)
-                )
+                UNet3D._block(features, features * 2, name=f'enc_{idx + 1}'),
+                nn.MaxPool3d(kernel_size=2, stride=2)
             ]
+            features *= 2
 
-        self.bottleneck = UNet3D._block(features * 2, features * 4, name='bottleneck')
+        self.bottleneck = UNet3D._block(features, features * 2, name='bottleneck')
+        features *= 2
 
-        self.decoders = []
-        for idx in range(cfg['nb_blocks'], 0, -1):
-            features //= 2
+        self.decoders = nn.ModuleList()
+        for idx in range(self.nb_blocks, 0, -1):
             self.decoders += [
-                (
-                    nn.ConvTranspose3d(features, features // 2,
-                                       kernel_size=2, stride=2),
-                    UNet3D._block(features, features // 8, name=f'dec_{idx}')
-                )
+                nn.ConvTranspose3d(features, features // 2, kernel_size=2, stride=2),
+                UNet3D._block(features, features // 2, name=f'dec_{idx}')
             ]
+            features //= 2
 
         self.output_conv = nn.Conv3d(
             in_channels=features, out_channels=cfg['out_channels'], kernel_size=1)
 
-    def forward(self, x):
-        outputs = OrderedDict([('x', x)])
+    def forward(self, x: torch.Tensor):
+        last_output: torch.Tensor = x
+        enc_outputs: list[torch.Tensor] = []
 
-        def get_last_output():
-            k = next(reversed(outputs))
-            return outputs[k]
+        for (encoder, pool) in zip(self.encoders[0::2], self.encoders[1::2]):
+            enc_outputs.append(encoder(last_output))
+            last_output = pool(enc_outputs[-1])
 
-        for idx, (encoder, pool) in enumerate(self.encoders):
-            outputs[f'enc_{idx}'] = encoder(get_last_output())
-            outputs[f'pool_{idx}'] = pool(outputs[f'enc_{idx}'])
+        last_output = self.bottleneck(last_output)
 
-        outputs['bottleneck'] = self.bottleneck(outputs[-1])
-
-        for idx, (upconv, decoder) in reversed(list(enumerate(self.decoders))):
-            outputs[f'upconv_{idx}'] = torch.cat(
+        for idx, (upconv, decoder) in enumerate(
+            zip(self.decoders[0::2], self.decoders[1::2])
+        ):
+            idx = (self.nb_blocks - 1) - idx
+            last_output = torch.cat(
                 (
-                    upconv(get_last_output()),
-                    outputs[f'enc_{idx}']
+                    upconv(last_output),
+                    enc_outputs[idx]
                 ), dim=1)
-            outputs[f'dec_{idx}'] = decoder(outputs[f'upconv_{idx}'])
+            last_output = decoder(last_output)
 
-        return self.output_conv(get_last_output())
+        return self.output_conv(last_output)
 
     @staticmethod
     def _block(in_channels: int, features: int, name: str):
