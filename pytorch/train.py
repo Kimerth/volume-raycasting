@@ -3,9 +3,7 @@ import os
 import time
 
 import torch
-from git import exc
 from omegaconf import DictConfig
-from torch._C import DeviceObjType
 from torch.nn import BCEWithLogitsLoss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import StepLR
@@ -59,9 +57,9 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
     first_iter = True
 
     # FIXME when loading checkpoint resume epochs
-    iteration = 0
-    metrics = None
-    cumulative_loss = 0
+    iteration: int = 0
+    metrics: dict[str, float] = None
+    cumulative_loss: float = 0
     for epoch in range(cfg['total_epochs']):
         log.info(f'Starting epoch: {epoch + 1}...')
 
@@ -95,7 +93,11 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
             with torch.set_grad_enabled(True):
                 outputs = model(x.half().to(device))
                 loss: torch.Tensor = criterion(outputs, y.half().to(device))
-                loss = loss / cfg['accum_iter']
+
+                if torch.isnan(loss):
+                    raise Exception("NaN loss")
+
+                loss = loss / float(cfg['accum_iter'])
                 loss.backward()
 
                 cumulative_loss += loss.item()
@@ -115,6 +117,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 log.info('\tPerforming optimization step...')
                 start = time.time()
 
+                torch.nn.utils.clip_grad_value_(model.parameters(), clip_value=1.0)
                 optimizer.step()
 
                 end = time.time()
