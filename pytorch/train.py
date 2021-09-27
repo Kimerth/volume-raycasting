@@ -100,6 +100,9 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
                 loss.backward()
 
+                logits = torch.sigmoid(outputs)
+                labels = (logits > 0.5).float()
+
                 if metrics is None:
                     metrics = metric(y.cpu(), labels.cpu())
                 else:
@@ -111,12 +114,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                     optimizer.zero_grad()
 
                     iteration += 1
-
-                    logits = torch.sigmoid(outputs)
-                    labels = (logits > 0.5).float()
-
                     writer.add_scalar('training/loss', loss.item(), iteration)
-
                     if (batch_idx + 1) % cfg['accum_iter'] == 0:
                         for k, v in metrics.items():
                             writer.add_scalar(f'training/{k}', v, iteration)
