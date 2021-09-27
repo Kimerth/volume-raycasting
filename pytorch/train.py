@@ -13,24 +13,20 @@ from torchsummary import summary
 
 from util import TqdmLoggingHandler, metric
 
-# FIXME not working in Colab
-# try:
-#     if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
-#         from tqdm.notebook import tqdm
-#     else:
-#         from tqdm import tqdm
-# except NameError:
-#     from tqdm import tqdm
-
-from tqdm.notebook import tqdm
+try:
+    if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
+        from tqdm.notebook import tqdm
+    else:
+        from tqdm import tqdm
+except NameError:
+    from tqdm import tqdm
 
 from models.segmentation import UNet3D
 
 
 def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
     log = logging.getLogger(__name__)
-    # FIXME not working
-    # log.addHandler(TqdmLoggingHandler())
+    log.addHandler(TqdmLoggingHandler())
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # device = torch.device('cpu')
@@ -68,7 +64,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
         optimizer.zero_grad()
 
-        for batch_idx, batch in tqdm(enumerate(data_loader), position=0, leave=True):
+        for batch_idx, batch in tqdm(enumerate(data_loader), position=0, leave=True, total=len(data_loader)):
             log.info(f'epoch {epoch + 1}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}')
 
             # TODO check out torchtyping
