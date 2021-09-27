@@ -14,13 +14,15 @@ from torchsummary import summary
 
 from util import TqdmLoggingHandler, metric
 
-try:
-    if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
-        from tqdm.notebook import tqdm
-    else:
-        from tqdm import tqdm
-except NameError:
-    from tqdm import tqdm
+# FIXME not working
+# try:
+#     if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
+#         from tqdm.notebook import tqdm
+#     else:
+#         from tqdm import tqdm
+# except NameError:
+#     from tqdm import tqdm
+from tqdm.notebook import tqdm
 
 from models.segmentation import UNet3D
 
