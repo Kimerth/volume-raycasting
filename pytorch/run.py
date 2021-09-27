@@ -30,8 +30,8 @@ class DataCallback(Callback):
 
 @hydra.main(config_path='conf', config_name='config')
 def my_app(cfg: DictConfig) -> None:
-    dataloader = load_dataset(cfg['data'])
-    train(cfg['hparams'], dataloader)
+    data_loader = load_dataset(cfg['data'])
+    train(cfg['hparams'], data_loader)
 
 
 if __name__ == '__main__':

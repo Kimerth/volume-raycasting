@@ -2,19 +2,33 @@ import logging
 import os
 
 import torch
+from git import exc
 from omegaconf import DictConfig
 from torch._C import DeviceObjType
 from torch.nn import BCEWithLogitsLoss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
-
-from models.segmentation import UNet3D
 from torchsummary import summary
 
+from util import TqdmLoggingHandler, metric
 
-def train(cfg: DictConfig, dataloader: torch.utils.data.DataLoader) -> torch.nn.Module:
+try:
+    if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
+        from tqdm.notebook import tqdm
+    else:
+        from tqdm import tqdm
+
+except NameError:
+    from tqdm import tqdm
+
+from models.segmentation import UNet3D
+
+
+def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
     log = logging.getLogger(__name__)
+    log.addHandler(TqdmLoggingHandler())
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # device = torch.device('cpu')
     log.info(f'Using device: {device}')
@@ -44,14 +58,14 @@ def train(cfg: DictConfig, dataloader: torch.utils.data.DataLoader) -> torch.nn.
     first_iter = True
 
     # FIXME when loading checkpoint resume epochs
-    # TODO maybe use progress bar
+    iteration = 0
     for epoch in range(cfg['total_epochs']):
         log.info(f'Starting epoch: {epoch + 1}...')
 
-        for i, batch in enumerate(dataloader):
-            log.info(f'epoch {epoch + 1}/{cfg["total_epochs"]} - batch {i + 1}/{len(dataloader)}')
+        optimizer.zero_grad()
 
-            optimizer.zero_grad()
+        for batch_idx, batch in tqdm(enumerate(data_loader), position=0, leave=True):
+            log.info(f'epoch {epoch + 1}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}')
 
             # TODO check out torchtyping
             x: torch.Tensor = batch['source']['data']
@@ -64,29 +78,47 @@ def train(cfg: DictConfig, dataloader: torch.utils.data.DataLoader) -> torch.nn.
             #         summary(model, input_size=x.shape[1:], device=str(device))
             #     )
 
-            # FIXME this is plain ugly
-            # if first_iter and device.type == 'cuda':
-            #     memory_allocated = round(torch.cuda.memory_allocated()/1024**3,1)
+            # FIXME this is plain ugly (maybe check tqdm handlers/events)
+            if first_iter and device.type == 'cuda':
+                memory_allocated = round(torch.cuda.memory_allocated()/1024**3,1)
 
-            #     log.info(f'Data Memory Usage on {torch.cuda.get_device_name()}:')
-            #     log.info(f'\tAllocated: {memory_allocated - model_memory_allocated} GB')
+                log.info(f'Data Memory Usage on {torch.cuda.get_device_name()}:')
+                log.info(f'\tAllocated: {memory_allocated - model_memory_allocated} GB')
 
-            #     log.info(f'Total Memory Usage on {torch.cuda.get_device_name()}:')
-            #     log.info(f'\tAllocated: {memory_allocated} GB')
+                log.info(f'Total Memory Usage on {torch.cuda.get_device_name()}:')
+                log.info(f'\tAllocated: {memory_allocated} GB')
 
-            #     first_iter = False
+                first_iter = False
 
-            outputs = model(x.half().to(device))
+            with torch.set_grad_enabled(True):
 
-            logits = torch.sigmoid(outputs)
-            labels = (logits > 0.5).float()
+                outputs = model(x.half().to(device))
 
-            loss: torch.Tensor = criterion(outputs, y.half().to(device))
+                loss: torch.Tensor = criterion(outputs, y.half().to(device))
+                loss = loss / cfg['accum_iter']
 
-            loss.backward()
-            optimizer.step()
+                loss.backward()
 
-            # TODO: metrics
+                if metrics is None:
+                    metrics = metric(y.cpu(), labels.cpu())
+                else:
+                    for k, v in metric(y.cpu(), labels.cpu()).items():
+                        metrics[k] += v / cfg['accum_iter']
+
+                if (batch_idx + 1) % cfg['accum_iter'] == 0 or batch_idx + 1 == len(data_loader):
+                    optimizer.step()
+                    optimizer.zero_grad()
+
+                    iteration += 1
+
+                    logits = torch.sigmoid(outputs)
+                    labels = (logits > 0.5).float()
+
+                    writer.add_scalar('training/loss', loss.item(), iteration)
+
+                    if (batch_idx + 1) % cfg['accum_iter'] == 0:
+                        for k, v in metrics.items():
+                            writer.add_scalar(f'training/{k}', v, iteration)
 
         scheduler.step()
 

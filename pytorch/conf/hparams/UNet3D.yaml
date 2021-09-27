@@ -6,3 +6,4 @@ init_lr: 0.02
 scheduer_step_size: 20
 total_epochs: 100
 scheduer_gamma: 0.8
+accum_iter: 10
