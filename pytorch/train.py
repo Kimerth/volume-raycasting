@@ -67,6 +67,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
         optimizer.zero_grad()
 
+        # TODO find a way to cache dataset
         for batch_idx, batch in tqdm(enumerate(data_loader), position=0, leave=True, total=len(data_loader)):
             # TODO check out torchtyping
             x: torch.Tensor = batch['source']['data']
@@ -117,7 +118,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 optimizer.step()
 
                 end = time.time()
-                log.info(f'\tOptimization step done in {end - start}')
+                log.info(f'\tOptimization step done in {(end - start):.2f}s')
 
                 iteration += 1
                 log.info(f'\tMetrics for optimization iteration {iteration}')
