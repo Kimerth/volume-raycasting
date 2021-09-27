@@ -93,9 +93,6 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
             with torch.set_grad_enabled(True):
                 outputs = model(x.half().to(device))
                 loss: torch.Tensor = criterion(outputs, y.half().to(device))
-
-                log.info(f'epoch {epoch + 1}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}: loss {loss.item()}')
-
                 loss = loss / cfg['accum_iter']
                 loss.backward()
 
