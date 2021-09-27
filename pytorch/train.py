@@ -59,6 +59,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
     # FIXME when loading checkpoint resume epochs
     iteration = 0
+    metrics = None
     for epoch in range(cfg['total_epochs']):
         log.info(f'Starting epoch: {epoch + 1}...')
 
