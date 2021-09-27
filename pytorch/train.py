@@ -120,25 +120,24 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
         scheduler.step()
 
-        def get_state_dict():
-            return {
+        def save_model(name):
+            if not os.path.exists(cfg['checkpoints_dir']):
+                os.makedirs(cfg['checkpoints_dir'])
+            torch.save(
+                {
                     'epoch': epoch,
 
                     'model':     model.state_dict(),
                     'optim':     optimizer.state_dict(),
                     'scheduler': scheduler.state_dict(),
-            }
+                },
+                os.path.join(cfg['checkpoints_dir'], name)
+            )
 
-        torch.save(
-            get_state_dict(),
-            os.path.join(cfg['checkpoints_dir'], cfg['latest_checkpoint_file'])
-        )
+        save_model(cfg['latest_checkpoint_file'])
 
         if epoch % cfg['save_every'] == 0:
-            torch.save(
-                get_state_dict(),
-                os.path.join(cfg['checkpoints_dir'], f'checkpoint_{epoch:04d}.pt')
-            )
+            save_model(f'checkpoint_{epoch:04d}.pt')
 
     writer.close()
     return model
