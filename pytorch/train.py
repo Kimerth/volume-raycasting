@@ -13,14 +13,16 @@ from torchsummary import summary
 
 from util import TqdmLoggingHandler, metric
 
-try:
-    if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
-        from tqdm.notebook import tqdm
-    else:
-        from tqdm import tqdm
+# FIXME not working in Colab
+# try:
+#     if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
+#         from tqdm.notebook import tqdm
+#     else:
+#         from tqdm import tqdm
+# except NameError:
+#     from tqdm import tqdm
 
-except NameError:
-    from tqdm import tqdm
+from tqdm.notebook import tqdm
 
 from models.segmentation import UNet3D
 
@@ -100,24 +102,24 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
                 loss.backward()
 
-                logits = torch.sigmoid(outputs)
-                labels = (logits > 0.5).float()
+            logits = torch.sigmoid(outputs)
+            labels = (logits > 0.5).float()
 
-                if metrics is None:
-                    metrics = metric(y.cpu(), labels.cpu())
-                else:
-                    for k, v in metric(y.cpu(), labels.cpu()).items():
-                        metrics[k] += v / cfg['accum_iter']
+            if metrics is None:
+                metrics = metric(y.cpu(), labels.cpu())
+            else:
+                for k, v in metric(y.cpu(), labels.cpu()).items():
+                    metrics[k] += v / cfg['accum_iter']
 
-                if (batch_idx + 1) % cfg['accum_iter'] == 0 or batch_idx + 1 == len(data_loader):
-                    optimizer.step()
-                    optimizer.zero_grad()
+            if (batch_idx + 1) % cfg['accum_iter'] == 0 or batch_idx + 1 == len(data_loader):
+                optimizer.step()
+                optimizer.zero_grad()
 
-                    iteration += 1
-                    writer.add_scalar('training/loss', loss.item(), iteration)
-                    if (batch_idx + 1) % cfg['accum_iter'] == 0:
-                        for k, v in metrics.items():
-                            writer.add_scalar(f'training/{k}', v, iteration)
+                iteration += 1
+                writer.add_scalar('training/loss', loss.item(), iteration)
+                if (batch_idx + 1) % cfg['accum_iter'] == 0:
+                    for k, v in metrics.items():
+                        writer.add_scalar(f'training/{k}', v, iteration)
 
         scheduler.step()
 
