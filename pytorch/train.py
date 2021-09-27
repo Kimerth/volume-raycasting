@@ -29,7 +29,8 @@ from models.segmentation import UNet3D
 
 def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
     log = logging.getLogger(__name__)
-    log.addHandler(TqdmLoggingHandler())
+    # FIXME not working
+    # log.addHandler(TqdmLoggingHandler())
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # device = torch.device('cpu')
