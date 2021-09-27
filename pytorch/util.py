@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import warnings
 
 
 def metric(gt, pred):
@@ -31,7 +32,11 @@ def metric(gt, pred):
     eps = 0.001
     precision = tp / (pred_sum + eps)
     recall = tp / (gdth_sum + eps)
-    f1 = 2 * (precision * recall) / (precision + recall)
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        # TODO fix this (RuntimeWarning: invalid value encountered in double_scalars)
+        f1 = 2 * (precision * recall) / (precision + recall)
 
     fpr = fp / (fp + tn + eps)
     fnr = fn / (fn + tp + eps)

@@ -61,6 +61,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
     # FIXME when loading checkpoint resume epochs
     iteration = 0
     metrics = None
+    cumulative_loss = 0
     for epoch in range(cfg['total_epochs']):
         log.info(f'Starting epoch: {epoch + 1}...')
 
@@ -96,6 +97,8 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 loss = loss / cfg['accum_iter']
                 loss.backward()
 
+                cumulative_loss += loss.item()
+
             logits = torch.sigmoid(outputs)
             labels = (logits > 0.5).float()
 
@@ -106,23 +109,28 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                     metrics[k] += v / cfg['accum_iter']
 
             if (batch_idx + 1) % cfg['accum_iter'] == 0 or batch_idx + 1 == len(data_loader):
-                log.info('Performing optimization step...')
+                log.info(f'epoch {epoch + 1}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}')
+
+                log.info('\tPerforming optimization step...')
                 start = time.time()
 
                 optimizer.step()
-                optimizer.zero_grad()
 
                 end = time.time()
-                log.info(f'Optimization step done in {end - start}')
+                log.info(f'\tOptimization step done in {end - start}')
 
                 iteration += 1
-                log.info(f'Metrics for optimization iteration {iteration}')
-                writer.add_scalar('training/loss', loss.item(), iteration)
-                log.info(f'\ttraining/loss: {loss.item()}')
+                log.info(f'\tMetrics for optimization iteration {iteration}')
+                writer.add_scalar('training/loss', cumulative_loss, iteration)
+                log.info(f'\t\ttraining/loss: {cumulative_loss}')
                 if (batch_idx + 1) % cfg['accum_iter'] == 0:
                     for k, v in metrics.items():
                         writer.add_scalar(f'training/{k}', v, iteration)
-                        log.info(f'\ttraining/{k}: {v}')
+                        log.info(f'\t\ttraining/{k}: {v}')
+
+                optimizer.zero_grad()
+                cumulative_loss = 0
+                metrics = None
 
         scheduler.step()
 
