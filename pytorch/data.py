@@ -76,6 +76,7 @@ def load_dataset(cfg: DictConfig) -> DataLoader:
         UniformSampler(cfg['patch_size'])
     )
     log.info(queue)
+    # TODO find out if you can add tqdm to data loader
     return DataLoader(
         queue,
         batch_size=cfg['batch'],
