@@ -12,7 +12,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
-from util import metric
+from util import TqdmLoggingHandler, metric
 
 try:
     if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
@@ -27,6 +27,7 @@ from models.segmentation import UNet3D
 
 def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
     log = logging.getLogger(__name__)
+    log.addHandler(TqdmLoggingHandler())
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # device = torch.device('cpu')
