@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 
 import torch
 from git import exc
@@ -11,7 +12,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
-from util import TqdmLoggingHandler, metric
+from util import metric
 
 try:
     if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
@@ -26,7 +27,6 @@ from models.segmentation import UNet3D
 
 def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
     log = logging.getLogger(__name__)
-    log.addHandler(TqdmLoggingHandler())
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # device = torch.device('cpu')
@@ -65,8 +65,6 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
         optimizer.zero_grad()
 
         for batch_idx, batch in tqdm(enumerate(data_loader), position=0, leave=True, total=len(data_loader)):
-            log.info(f'epoch {epoch + 1}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}')
-
             # TODO check out torchtyping
             x: torch.Tensor = batch['source']['data']
             y: torch.Tensor = batch['labels']['data']
@@ -91,12 +89,12 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 first_iter = False
 
             with torch.set_grad_enabled(True):
-
                 outputs = model(x.half().to(device))
-
                 loss: torch.Tensor = criterion(outputs, y.half().to(device))
-                loss = loss / cfg['accum_iter']
 
+                log.info(f'epoch {epoch + 1}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}: loss {loss.item()}')
+
+                loss = loss / cfg['accum_iter']
                 loss.backward()
 
             logits = torch.sigmoid(outputs)
@@ -109,14 +107,23 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                     metrics[k] += v / cfg['accum_iter']
 
             if (batch_idx + 1) % cfg['accum_iter'] == 0 or batch_idx + 1 == len(data_loader):
+                log.info('Performing optimization step...')
+                start = time.time()
+
                 optimizer.step()
                 optimizer.zero_grad()
 
+                end = time.time()
+                log.info(f'Optimization step done in {end - start}')
+
                 iteration += 1
+                log.info(f'Metrics for optimization iteration {iteration}')
                 writer.add_scalar('training/loss', loss.item(), iteration)
+                log.info(f'\ttraining/loss: {loss.item()}')
                 if (batch_idx + 1) % cfg['accum_iter'] == 0:
                     for k, v in metrics.items():
                         writer.add_scalar(f'training/{k}', v, iteration)
+                        log.info(f'\ttraining/{k}: {v}')
 
         scheduler.step()
 
