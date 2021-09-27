@@ -12,7 +12,7 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 from torchsummary import summary
 
-from util import TqdmLoggingHandler, metric
+from util import metric
 
 # FIXME not working
 # try:
