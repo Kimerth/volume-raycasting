@@ -28,8 +28,8 @@ from models.segmentation import UNet3D
 def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
     log = logging.getLogger(__name__)
 
+    # TODO get device from config
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    # device = torch.device('cpu')
     log.info(f'Using device: {device}')
 
     model = UNet3D(cfg).half().to(device)
@@ -52,7 +52,12 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
     criterion = BCEWithLogitsLoss().half().to(device)
 
-    writer = SummaryWriter(cfg['tb_output_dir'])
+    writer = SummaryWriter(
+        os.path.join(
+            os.environ['OUTPUT_PATH'],
+            cfg['tb_output_dir']
+        )
+    )
 
     first_iter = True
 
@@ -60,13 +65,25 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
     iteration: int = 0
     metrics: dict[str, float] = None
     cumulative_loss: float = 0
-    for epoch in range(cfg['total_epochs']):
+    for epoch in tqdm(
+                range(cfg['total_epochs']),
+                total=cfg['total_epochs'],
+                position=0,
+                leave=False,
+                desc='Data Loader'
+    ):
         log.info(f'Starting epoch: {epoch + 1}...')
 
         optimizer.zero_grad()
 
         # TODO find a way to cache dataset
-        for batch_idx, batch in tqdm(enumerate(data_loader), position=0, leave=True, total=len(data_loader)):
+        for batch_idx, batch in tqdm(
+            enumerate(data_loader),
+            total=len(data_loader),
+            position=1,
+            leave=True,
+            desc='Train Steps'
+        ):
             # TODO check out torchtyping
             x: torch.Tensor = batch['source']['data']
             y: torch.Tensor = batch['labels']['data']
@@ -139,8 +156,12 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
         scheduler.step()
 
         def save_model(name):
-            if not os.path.exists(cfg['checkpoints_dir']):
-                os.makedirs(cfg['checkpoints_dir'])
+            checkpoints_path = os.path.join(
+                os.environ['OUTPUT_PATH'],
+                cfg['checkpoints_dir']
+            )
+            if not os.path.exists(checkpoints_path):
+                os.makedirs(checkpoints_path)
             torch.save(
                 {
                     'epoch': epoch,
@@ -149,7 +170,10 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                     'optim':     optimizer.state_dict(),
                     'scheduler': scheduler.state_dict(),
                 },
-                os.path.join(cfg['checkpoints_dir'], name)
+                os.path.join(
+                    checkpoints_path,
+                    name
+                )
             )
 
         save_model(cfg['latest_checkpoint_file'])

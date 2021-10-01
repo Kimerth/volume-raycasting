@@ -1,6 +1,9 @@
 import logging
 import os
 from typing import Any
+import sys
+
+sys.path.append(f'{os.path.dirname(__file__)}/../externals/code/')
 
 import git
 import hydra
@@ -30,6 +33,8 @@ class DataCallback(Callback):
 
 @hydra.main(config_path='conf', config_name='config')
 def my_app(cfg: DictConfig) -> None:
+    os.environ['OUTPUT_PATH'] = os.getcwd()
+
     data_loader = load_dataset(cfg['data'])
     train(cfg['hparams'], data_loader)
 

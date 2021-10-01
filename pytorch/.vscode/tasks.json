@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "${config:python.defaultInterpreterPath}",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "args": [
+                "${workspaceFolder}/run.py",
+                "hydra.verbose=[__main__, hydra, data, train]"
+            ],
+            "presentation": {
+                "echo": true,
+                "panel": "shared",
+                "focus": true
+            },
+            // "problemMatcher": {
+            //     "fileLocation": "absolute",
+            //     "pattern": [{
+            //         "regexp": "^\\s+File \"(.*?)\", line ([0-9]+)[,]?.+?$",
+            //         "line": 2,
+            //         "file": 1,
+            //         "message": 0
+            //     }, {
+            //         "regexp": "^\\s+(.+?)$",
+            //         "code": 1
+            //     }]
+            // }
+        }
+    ]
+}
