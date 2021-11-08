@@ -1,6 +1,7 @@
 import os
 import re
 import sys
+import logging
 from typing import Any
 
 from dotenv import load_dotenv
@@ -37,8 +38,11 @@ class DataCallback(Callback):
 
 @hydra.main(config_path='conf', config_name='config')
 def my_app(cfg: DictConfig) -> None:
+    log = logging.getLogger(__name__)
     os.environ['OUTPUT_PATH'] = os.getcwd()
+    log.debug(f'output path: {os.getcwd()}')
     os.chdir(get_original_cwd())
+    log.debug(f'cwd: {get_original_cwd()}')
 
     data_loader = get_data_loader(cfg['data'])
     train(cfg['hparams'], data_loader)
