@@ -3,3 +3,4 @@ scan_pattern: "*/radiographer/*/CT_IMAGE.nrrd"
 labels_path: segmentations/
 output_path: "./data/"
 batch: 1
+dataset: tcia_ct_scan

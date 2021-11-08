@@ -1,27 +1,31 @@
-import logging
 import os
-from typing import Any
+import re
 import sys
+from typing import Any
 
-sys.path.append(f'{os.path.dirname(__file__)}/../externals/code/')
+from dotenv import load_dotenv
 
-import git
+load_dotenv()
+for path in re.split('; |: ', os.environ['PYTHONPATH']):
+    sys.path.append(path)
+
 import hydra
+import torch
 from hydra.experimental.callback import Callback
 from omegaconf import DictConfig, OmegaConf
+from hydra.utils import get_original_cwd
 
-from data import load_dataset
+from data import get_data_loader
 from train import train
 
-import torch
-
-repo = git.Repo('.', search_parent_directories=True)
-
-os.environ['HYDRA_FULL_ERROR'] = '1'
-os.environ['TOP_PROJECT_PATH'] = repo.working_tree_dir
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
+
+# TODO in C++: possibility to load different models
+
+# FIXME
+
 
 class DataCallback(Callback):
     def __init__(self) -> None:
@@ -34,8 +38,9 @@ class DataCallback(Callback):
 @hydra.main(config_path='conf', config_name='config')
 def my_app(cfg: DictConfig) -> None:
     os.environ['OUTPUT_PATH'] = os.getcwd()
+    os.chdir(get_original_cwd())
 
-    data_loader = load_dataset(cfg['data'])
+    data_loader = get_data_loader(cfg['data'])
     train(cfg['hparams'], data_loader)
 
 

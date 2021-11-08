@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "pytorch",
+			"path": ".."
+		},
+		{
+			"name": "torchio",
+			"path": "..\\..\\externals\\code\\torchio"
+		}
+	],
+	"settings": {}
+}

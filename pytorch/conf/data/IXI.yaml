@@ -1,0 +1,3 @@
+base_path: "${oc.env:TOP_PROJECT_PATH}/externals/data/tcia-ct-scan-dataset/nrrds/"
+batch: 1
+dataset: IXI

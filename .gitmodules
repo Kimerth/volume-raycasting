@@ -1,7 +1,8 @@
-[submodule "externals/data/tcia-ct-scan-dataset"]
+[submodule "tcia-ct-scan-dataset"]
 	path = externals/data/tcia-ct-scan-dataset
 	url = https://github.com/deepmind/tcia-ct-scan-dataset.git
-[submodule "externals/code/torchio"]
+
+[submodule "torchio"]
 	path = externals/code/torchio
 	url = https://github.com/Kimerth/torchio.git
 	branch = torchio-only
