@@ -10,7 +10,7 @@
             },
             "args": [
                 "${workspaceFolder}/run.py",
-                "hydra.verbose=True"
+                "hydra.verbose=[__main__, hydra, data, train]"
             ],
             "presentation": {
                 "echo": true,

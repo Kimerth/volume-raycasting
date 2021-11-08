@@ -10,10 +10,12 @@ from torchio.transforms import *
 
 import sys
 import os
+import random
 
 # FIXME
 sys.path.append(os.path.dirname(__file__))
 
+from visualization import plot_subject
 
 def get_data_loader(cfg: dictconfig) -> DataLoader:
     log = logging.getLogger(__name__)
@@ -52,14 +54,14 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
             download=True
         )
 
-    # save_plot_path = os.path.join(
-    #     os.environ['OUTPUT_PATH'],
-    #     cfg['save_plot_dir']
-    # )
-    # if not os.path.exists(save_plot_path):
-    #     os.makedirs(save_plot_path)
-    # for subject in random.sample(subjects, cfg['plot_number']):
-    #     plot_subject(subject, save_plot_path)
+    save_plot_path = os.path.join(
+        os.environ['OUTPUT_PATH'],
+        cfg['save_plot_dir']
+    )
+    if not os.path.exists(save_plot_path):
+        os.makedirs(save_plot_path)
+    for subject in random.sample(dataset._subjects, cfg['plot_number']):
+        plot_subject(subject, save_plot_path)
 
     queue = Queue(
         subjects_dataset=dataset,
