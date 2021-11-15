@@ -78,8 +78,6 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
         max_length=cfg['queue_length'],
         samples_per_volume=cfg['samples_per_volume'],
         sampler=UniformSampler(cfg['patch_size']),
-        num_workers=4,
-        start_background=True,
         verbose=log.level > 0
     )
 

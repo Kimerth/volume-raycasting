@@ -10,8 +10,8 @@
             },
             "args": [
                 "${workspaceFolder}/run.py",
-                "hydra.verbose=[__main__, hydra, data, train]",
-                "data=[generic, IXI]"
+                "hydra.verbose=[__main__, hydra, data, train]"
+                //"data=[generic, IXI]"
             ],
             "presentation": {
                 "echo": true,
