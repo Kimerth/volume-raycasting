@@ -11,7 +11,7 @@
             "args": [
                 "${workspaceFolder}/run.py",
                 "hydra.verbose=[__main__, hydra, data, train]",
-                "data=[generic, IXITiny]"
+                "data=[generic, tcia_ct_scan]"
             ],
             "presentation": {
                 "echo": true,

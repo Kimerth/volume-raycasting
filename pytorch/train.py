@@ -24,6 +24,8 @@ from tqdm.notebook import tqdm
 
 from models.segmentation import UNet3D
 
+from data.visualization import plot_segmentation
+
 
 def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
     log = logging.getLogger(__name__)
@@ -32,7 +34,10 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     log.info(f'Using device: {device}')
 
-    model = UNet3D(cfg).half().to(device)
+    torch.autograd.set_detect_anomaly(cfg['anomaly_detection'])
+
+    model = UNet3D(cfg).to(device)
+
     # TODO figure out a way for better logging
     if device.type == 'cuda':
         log.info(f'{model.__class__.__name__} Memory Usage on {torch.cuda.get_device_name()}:')
@@ -50,7 +55,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
         gamma=cfg['scheduer_gamma']
     )
 
-    criterion = BCEWithLogitsLoss().half().to(device)
+    criterion = BCEWithLogitsLoss().to(device)
 
     writer = SummaryWriter(
         os.path.join(
@@ -62,19 +67,15 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
     first_iter = True
 
     # FIXME when loading checkpoint resume epochs
-    iteration: int = 0
-    metrics: dict[str, float] = None
     cumulative_loss: float = 0
     for epoch in tqdm(
-                range(cfg['total_epochs']),
+                range(1, cfg['total_epochs'] + 1),
                 total=cfg['total_epochs'],
                 position=0,
                 leave=False,
-                desc='Data Loader'
+                desc='Epoch'
     ):
         log.info(f'Starting epoch: {epoch + 1}...')
-
-        optimizer.zero_grad()
 
         # TODO find a way to cache dataset
         for batch_idx, batch in tqdm(
@@ -85,8 +86,8 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
             desc='Train Steps'
         ):
             # TODO check out torchtyping
-            x: torch.Tensor = batch['source']['data']
-            y: torch.Tensor = batch['labels']['data']
+            x: torch.Tensor = batch['image']['data']
+            y: torch.Tensor = batch['seg']['data']
 
             # FIXME add code in repo as external (not submodule) and change it to suit needs
             # if first_iter:
@@ -108,52 +109,39 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 first_iter = False
 
             with torch.set_grad_enabled(True):
-                outputs = model(x.half().to(device))
-                loss: torch.Tensor = criterion(outputs, y.half().to(device))
+                outputs = model(x.to(device))
+                logits = torch.sigmoid(outputs)
+                loss: torch.Tensor = criterion(logits, y.to(device))
 
-                if torch.isnan(loss):
-                    raise Exception("NaN loss")
-
-                loss = loss / float(cfg['accum_iter'])
+                optimizer.zero_grad()
                 loss.backward()
+                # torch.nn.utils.clip_grad_value_(model.parameters(), clip_value=1.0)
+                optimizer.step()
+                scheduler.step()
 
                 cumulative_loss += loss.item()
 
-            logits = torch.sigmoid(outputs)
             labels = (logits > 0.5).float()
 
-            if metrics is None:
-                metrics = metric(y.cpu(), labels.cpu())
-            else:
-                for k, v in metric(y.cpu(), labels.cpu()).items():
-                    metrics[k] += v / cfg['accum_iter']
+            if (batch_idx + 1) % cfg['metrics_every'] == 0 or batch_idx + 1 == len(data_loader):
+                log.info(f'epoch {epoch}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}')
 
-            if (batch_idx + 1) % cfg['accum_iter'] == 0 or batch_idx + 1 == len(data_loader):
-                log.info(f'epoch {epoch + 1}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}')
-
-                log.info('\tPerforming optimization step...')
-                start = time.time()
-
-                torch.nn.utils.clip_grad_value_(model.parameters(), clip_value=1.0)
-                optimizer.step()
-
-                end = time.time()
-                log.info(f'\tOptimization step done in {(end - start):.2f}s')
-
-                iteration += 1
-                log.info(f'\tMetrics for optimization iteration {iteration}')
-                writer.add_scalar('training/loss', cumulative_loss, iteration)
+                writer.add_scalar('training/loss', cumulative_loss, batch_idx * epoch)
                 log.info(f'\t\ttraining/loss: {cumulative_loss}')
-                if (batch_idx + 1) % cfg['accum_iter'] == 0:
-                    for k, v in metrics.items():
-                        writer.add_scalar(f'training/{k}', v, iteration)
-                        log.info(f'\t\ttraining/{k}: {v}')
 
-                optimizer.zero_grad()
+                metrics = metric(y.cpu(), labels.cpu())
+                for k, v in metrics.items():
+                    writer.add_scalar(f'training/{k}', v, batch_idx * epoch)
+                    log.info(f'\t\ttraining/{k}: {v}')
+
+                plot_segmentation(x[0].cpu(), labels[0].cpu(), os.path.join(
+                        os.environ['OUTPUT_PATH'],
+                        cfg['validation_plots_dir'],
+                        f'epoch{epoch}-batch{(batch_idx + 1)}'
+                    )
+                )
+
                 cumulative_loss = 0
-                metrics = None
-
-        scheduler.step()
 
         def save_model(name):
             checkpoints_path = os.path.join(

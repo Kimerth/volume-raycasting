@@ -1,4 +1,7 @@
 checkpoints_dir: 'checkpoints'
+validation_plots_dir: 'plots'
 tb_output_dir: 'metrics'
 latest_checkpoint_file: 'checkpoint_latest.pt'
 save_every: 10
+metrics_every: 10
+anomaly_detection: False

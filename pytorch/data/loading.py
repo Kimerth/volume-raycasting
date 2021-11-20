@@ -16,7 +16,7 @@ import random
 # FIXME
 sys.path.append(os.path.dirname(__file__))
 
-from visualization import plot_subject
+from visualization import plot_segmentation
 
 def get_data_loader(cfg: dictconfig) -> DataLoader:
     log = logging.getLogger(__name__)
@@ -29,17 +29,16 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
                 cfg['crop_or_pad_size'],
                 padding_mode='reflect'
             ),
-            RandomMotion(),
-            RandomBiasField(),
+            # RandomMotion(),
+            # RandomBiasField(),
             RandomNoise(),
-            RandomFlip(axes=(0,)),
+            # RandomFlip(axes=(0,)),
             OneOf(
                 {
                     RandomAffine(): 0.8,
                     RandomElasticDeformation(): 0.2,
                 }
-            ),
-            ZNormalization()
+            )
         ]
     )
 
@@ -65,9 +64,10 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
         )
 
     for subject in random.sample(dataset._subjects, cfg['plot_number']):
-        plot_subject(subject, os.path.join(
+        plot_segmentation(subject['image'], subject['seg'], os.path.join(
                 os.environ['OUTPUT_PATH'],
-                cfg['save_plot_dir']
+                cfg['save_plot_dir'],
+                subject['subject_id']
             )
         )
 

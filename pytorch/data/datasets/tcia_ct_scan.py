@@ -7,7 +7,7 @@ from pprint import pformat
 from torchio.data.dataset import SubjectsDataset
 from torchio.transforms.transform import Transform
 import logging
-import torch
+
 
 class Dataset(SubjectsDataset):
     log = logging.getLogger(__name__)
@@ -44,20 +44,10 @@ class Dataset(SubjectsDataset):
             })
         )
 
-        subjects: List[Subject] = []
-        for path, label_paths in data_map.items():
-            labels = LabelMap(label_paths, check_nans=True)
-
-            squeezed_labels = torch.zeros_like(labels.data[0])
-            for idx, label in enumerate(labels.data):
-                squeezed_labels += (idx + 1) * label
-
-            subjects.append(
-                Subject(
+        return [
+            Subject(
                     subject_id=os.path.basename(os.path.dirname(path)),
                     image=ScalarImage(path, check_nans=True),
-                    label=LabelMap(tensor=squeezed_labels.unsqueeze(0))
-                )
-            )
-
-        return subjects
+                    seg=LabelMap(label_paths, check_nans=True)
+            ) for path, label_paths in data_map.items()
+        ]

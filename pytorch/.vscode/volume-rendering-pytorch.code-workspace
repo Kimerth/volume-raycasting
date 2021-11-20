@@ -21,7 +21,7 @@
 				"console": "integratedTerminal",
 				"args": [
 					"hydra.verbose=[__main__, hydra, data, train]",
-                	"data=[generic, IXITiny]"
+                	"data=[generic, tcia_ct_scan]"
 				]
 			}
 		]
