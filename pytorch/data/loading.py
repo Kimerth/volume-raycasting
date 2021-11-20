@@ -64,14 +64,12 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
             download=True
         )
 
-    save_plot_path = os.path.join(
-        os.environ['OUTPUT_PATH'],
-        cfg['save_plot_dir']
-    )
-    if not os.path.exists(save_plot_path):
-        os.makedirs(save_plot_path)
     for subject in random.sample(dataset._subjects, cfg['plot_number']):
-        plot_subject(subject, save_plot_path)
+        plot_subject(subject, os.path.join(
+                os.environ['OUTPUT_PATH'],
+                cfg['save_plot_dir']
+            )
+        )
 
     queue = Queue(
         subjects_dataset=dataset,
