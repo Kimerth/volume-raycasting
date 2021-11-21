@@ -16,7 +16,6 @@ import random
 # FIXME
 sys.path.append(os.path.dirname(__file__))
 
-from visualization import plot_segmentation
 
 def get_data_loader(cfg: dictconfig) -> DataLoader:
     log = logging.getLogger(__name__)
@@ -63,13 +62,13 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
             download=True
         )
 
-    for subject in random.sample(dataset._subjects, cfg['plot_number']):
-        plot_segmentation(subject['image'], subject['seg'], os.path.join(
-                os.environ['OUTPUT_PATH'],
-                cfg['save_plot_dir'],
-                subject["subject_id"]
-            )
-        )
+    # for subject in random.sample(dataset._subjects, cfg['plot_number']):
+    #     plot_segmentation(subject['image'], subject['seg'], os.path.join(
+    #             os.environ['OUTPUT_PATH'],
+    #             cfg['save_plot_dir'],
+    #             subject["subject_id"]
+    #         )
+    #     )
 
     queue = Queue(
         subjects_dataset=dataset,

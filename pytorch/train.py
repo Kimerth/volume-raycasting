@@ -23,8 +23,6 @@ from tqdm.notebook import tqdm
 
 from models.segmentation import UNet3D
 
-from data.visualization import plot_segmentation
-
 
 def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
     log = logging.getLogger(__name__)
@@ -133,7 +131,9 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
             labels = (logits > 0.5).float()
 
-            if (batch_idx + 1) % cfg['metrics_every'] == 0 or batch_idx + 1 == len(data_loader):
+            if (batch_idx + 1) % cfg['metrics_every'] == 0:
+                cumulative_loss /= cfg['metrics_every']
+
                 log.info(f'epoch {epoch}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}')
 
                 writer.add_scalar('training/loss', cumulative_loss, batch_idx * epoch)
@@ -144,12 +144,12 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                     writer.add_scalar(f'training/{k}', v, batch_idx * epoch)
                     log.info(f'\t\ttraining/{k}: {v}')
 
-                plot_segmentation(x[0].cpu(), labels[0].cpu(), os.path.join(
-                        os.environ['OUTPUT_PATH'],
-                        cfg['validation_plots_dir'],
-                        f'epoch{epoch}-batch{(batch_idx + 1)}'
-                    )
-                )
+                # plot_segmentation(x[0].cpu(), labels[0].cpu(), os.path.join(
+                #         os.environ['OUTPUT_PATH'],
+                #         cfg['validation_plots_dir'],
+                #         f'epoch{epoch}-batch{(batch_idx + 1)}'
+                #     )
+                # )
 
                 cumulative_loss = 0
 
