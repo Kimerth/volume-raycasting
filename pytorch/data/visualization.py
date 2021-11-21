@@ -8,8 +8,7 @@ import os
 # TODO count labeled vs not labeled voxels
 
 def plot_segmentation(image, seg, save_plot_path: str):
-    if not os.path.exists(save_plot_path):
-        os.makedirs(save_plot_path)
+    os.makedirs(os.path.dirname(save_plot_path), exist_ok=True)
 
     squeezed_seg = torch.zeros_like(seg.data[0])
     for idx, label in enumerate(seg.data):

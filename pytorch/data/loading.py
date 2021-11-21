@@ -67,7 +67,7 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
         plot_segmentation(subject['image'], subject['seg'], os.path.join(
                 os.environ['OUTPUT_PATH'],
                 cfg['save_plot_dir'],
-                f'{subject["subject_id"]}.png'
+                subject["subject_id"]
             )
         )
 

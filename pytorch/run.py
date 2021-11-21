@@ -24,10 +24,9 @@ if torch.cuda.is_available():
     torch.cuda.empty_cache()
 
 # TODO in C++: possibility to load different models
+# TODO switch to pathlib
 
 # FIXME
-
-
 class DataCallback(Callback):
     def __init__(self) -> None:
         pass

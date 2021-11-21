@@ -147,7 +147,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 plot_segmentation(x[0].cpu(), labels[0].cpu(), os.path.join(
                         os.environ['OUTPUT_PATH'],
                         cfg['validation_plots_dir'],
-                        f'epoch{epoch}-batch{(batch_idx + 1)}.png'
+                        f'epoch{epoch}-batch{(batch_idx + 1)}'
                     )
                 )
 
