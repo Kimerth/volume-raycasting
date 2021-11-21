@@ -1,6 +1,5 @@
 import logging
 import os
-import time
 
 import torch
 from omegaconf import DictConfig
@@ -64,12 +63,23 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
         )
     )
 
-    first_iter = True
+    start_epoch = 1
+
+    if cfg['load_checkpoint_path'] is not None:
+        log.info(f'loading checkpoint: {cfg["load_checkpoint_path"]}...')
+
+        checkpoint = torch.load(cfg['load_checkpoint_path'])
+        model.load_state_dict(checkpoint['model'])
+        optimizer.load_state_dict(checkpoint['optim'])
+        scheduler.load_state_dict(checkpoint['scheduler'])
+        start_epoch = int(checkpoint['epoch']) + 1
+
+    # first_iter = True
 
     # FIXME when loading checkpoint resume epochs
     cumulative_loss: float = 0
     for epoch in tqdm(
-                range(1, cfg['total_epochs'] + 1),
+                range(start_epoch, cfg['total_epochs'] + 1),
                 total=cfg['total_epochs'],
                 position=0,
                 leave=False,
@@ -97,16 +107,16 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
             #     )
 
             # FIXME this is plain ugly (maybe check tqdm handlers/events)
-            if first_iter and device.type == 'cuda':
-                memory_allocated = round(torch.cuda.memory_allocated()/1024**3,1)
+            # if first_iter and device.type == 'cuda':
+            #     memory_allocated = round(torch.cuda.memory_allocated()/1024**3,1)
 
-                log.info(f'Data Memory Usage on {torch.cuda.get_device_name()}:')
-                log.info(f'\tAllocated: {memory_allocated - model_memory_allocated} GB')
+            #     log.info(f'Data Memory Usage on {torch.cuda.get_device_name()}:')
+            #     log.info(f'\tAllocated: {memory_allocated - model_memory_allocated} GB')
 
-                log.info(f'Total Memory Usage on {torch.cuda.get_device_name()}:')
-                log.info(f'\tAllocated: {memory_allocated} GB')
+            #     log.info(f'Total Memory Usage on {torch.cuda.get_device_name()}:')
+            #     log.info(f'\tAllocated: {memory_allocated} GB')
 
-                first_iter = False
+            #     first_iter = False
 
             with torch.set_grad_enabled(True):
                 outputs = model(x.to(device))
@@ -137,7 +147,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 plot_segmentation(x[0].cpu(), labels[0].cpu(), os.path.join(
                         os.environ['OUTPUT_PATH'],
                         cfg['validation_plots_dir'],
-                        f'epoch{epoch}-batch{(batch_idx + 1)}'
+                        f'epoch{epoch}-batch{(batch_idx + 1)}.png'
                     )
                 )
 
@@ -169,5 +179,6 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
         if epoch % cfg['save_every'] == 0:
             save_model(f'checkpoint_{epoch:04d}.pt')
 
+    writer.flush()
     writer.close()
     return model
