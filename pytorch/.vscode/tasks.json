@@ -10,8 +10,9 @@
             },
             "args": [
                 "${workspaceFolder}/run.py",
-                "hydra.verbose=[__main__, hydra, data, train]",
-                "data=[generic, tcia_ct_scan]"
+                "hydra.verbose=[__main__,hydra,data,train]",
+                "data=[generic,tcia_ct_scan]",
+                "hparams=[generic,UNet3D]"
             ],
             "presentation": {
                 "echo": true,

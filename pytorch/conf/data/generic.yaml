@@ -1,7 +1,6 @@
-queue_length: 3
-samples_per_volume: 1
-crop_or_pad_size: [64,64,64]
-patch_size: [64,64,64]
+queue_length: 15
+samples_per_volume: 3
+size: [64,64,64]
 batch: ???
 plot_number: 1
 save_plot_dir: "metrics/data_samples"

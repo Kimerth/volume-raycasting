@@ -24,10 +24,7 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
     transform = Compose(
         [
             ToCanonical(),
-            CropOrPad(
-                cfg['crop_or_pad_size'],
-                padding_mode='reflect'
-            ),
+            Resize(cfg['size']),
             # RandomMotion(),
             # RandomBiasField(),
             RandomNoise(),
@@ -70,20 +67,20 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
     #         )
     #     )
 
-    queue = Queue(
-        subjects_dataset=dataset,
-        max_length=cfg['queue_length'],
-        samples_per_volume=cfg['samples_per_volume'],
-        sampler=UniformSampler(cfg['patch_size']),
-        verbose=log.level > 0
-    )
+    # queue = Queue(
+    #     subjects_dataset=dataset,
+    #     max_length=cfg['queue_length'],
+    #     samples_per_volume=cfg['samples_per_volume'],
+    #     sampler=UniformSampler(cfg['size']),
+    #     verbose=log.level > 0
+    # )
 
-    log.info(queue)
+    # log.info(queue)
 
     return DataLoader(
-        queue,
+        dataset,
         batch_size=cfg['batch'],
         shuffle=True,
-        pin_memory=True,
-        drop_last=True
+        drop_last=True,
+        num_workers=2
     )

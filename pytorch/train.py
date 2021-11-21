@@ -83,7 +83,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 leave=False,
                 desc='Epoch'
     ):
-        log.info(f'Starting epoch: {epoch + 1}...')
+        log.info(f'Starting epoch: {epoch}...')
 
         # TODO find a way to cache dataset
         for batch_idx, batch in tqdm(
