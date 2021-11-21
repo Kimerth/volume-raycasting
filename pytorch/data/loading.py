@@ -81,6 +81,5 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
         dataset,
         batch_size=cfg['batch'],
         shuffle=True,
-        drop_last=True,
-        num_workers=2
+        drop_last=True
     )
