@@ -24,7 +24,7 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
     transform = Compose(
         [
             ToCanonical(),
-            Resize(cfg['size']),
+            # Resize(cfg['size']),
             # RandomMotion(),
             # RandomBiasField(),
             RandomNoise(),
@@ -67,15 +67,16 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
     #         )
     #     )
 
-    # queue = Queue(
-    #     subjects_dataset=dataset,
-    #     max_length=cfg['queue_length'],
-    #     samples_per_volume=cfg['samples_per_volume'],
-    #     sampler=UniformSampler(cfg['size']),
-    #     verbose=log.level > 0
-    # )
+    queue = Queue(
+        subjects_dataset=dataset,
+        max_length=cfg['queue_length'],
+        samples_per_volume=cfg['samples_per_volume'],
+        sampler=UniformSampler(cfg['size']),
+        verbose=log.level > 0,
+        num_workers=2
+    )
 
-    # log.info(queue)
+    log.info(queue)
 
     return DataLoader(
         dataset,
