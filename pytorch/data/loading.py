@@ -81,5 +81,6 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
         dataset,
         batch_size=cfg['batch'],
         shuffle=True,
-        drop_last=True
+        drop_last=True,
+        pin_memory=True
     )
