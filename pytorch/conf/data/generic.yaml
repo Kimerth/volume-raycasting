@@ -1,6 +1,7 @@
 queue_length: 15
 samples_per_volume: 3
 size: [64,64,64]
+patch_size: [32,32,32]
 batch: ???
 plot_number: 1
 save_plot_dir: "metrics/data_samples"
