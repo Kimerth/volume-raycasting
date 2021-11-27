@@ -3,7 +3,7 @@ import os
 
 import torch
 from omegaconf import DictConfig
-from torch.nn import BCEWithLogitsLoss
+from torch.nn import CrossEntropyLoss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
@@ -55,7 +55,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
         gamma=cfg['scheduer_gamma']
     )
 
-    criterion = BCEWithLogitsLoss().to(device)
+    criterion = CrossEntropyLoss().to(device)
 
     writer = SummaryWriter(
         os.path.join(
@@ -123,8 +123,8 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
             optimizer.zero_grad()
 
-            outputs = model(x.to(device))
-            logits = torch.sigmoid(outputs)
+            logits = model(x.to(device))
+            # logits = torch.sigmoid(logits)
             loss: torch.Tensor = criterion(logits, y.to(torch.float).to(device))
 
             loss.backward()
@@ -133,8 +133,6 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
             scheduler.step()
 
             cumulative_loss += loss.item()
-
-            labels = (logits > 0.5).float()
 
             if batch_idx % cfg['metrics_every'] == 0:
                 cumulative_loss /= cfg['metrics_every']
@@ -145,6 +143,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 log.info(f'\t\ttraining/loss: {cumulative_loss}')
 
                 # FIXME monai.metrics.Cumulative
+                labels = (logits > 0.5).float()
                 metrics = metric(y.cpu(), labels.cpu())
                 for k, v in metrics.items():
                     writer.add_scalar(f'training/{k}', v, batch_idx * epoch)
