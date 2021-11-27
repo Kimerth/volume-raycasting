@@ -3,7 +3,7 @@ import os
 
 import torch
 from omegaconf import DictConfig
-from torch.nn import CrossEntropyLoss
+from torch.nn import BCEWithLogitsLoss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
@@ -55,7 +55,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
         gamma=cfg['scheduer_gamma']
     )
 
-    criterion = CrossEntropyLoss().to(device)
+    criterion = BCEWithLogitsLoss().to(device)
 
     writer = SummaryWriter(
         os.path.join(
@@ -123,8 +123,8 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
             optimizer.zero_grad()
 
-            logits = model(x.to(device))
-            # logits = torch.sigmoid(logits)
+            outputs = model(x.to(device))
+            logits = torch.sigmoid(outputs)
             loss: torch.Tensor = criterion(logits, y.to(torch.float).to(device))
 
             loss.backward()
