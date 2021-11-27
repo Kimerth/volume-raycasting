@@ -121,18 +121,18 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
             #     first_iter = False
 
-            with torch.set_grad_enabled(True):
-                outputs = model(x.to(device))
-                logits = torch.sigmoid(outputs)
-                loss: torch.Tensor = criterion(logits, y.to(torch.float).to(device))
+            optimizer.zero_grad()
 
-                optimizer.zero_grad()
-                loss.backward()
-                # torch.nn.utils.clip_grad_value_(model.parameters(), clip_value=1.0)
-                optimizer.step()
-                scheduler.step()
+            outputs = model(x.to(device))
+            logits = torch.sigmoid(outputs)
+            loss: torch.Tensor = criterion(logits, y.to(torch.float).to(device))
 
-                cumulative_loss += loss.item()
+            loss.backward()
+            # torch.nn.utils.clip_grad_value_(model.parameters(), clip_value=1.0)
+            optimizer.step()
+            scheduler.step()
+
+            cumulative_loss += loss.item()
 
             labels = (logits > 0.5).float()
 
