@@ -4,7 +4,7 @@ defaults:
     - tcia_ct_scan
   - hparams:
     - generic
-    - UNet3Dsmall
+    - UNet3D
   - /hydra/callbacks:
     - data_callback
   - override hydra/job_logging: colorlog

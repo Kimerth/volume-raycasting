@@ -21,8 +21,9 @@ from util import metric
 #     from tqdm import tqdm
 from tqdm.notebook import tqdm
 
-from models.segmentation import UNet3D
-from models.test_model import ResidualUNet3D
+# from models.unet3d import UNet3D
+from models.ext_resnet import ResidualUNet3D
+# from models.ext_unetr import UNETR
 
 
 def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
@@ -95,6 +96,8 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
             leave=True,
             desc='Train Steps'
         ):
+            batch_idx += 1
+
             # TODO check out torchtyping
             x: torch.Tensor = batch['image']['data']
             y: torch.Tensor = batch['seg']['data']
@@ -121,7 +124,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
             with torch.set_grad_enabled(True):
                 outputs = model(x.to(device))
                 logits = torch.sigmoid(outputs)
-                loss: torch.Tensor = criterion(logits, y.to(device))
+                loss: torch.Tensor = criterion(logits, y.to(torch.float).to(device))
 
                 optimizer.zero_grad()
                 loss.backward()
@@ -133,14 +136,15 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
             labels = (logits > 0.5).float()
 
-            if (batch_idx + 1) % cfg['metrics_every'] == 0:
+            if batch_idx % cfg['metrics_every'] == 0:
                 cumulative_loss /= cfg['metrics_every']
 
-                log.info(f'epoch {epoch}/{cfg["total_epochs"]} - batch {batch_idx + 1}/{len(data_loader)}')
+                log.info(f'epoch {epoch}/{cfg["total_epochs"]} - batch {batch_idx}/{len(data_loader)}')
 
                 writer.add_scalar('training/loss', cumulative_loss, batch_idx * epoch)
                 log.info(f'\t\ttraining/loss: {cumulative_loss}')
 
+                # FIXME monai.metrics.Cumulative
                 metrics = metric(y.cpu(), labels.cpu())
                 for k, v in metrics.items():
                     writer.add_scalar(f'training/{k}', v, batch_idx * epoch)

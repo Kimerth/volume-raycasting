@@ -2,10 +2,10 @@ import logging
 from importlib import import_module
 from pprint import pformat
 
-from omegaconf import dictconfig
+from omegaconf import dictconfig, open_dict
 from torch.utils.data import DataLoader
 from torchio.data.queue import Queue
-from torchio.data.sampler.uniform import UniformSampler
+from torchio.data.sampler import GridSampler
 from torchio.transforms import *
 
 import sys
@@ -24,17 +24,17 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
     transform = Compose(
         [
             ToCanonical(),
-            Resize(cfg['size']),
+            # Resize(cfg['size']),
             # RandomMotion(),
             # RandomBiasField(),
             RandomNoise(),
-            # RandomFlip(axes=(0,)),
-            OneOf(
-                {
-                    RandomAffine(): 0.8,
-                    RandomElasticDeformation(): 0.2,
-                }
-            )
+            RandomFlip(axes=(0,)),
+            # OneOf(
+            #     {
+            #         RandomAffine(): 0.8,
+            #         RandomElasticDeformation(): 0.2,
+            #     }
+            # )
         ]
     )
 
@@ -44,10 +44,7 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
         dataset = getattr(
             import_module(f"datasets.{cfg['dataset']}"),
             'Dataset'
-        )(
-            cfg['base_path'] + cfg['scan_pattern'],
-            transform
-        )
+        )(cfg, transform)
     except ImportError:
         log.info("Not a defined data loader... Attempting to use torchio loader")
         dataset = getattr(
@@ -59,6 +56,9 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
             download=True
         )
 
+    with open_dict(cfg):
+        cfg['size'] = dataset[0].spatial_shape
+
     # for subject in random.sample(dataset._subjects, cfg['plot_number']):
     #     plot_segmentation(subject['image'], subject['seg'], os.path.join(
     #             os.environ['OUTPUT_PATH'],
@@ -67,11 +67,14 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
     #         )
     #     )
 
+    sampler = GridSampler(patch_size=cfg['patch_size'])
+    samples_per_volume = len(sampler._compute_locations(dataset[0]))
+
     queue = Queue(
         subjects_dataset=dataset,
-        max_length=cfg['queue_length'],
-        samples_per_volume=cfg['samples_per_volume'],
-        sampler=UniformSampler(cfg['patch_size']),
+        max_length=samples_per_volume * cfg['queue_length'],
+        samples_per_volume=samples_per_volume,
+        sampler=sampler,
         verbose=log.level > 0,
         num_workers=2
     )
@@ -79,7 +82,7 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
     log.info(queue)
 
     return DataLoader(
-        dataset,
+        queue,
         batch_size=cfg['batch'],
         shuffle=True,
         drop_last=True,
