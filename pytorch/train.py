@@ -7,9 +7,10 @@ from torch.nn import BCEWithLogitsLoss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
+from monai.metrics.cumulative_average import CumulativeAverage
 # from torchsummary import summary
 
-from util import metric
+from util import metric, metrics_dict
 
 # FIXME not working
 # try:
@@ -78,7 +79,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
     # first_iter = True
 
     # FIXME when loading checkpoint resume epochs
-    cumulative_loss: float = 0
+    train_metrics = CumulativeAverage()
     for epoch in tqdm(
                 range(start_epoch, cfg['total_epochs'] + 1),
                 total=cfg['total_epochs'],
@@ -86,8 +87,6 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
                 leave=False,
                 desc='Epoch'
     ):
-        log.info(f'Starting epoch: {epoch}...')
-
         # TODO find a way to cache dataset
         for batch_idx, batch in tqdm(
             enumerate(data_loader),
@@ -131,31 +130,29 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
             optimizer.step()
             scheduler.step()
 
-            cumulative_loss += loss.item()
+            y_pred = (torch.sigmoid(logits) > 0.5).float()
+            train_metrics.append(
+                [
+                    loss.item(),
+                    *metric(y.cpu(), y_pred.cpu())
+                ]
+            )
 
-            if batch_idx % cfg['metrics_every'] == 0:
-                cumulative_loss /= cfg['metrics_every']
+        # if batch_idx % cfg['metrics_every'] == 0:
+        log.info(f'metrics for epoch {epoch}/{cfg["total_epochs"]}')
 
-                log.info(f'epoch {epoch}/{cfg["total_epochs"]} - batch {batch_idx}/{len(data_loader)}')
+        average_metrics = train_metrics.aggregate()
+        for idx, name in enumerate(['loss'] + metrics_dict):
+            writer.add_scalar(f'training/{name}', average_metrics[idx], batch_idx * epoch)
+            log.info(f'\ttraining/{name}: {average_metrics[idx]}')
+        train_metrics.reset()
 
-                writer.add_scalar('training/loss', cumulative_loss, batch_idx * epoch)
-                log.info(f'\t\ttraining/loss: {cumulative_loss}')
-
-                # FIXME monai.metrics.Cumulative
-                labels = (torch.sigmoid(logits) > 0.5).float()
-                metrics = metric(y.cpu(), labels.cpu())
-                for k, v in metrics.items():
-                    writer.add_scalar(f'training/{k}', v, batch_idx * epoch)
-                    log.info(f'\t\ttraining/{k}: {v}')
-
-                # plot_segmentation(x[0].cpu(), labels[0].cpu(), os.path.join(
-                #         os.environ['OUTPUT_PATH'],
-                #         cfg['validation_plots_dir'],
-                #         f'epoch{epoch}-batch{(batch_idx + 1)}'
-                #     )
-                # )
-
-                cumulative_loss = 0
+        # plot_segmentation(x[0].cpu(), labels[0].cpu(), os.path.join(
+        #         os.environ['OUTPUT_PATH'],
+        #         cfg['validation_plots_dir'],
+        #         f'epoch{epoch}-batch{(batch_idx + 1)}'
+        #     )
+        # )
 
         def save_model(name):
             checkpoints_path = os.path.join(
