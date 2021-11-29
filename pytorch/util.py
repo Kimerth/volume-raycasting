@@ -2,7 +2,7 @@ import warnings
 from monai.metrics.confusion_matrix import get_confusion_matrix
 import torch
 
-metrics_dict = ['acc,' 'fpr', 'fnr', 'precision', 'recall', 'f1']
+metrics_dict = ['acc', 'fpr', 'fnr', 'precision', 'recall', 'f1']
 
 def metric(y, y_pred):
     acc = torch.sum(y == y_pred) / torch.numel(y)
