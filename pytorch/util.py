@@ -1,6 +1,10 @@
 import warnings
 from monai.metrics.confusion_matrix import get_confusion_matrix
 import torch
+from torchio import GridSampler
+import random
+from torch.utils.data import DataLoader
+
 
 metrics_dict = ['acc', 'fpr', 'fnr', 'precision', 'recall', 'f1']
 
@@ -24,3 +28,20 @@ def metric(y, y_pred):
     fnr = fn / (fn + tp + eps)
 
     return acc, fpr, fnr, precision, recall, f1
+
+
+def random_subject_from_loader(data_loader):
+    return GridSampler(
+        subject=data_loader.dataset.subjects_dataset[
+            random.randrange(0, len(data_loader.dataset.subjects_dataset))
+        ],
+        patch_size=data_loader.dataset.sampler.patch_size
+    )
+
+
+def batches_from_sampler(sampler, batch_size):
+    loader = iter(DataLoader(sampler, batch_size=batch_size))
+    idx = 0
+    while idx < len(sampler):
+        yield next(loader), torch.Tensor(sampler.locations[idx:idx + batch_size])
+        idx += batch_size

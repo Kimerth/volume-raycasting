@@ -12,6 +12,8 @@ import sys
 import os
 import random
 
+from .visualization import plot_subject
+
 
 # FIXME
 sys.path.append(os.path.dirname(__file__))
@@ -56,19 +58,20 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
             download=True
         )
 
-    with open_dict(cfg):
-        cfg['size'] = dataset[0].spatial_shape
-
-    # for subject in random.sample(dataset._subjects, cfg['plot_number']):
-    #     plot_segmentation(subject['image'], subject['seg'], os.path.join(
-    #             os.environ['OUTPUT_PATH'],
-    #             cfg['save_plot_dir'],
-    #             subject["subject_id"]
-    #         )
-    #     )
+    for subject in random.sample(dataset._subjects, cfg['plot_number']):
+        plot_subject(subject, os.path.join(
+                os.environ['OUTPUT_PATH'],
+                cfg['save_plot_dir'],
+                subject["subject_id"]
+            )
+        )
 
     sampler = GridSampler(patch_size=cfg['patch_size'])
     samples_per_volume = len(sampler._compute_locations(dataset[0]))
+
+    with open_dict(cfg):
+        cfg['size'] = dataset[0].spatial_shape
+        # cfg['batch'] = samples_per_volume
 
     queue = Queue(
         subjects_dataset=dataset,

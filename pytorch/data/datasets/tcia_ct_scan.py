@@ -8,7 +8,7 @@ from pprint import pformat
 from torchio.data.dataset import SubjectsDataset
 from torchio.transforms import Resize
 from torchio.transforms.transform import Transform
-from torch.nn.functional import avg_pool3d, max_pool3d
+from torch.nn.functional import max_pool3d
 import logging
 from omegaconf import dictconfig
 from tqdm.notebook import tqdm
@@ -69,8 +69,17 @@ class Dataset(SubjectsDataset):
                 image.load()
                 label_map.load()
 
-                image.data = avg_pool3d(image.data.to(torch.float), tuple(self.cfg['kernel_size'])).to(torch.int16)
-                label_map.data = max_pool3d(label_map.data.to(torch.float), tuple(self.cfg['kernel_size'])).to(torch.bool)
+                def retrieve_elements_from_indices(tensor, indices):
+                    flattened_tensor = tensor.flatten(start_dim=1)
+                    repeated_indices = torch.repeat_interleave(indices, tensor.shape[0], 0)
+                    flattened_indices = repeated_indices.flatten(start_dim=1)
+                    return flattened_tensor.gather(dim=1, index=flattened_indices).view_as(repeated_indices)
+
+                output, indices = max_pool3d(
+                    image.data.to(torch.float), tuple(self.cfg['kernel_size']), return_indices=True
+                )
+                image.data = output.to(torch.int16)
+                label_map.data = retrieve_elements_from_indices(label_map.data, indices)
 
                 torch.save(
                     {

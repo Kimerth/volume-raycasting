@@ -5,5 +5,5 @@ kernel_size: [3,3,3]
 patch_size: [64, 64, 32]
 labels_path: segmentations/
 output_path: "./data/"
-batch: 5
+batch: 6
 dataset: tcia_ct_scan

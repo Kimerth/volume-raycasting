@@ -9,8 +9,13 @@ from torch.optim.lr_scheduler import StepLR
 from torch.utils.tensorboard import SummaryWriter
 from monai.metrics.cumulative_average import CumulativeAverage
 # from torchsummary import summary
+from torchio.data.subject import Subject
+from data.visualization import plot_subject
+from torchio import GridAggregator
+from torchio import ScalarImage, LabelMap
 
-from util import metric, metrics_dict
+
+from util import metric, metrics_dict, random_subject_from_loader, batches_from_sampler
 
 # FIXME not working
 # try:
@@ -80,6 +85,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
     # FIXME when loading checkpoint resume epochs
     train_metrics = CumulativeAverage()
+
     for epoch in tqdm(
                 range(start_epoch, cfg['total_epochs'] + 1),
                 total=cfg['total_epochs'],
@@ -147,12 +153,30 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
             log.info(f'\ttraining/{name}: {average_metrics[idx]}')
         train_metrics.reset()
 
-        # plot_segmentation(x[0].cpu(), labels[0].cpu(), os.path.join(
-        #         os.environ['OUTPUT_PATH'],
-        #         cfg['validation_plots_dir'],
-        #         f'epoch{epoch}-batch{(batch_idx + 1)}'
-        #     )
-        # )
+        sampler = random_subject_from_loader(data_loader)
+        aggregator_x = GridAggregator(sampler)
+        aggregator_y = GridAggregator(sampler)
+        aggregator_y_pred = GridAggregator(sampler)
+        for batch, locations in batches_from_sampler(sampler, data_loader.batch_size):
+            x: torch.Tensor = batch['image']['data']
+            aggregator_x.add_batch(x, locations)
+            y: torch.Tensor = batch['seg']['data']
+            aggregator_y.add_batch(y, locations)
+
+            logits = model(x.to(device))
+            y_pred = (torch.sigmoid(logits) > 0.5).float()
+            aggregator_y_pred.add_batch(y_pred, locations)
+
+        plot_subject(Subject(
+                image=ScalarImage(tensor=aggregator_x.get_output_tensor()),
+                true_seg=LabelMap(tensor=aggregator_y.get_output_tensor()),
+                pred_seg=LabelMap(tensor=aggregator_y_pred.get_output_tensor())
+            ), os.path.join(
+                os.environ['OUTPUT_PATH'],
+                cfg['validation_plots_dir'],
+                f'epoch{epoch}-batch{(batch_idx + 1)}'
+            )
+        )
 
         def save_model(name):
             checkpoints_path = os.path.join(
