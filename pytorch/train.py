@@ -27,9 +27,7 @@ from util import metric, metrics_dict, random_subject_from_loader, batches_from_
 #     from tqdm import tqdm
 from tqdm.notebook import tqdm
 
-# from models.unet3d import UNet3D
-from models.ext_resnet import ResidualUNet3D
-# from models.ext_unetr import UNETR
+from models.unet3d import UNet3D
 
 
 def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
@@ -42,7 +40,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
     torch.autograd.set_detect_anomaly(cfg['anomaly_detection'])
 
     # model = UNet3D(cfg).to(device)
-    model = ResidualUNet3D(cfg['in_channels'], cfg['out_channels']).to(device)
+    model = UNet3D(cfg).to(device)
 
     # TODO figure out a way for better logging
     if device.type == 'cuda':
