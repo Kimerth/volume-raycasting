@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"name": "pytorch",
+			"path": ".."
+		},
+		{
+			"name": "torchio",
+			"path": "..\\..\\externals\\code\\torchio"
+		}
+	],
+	"settings": {},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Python",
+				"type": "python",
+				"request": "launch",
+				"program": "run.py",
+				"console": "integratedTerminal",
+				"args": [
+					"hydra.verbose=[__main__, hydra, data, train]",
+                	"data=[generic, tcia_ct_scan]"
+				]
+			}
+		]
+	}
+}

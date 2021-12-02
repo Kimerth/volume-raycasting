@@ -1,0 +1,7 @@
+{
+    "python.envFile": "${workspaceFolder}/.env",
+    "python.analysis.extraPaths": [
+        "{env:PYTHONPATH}",
+        "${workspaceFolder}/../externals/code"
+    ]
+}
