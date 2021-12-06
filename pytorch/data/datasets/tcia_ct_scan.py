@@ -6,7 +6,6 @@ import torch
 from torchio import LabelMap, ScalarImage, Subject
 from pprint import pformat
 from torchio.data.dataset import SubjectsDataset
-from torchio.transforms import Resize
 from torchio.transforms.transform import Transform
 from torch.nn.functional import max_pool3d
 import logging
@@ -69,17 +68,7 @@ class Dataset(SubjectsDataset):
                 image.load()
                 label_map.load()
 
-                def retrieve_elements_from_indices(tensor, indices):
-                    flattened_tensor = tensor.flatten(start_dim=1)
-                    repeated_indices = torch.repeat_interleave(indices, tensor.shape[0], 0)
-                    flattened_indices = repeated_indices.flatten(start_dim=1)
-                    return flattened_tensor.gather(dim=1, index=flattened_indices).view_as(repeated_indices)
-
-                output, indices = max_pool3d(
-                    image.data.to(torch.float), tuple(self.cfg['kernel_size']), return_indices=True
-                )
-                image.data = output.to(torch.int16)
-                label_map.data = retrieve_elements_from_indices(label_map.data, indices)
+                image, label_map = self._max_pool_data(image, label_map)
 
                 torch.save(
                     {
@@ -104,3 +93,18 @@ class Dataset(SubjectsDataset):
                 )
             )
         return subjects
+
+    def _max_pool_data(self, image: ScalarImage, label_map: LabelMap):
+        def retrieve_elements_from_indices(tensor, indices):
+            flattened_tensor = tensor.flatten(start_dim=1)
+            repeated_indices = torch.repeat_interleave(indices, tensor.shape[0], 0)
+            flattened_indices = repeated_indices.flatten(start_dim=1)
+            return flattened_tensor.gather(dim=1, index=flattened_indices).view_as(repeated_indices)
+
+        output, indices = max_pool3d(
+            image.data.to(torch.float), tuple(self.cfg['kernel_size']), return_indices=True
+        )
+        image.data = output.to(torch.int16)
+        label_map.data = retrieve_elements_from_indices(label_map.data, indices)
+
+        return image, label_map

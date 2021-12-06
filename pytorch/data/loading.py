@@ -25,18 +25,18 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
     # maintain consitent preprocessing across datasets
     transform = Compose(
         [
-            ToCanonical(),
+            # ToCanonical(),
             # Resize(cfg['size']),
-            # RandomMotion(),
-            # RandomBiasField(),
+            RandomMotion(),
+            RandomBiasField(),
             RandomNoise(),
             RandomFlip(axes=(0,)),
-            # OneOf(
-            #     {
-            #         RandomAffine(): 0.8,
-            #         RandomElasticDeformation(): 0.2,
-            #     }
-            # )
+            OneOf(
+                {
+                    RandomAffine(): 0.8,
+                    RandomElasticDeformation(): 0.2,
+                }
+            )
         ]
     )
 
