@@ -7,8 +7,6 @@ from typing import Any
 from dotenv import load_dotenv
 
 load_dotenv()
-for path in re.split('; |: ', os.environ['PYTHONPATH']):
-    sys.path.append(path)
 
 import hydra
 import torch

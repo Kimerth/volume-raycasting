@@ -6,4 +6,4 @@ patch_size: [64, 64, 32]
 labels_path: segmentations/
 output_path: "./data/"
 batch: 6
-dataset: tcia_ct_scan
+dataset: TCIADataset

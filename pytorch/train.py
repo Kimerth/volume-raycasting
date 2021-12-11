@@ -152,7 +152,7 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
         if epoch % cfg['metrics_every'] == 0:
             log.info(f'metrics for epoch {epoch}/{cfg["total_epochs"]}')
-            train_visualizations(writer, epoch, model, data_loader, device)
+            train_visualizations(writer, epoch, model, data_loader, device, cfg['plots_output_path'])
 
         average_metrics = epoch_metrics.aggregate()
         for idx, name in enumerate(['loss'] + metrics_dict):

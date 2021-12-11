@@ -1,22 +1,17 @@
 import logging
-from importlib import import_module
+import os
+import random
 from pprint import pformat
 
+import torchio.datasets
 from omegaconf import dictconfig, open_dict
 from torch.utils.data import DataLoader
 from torchio.data.queue import Queue
 from torchio.data.sampler import GridSampler
 from torchio.transforms import *
 
-import sys
-import os
-import random
-
+import data.datasets as datasets
 from .visualization import plot_subject
-
-
-# FIXME
-sys.path.append(os.path.dirname(__file__))
 
 
 def get_data_loader(cfg: dictconfig) -> DataLoader:
@@ -31,28 +26,16 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
             RandomBiasField(),
             RandomNoise(),
             RandomFlip(axes=(0,)),
-            OneOf(
-                {
-                    RandomAffine(): 0.8,
-                    RandomElasticDeformation(): 0.2,
-                }
-            )
         ]
     )
 
     log.info(f"Data loader selected: {cfg['dataset']}")
     try:
         log.info("Attempting to use defined data loader")
-        dataset = getattr(
-            import_module(f"datasets.{cfg['dataset']}"),
-            'Dataset'
-        )(cfg, transform)
+        dataset = getattr(datasets, cfg['dataset'])(cfg, transform)
     except ImportError:
         log.info("Not a defined data loader... Attempting to use torchio loader")
-        dataset = getattr(
-            import_module(f"torchio.datasets"),
-            cfg['dataset']
-        )(
+        dataset = getattr(torchio.datasets, cfg['dataset'])(
             root=cfg['base_path'],
             transform=transform,
             download=True

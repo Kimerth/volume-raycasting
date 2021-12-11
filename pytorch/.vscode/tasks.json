@@ -11,7 +11,7 @@
             "args": [
                 "${workspaceFolder}/run.py",
                 "hydra.verbose=[__main__,hydra,data,train]",
-                "data=[generic,tcia_ct_scan]",
+                "data=[generic,ct_org]",
                 "hparams=[generic,UNet3D]"
             ],
             "presentation": {

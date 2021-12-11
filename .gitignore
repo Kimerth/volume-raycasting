@@ -52,3 +52,5 @@ Volume Rendering/res/
 **/outputs
 
 externals/
+external/
+extern/
