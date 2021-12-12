@@ -15,7 +15,8 @@ class CTORGDataset(Dataset):
 
             drive.mount('/content/drive')
             with zipfile.ZipFile(f'/content/drive/{cfg["drive_path"]}', 'r') as zip_ref:
-                zip_ref.extractall(cfg['base_path'])
+                for member in zip_ref.namelist():
+                    zip_ref.extract(member, cfg['base_path'])
             drive.flush_and_unmount()
 
         super().__init__(cfg, transform, **kwargs)
