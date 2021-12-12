@@ -1,4 +1,4 @@
-drive_path: 'CT-ORG.zip'
+drive_path: 'MyDrive/CT-ORG.zip'
 base_path: "${oc.env:TOP_PROJECT_PATH}/pytorch/extern/data/CT-ORG/"
 scan_pattern: "volume-*.nii.gz"
 cache_dir: "${data.base_path}/cache"
