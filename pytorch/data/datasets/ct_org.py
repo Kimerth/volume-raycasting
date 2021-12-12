@@ -4,11 +4,21 @@ from typing import Dict, List
 from omegaconf import dictconfig
 from torchio.transforms import transform
 from .generic import Dataset
+from google.colab import drive
+import zipfile
 
 
 class CTORGDataset(Dataset):
     def __init__(self, cfg: dictconfig, transform: transform, **kwargs):
-         super().__init__(cfg, transform, **kwargs)
+        if not os.path.isdir(cfg['base_path']):
+            os.makedirs(cfg['base_path'])
+
+            drive.mount('/content/drive')
+            with zipfile.ZipFile(f'/content/drive/{cfg["drive_path"]}', 'r') as zip_ref:
+                zip_ref.extractall(cfg['base_path'])
+            drive.flush_and_unmount()
+
+        super().__init__(cfg, transform, **kwargs)
 
     def _create_data_map(self) -> Dict[str, str]:
         scan_pattern: str = self.cfg['base_path'] + self.cfg['scan_pattern']
