@@ -10,6 +10,7 @@ from torchio import GridAggregator, LabelMap, ScalarImage
 from torchio.data.image import LabelMap
 from torchio.data.subject import Subject
 from util import batches_from_sampler, random_subject_from_loader
+from torchio.visualization import import_mpl_plt
 
 
 def squeeze_segmentation(seg):
@@ -46,8 +47,11 @@ def plot_subject(subject: Subject, save_plot_path: str = None):
     out_subject = Subject(data_dict)
     out_subject.plot(reorient=False, show=True)
 
-    for x in range(out_subject.spatial_shape[2]):
+    for x in range(min(out_subject.spatial_shape)):
+        _, plt = import_mpl_plt()
+        plt.ioff()
         out_subject.plot(reorient=False, indices= (x,x,x), output_path=f'{save_plot_path}/{x:03d}.png', show=False)
+        plt.ion()
 
     out_gif_path = f'{save_plot_path}/{os.path.basename(save_plot_path)}.gif'
     create_gifs(save_plot_path, out_gif_path)

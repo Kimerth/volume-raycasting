@@ -1,3 +1,4 @@
+drive_save_path: 'licenta/colab/outputs/'
 checkpoints_dir: 'checkpoints'
 load_checkpoint_path: null
 validation_plots_dir: 'plots'

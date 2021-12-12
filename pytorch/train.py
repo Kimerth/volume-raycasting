@@ -43,7 +43,7 @@ def _train_epoch(
         enumerate(data_loader),
         total=len(data_loader),
         position=1,
-        leave=True,
+        leave=False,
         desc='Train Steps'
     ):
         batch_idx += 1
@@ -141,10 +141,11 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
 
     # first_iter = True
     for epoch in tqdm(
-        range(start_epoch, cfg['total_epochs'] + 1),
+        range(start_epoch, start_epoch + cfg['total_epochs']),
+        initial=start_epoch,
         total=cfg['total_epochs'],
         position=0,
-        leave=False,
+        leave=True,
         desc='Epoch'
     ):
         epoch_metrics = _train_epoch(data_loader, model, criterion, optimizer)
