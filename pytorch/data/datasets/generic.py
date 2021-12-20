@@ -10,6 +10,8 @@ from torch.nn.functional import max_pool3d
 import logging
 from omegaconf import dictconfig
 from tqdm.notebook import tqdm
+from torchio.transforms import Resize
+import numpy as np
 
 
 class Dataset(SubjectsDataset):
@@ -56,7 +58,7 @@ class Dataset(SubjectsDataset):
                 image.load()
                 label_map.load()
 
-                image, label_map = self._max_pool_data(image, label_map)
+                image, label_map = self._resize(image, label_map)
 
                 torch.save(
                     {
@@ -82,6 +84,7 @@ class Dataset(SubjectsDataset):
             )
         return subjects
 
+    # TODO determine if needed
     def _max_pool_data(self, image: ScalarImage, label_map: LabelMap):
         def retrieve_elements_from_indices(tensor, indices):
             flattened_tensor = tensor.flatten(start_dim=1)
@@ -96,3 +99,14 @@ class Dataset(SubjectsDataset):
         label_map.data = retrieve_elements_from_indices(label_map.data, indices)
 
         return image, label_map
+
+    def _resize(self, image: ScalarImage, label_map: LabelMap):
+        # if min(image.spatial_shape) < min(self.cfg['desired_size']):
+        #     return None
+        res_subject = Resize(self.cfg['desired_size']).apply_transform(
+            Subject(
+                image=ScalarImage(tensor=image.data),
+                seg=LabelMap(tensor=label_map.data)
+            )
+        )
+        return res_subject['image'], res_subject['seg']

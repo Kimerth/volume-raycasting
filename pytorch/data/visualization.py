@@ -47,16 +47,18 @@ def plot_subject(subject: Subject, save_plot_path: str = None):
     out_subject = Subject(data_dict)
     out_subject.plot(reorient=False, show=True)
 
-    for x in range(min(out_subject.spatial_shape)):
+    for x in range(max(out_subject.spatial_shape)):
         _, plt = import_mpl_plt()
         plt.ioff()
-        out_subject.plot(reorient=False, indices= (x,x,x), output_path=f'{save_plot_path}/{x:03d}.png', show=False)
+        out_subject.plot(
+            reorient=False,
+            indices=(min(x, out_subject.spatial_shape[0] - 1), min(x, out_subject.spatial_shape[1] - 1), min(x, out_subject.spatial_shape[2] - 1)),
+            output_path=f'{save_plot_path}/{x:03d}.png',
+            show=False
+        )
         plt.ion()
 
-    out_gif_path = f'{save_plot_path}/{os.path.basename(save_plot_path)}.gif'
-    create_gifs(save_plot_path, out_gif_path)
-
-    return out_gif_path
+    create_gifs(save_plot_path, f'{save_plot_path}/{os.path.basename(save_plot_path)}.gif')
 
 
 def plot_aggregated_image(
@@ -85,7 +87,7 @@ def plot_aggregated_image(
     whole_y = aggregator_y.get_output_tensor()
     whole_y_pred = aggregator_y_pred.get_output_tensor()
 
-    out_gif_path = plot_subject(
+    plot_subject(
         Subject(
             image=ScalarImage(tensor=whole_x),
             true_seg=LabelMap(tensor=whole_y),
@@ -95,8 +97,7 @@ def plot_aggregated_image(
     )
 
     # FIXME
-    # gif_np_array = imageio.mimread(out_gif_path)
-    # writer.add_video('training/visualization', gif_np_array, global_step=epoch)
+    # writer.add_video('training/visualization', out_gif, global_step=epoch)
 
 
 def train_visualizations(
