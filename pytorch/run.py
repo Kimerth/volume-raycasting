@@ -18,7 +18,7 @@ from hydra.utils import get_original_cwd
 from data import get_data_loader
 from train import train
 
-from google.colab import drive
+import google
 import shutil
 from datetime import datetime
 
@@ -34,12 +34,14 @@ class DataCallback(Callback):
         ...
 
     def on_run_start(self, config: DictConfig, **kwargs: Any) -> None:
-        ...
+        if hasattr(google, 'colab'):
+            getattr(google, 'colab').drive.mount('/content/drive')
+
 
     def on_run_end(elf, config: DictConfig, job_return: JobReturn, **kwargs: Any) -> None:
-        drive.mount('/content/drive')
         shutil.make_archive(f'/content/drive/MyDrive/{config["hparams"]["drive_save_path"]}/{datetime.now()}', 'zip', os.environ['OUTPUT_PATH'])
-        drive.flush_and_unmount()
+        if hasattr(google, 'colab'):
+            getattr(google, 'colab').drive.flush_and_unmount()
 
 
 @hydra.main(config_path='conf', config_name='config')

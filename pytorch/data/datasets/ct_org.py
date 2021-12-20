@@ -4,7 +4,6 @@ from typing import Dict, List
 from omegaconf import dictconfig
 from torchio.transforms import transform
 from .generic import Dataset
-from google.colab import drive
 import zipfile
 
 
@@ -13,10 +12,8 @@ class CTORGDataset(Dataset):
         if not os.path.isdir(cfg['base_path']):
             os.makedirs(cfg['base_path'])
 
-            drive.mount('/content/drive')
             with zipfile.ZipFile(f'/content/drive/{cfg["drive_path"]}', 'r') as zip_ref:
                 zip_ref.extractall(f'{cfg["base_path"]}/../')
-            drive.flush_and_unmount()
 
         super().__init__(cfg, transform, **kwargs)
 
