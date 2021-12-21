@@ -62,6 +62,7 @@ def plot_subject(subject: Subject, save_plot_path: str = None):
             output_path=f'{save_plot_path}/{x:03d}.png',
             show=False
         )
+    plt.close('all')
     plt.ion()
     mpl.use(backend_)
 
