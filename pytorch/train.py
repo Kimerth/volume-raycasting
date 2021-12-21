@@ -1,5 +1,6 @@
 import logging
 import os
+from typing import Sequence
 
 import torch
 from omegaconf import DictConfig
@@ -12,7 +13,7 @@ from monai.metrics.cumulative_average import CumulativeAverage
 from data.visualization import train_visualizations
 
 
-from util import metric, metrics_dict
+from util import metric, metrics_map
 
 # FIXME not working
 # try:
@@ -90,8 +91,10 @@ def _train_epoch(
     return epoch_metrics
 
 
-def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn.Module:
+def train(cfg: DictConfig, data_loaders: Sequence[torch.utils.data.DataLoader]) -> torch.nn.Module:
     log = logging.getLogger(__name__)
+
+    train_loader, val_loader = data_loaders
 
     # TODO get device from config
     log.info(f'Using device: {device}')
@@ -139,27 +142,27 @@ def train(cfg: DictConfig, data_loader: torch.utils.data.DataLoader) -> torch.nn
         scheduler.load_state_dict(checkpoint['scheduler'])
         start_epoch = int(checkpoint['epoch']) + 1
 
-    # first_iter = True
-    for epoch in tqdm(
+    tqdm_obj = tqdm(
         range(start_epoch, start_epoch + cfg['total_epochs']),
         initial=start_epoch,
         total=cfg['total_epochs'],
         position=0,
         leave=True,
         desc='Epoch'
-    ):
-        epoch_metrics = _train_epoch(data_loader, model, criterion, optimizer)
+    )
+    for epoch in tqdm_obj:
+        epoch_metrics = _train_epoch(train_loader, model, criterion, optimizer)
         scheduler.step()
 
-        if epoch % cfg['metrics_every'] == 0:
-            log.info(f'metrics for epoch {epoch}/{cfg["total_epochs"]}')
-            train_visualizations(writer, epoch, model, data_loader, device, f'{os.environ["OUTPUT_PATH"]}/{cfg["plots_output_path"]}')
-
         average_metrics = epoch_metrics.aggregate()
-        for idx, name in enumerate(['loss'] + metrics_dict):
+        tqdm_obj.set_postfix({name:average_metrics[idx] for idx, name in enumerate(['loss'] + metrics_map)})
+        for idx, name in enumerate(['loss'] + metrics_map):
             writer.add_scalar(f'training/{name}', average_metrics[idx], epoch)
             if epoch % cfg['metrics_every'] == 0:
                 log.info(f'\ttraining/{name}: {average_metrics[idx]}')
+
+        if epoch % cfg['metrics_every'] == 0:
+            train_visualizations(writer, epoch, model, val_loader, device, f'{os.environ["OUTPUT_PATH"]}/{cfg["plots_output_path"]}')
 
         def save_model(name):
             checkpoints_path = os.path.join(

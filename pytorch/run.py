@@ -52,8 +52,8 @@ def my_app(cfg: DictConfig) -> None:
     os.chdir(get_original_cwd())
     log.debug(f'cwd: {get_original_cwd()}')
 
-    data_loader = get_data_loader(cfg['data'])
-    train(cfg['hparams'], data_loader)
+    data_loaders = get_data_loader(cfg['data'])
+    train(cfg['hparams'], data_loaders)
 
 
 if __name__ == '__main__':

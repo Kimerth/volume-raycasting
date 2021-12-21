@@ -2,10 +2,11 @@ import logging
 import os
 import random
 from pprint import pformat
+from typing import Tuple
 
 import torchio.datasets
 from omegaconf import dictconfig, open_dict
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 from torchio.data.queue import Queue
 from torchio.data.sampler import GridSampler
 from torchio.transforms import *
@@ -14,7 +15,7 @@ import data.datasets as datasets
 from .visualization import plot_subject
 
 
-def get_data_loader(cfg: dictconfig) -> DataLoader:
+def get_data_loader(cfg: dictconfig) -> Tuple[DataLoader, DataLoader]:
     log = logging.getLogger(__name__)
 
     # maintain consitent preprocessing across datasets
@@ -56,8 +57,11 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
         cfg['size'] = dataset[0].spatial_shape
         # cfg['batch'] = samples_per_volume
 
-    queue = Queue(
-        subjects_dataset=dataset,
+    val_size = max(1, int(0.2 * len(dataset)))
+    train_set, val_set = random_split(dataset, [len(dataset) - val_size, val_size])
+
+    train_queue = Queue(
+        subjects_dataset=train_set,
         max_length=samples_per_volume * cfg['queue_length'],
         samples_per_volume=samples_per_volume,
         sampler=sampler,
@@ -65,10 +69,25 @@ def get_data_loader(cfg: dictconfig) -> DataLoader:
         num_workers=2
     )
 
-    log.info(queue)
+    # TODO val dataset should contain non transformed images (i.e. no resize)
+    # and in val check should apply transform and inverse and then check results
+    val_queue = Queue(
+        subjects_dataset=val_set,
+        max_length=samples_per_volume * cfg['queue_length'],
+        samples_per_volume=samples_per_volume,
+        sampler=sampler,
+        verbose=log.level > 0,
+        num_workers=2
+    )
 
     return DataLoader(
-        queue,
+        train_queue,
+        batch_size=cfg['batch'],
+        shuffle=True,
+        drop_last=True,
+        pin_memory=True
+    ), DataLoader(
+        val_queue,
         batch_size=cfg['batch'],
         shuffle=True,
         drop_last=True,
