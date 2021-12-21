@@ -51,8 +51,11 @@ def plot_subject(subject: Subject, save_plot_path: str = None):
     out_subject.plot(reorient=False, show=True)
 
     for x in range(max(out_subject.spatial_shape)):
-        _, plt = import_mpl_plt()
+        mpl, plt = import_mpl_plt()
+        backend_ =  mpl.get_backend()
+
         plt.ioff()
+        mpl.use("Agg")
         out_subject.plot(
             reorient=False,
             indices=(min(x, out_subject.spatial_shape[0] - 1), min(x, out_subject.spatial_shape[1] - 1), min(x, out_subject.spatial_shape[2] - 1)),
@@ -60,6 +63,7 @@ def plot_subject(subject: Subject, save_plot_path: str = None):
             show=False
         )
         plt.ion()
+        mpl.use(backend_)
 
     create_gifs(save_plot_path, f'{save_plot_path}/{os.path.basename(save_plot_path)}.gif')
 
