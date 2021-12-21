@@ -50,20 +50,20 @@ def plot_subject(subject: Subject, save_plot_path: str = None):
     out_subject = Subject(data_dict)
     out_subject.plot(reorient=False, show=True)
 
-    for x in range(max(out_subject.spatial_shape)):
-        mpl, plt = import_mpl_plt()
-        backend_ =  mpl.get_backend()
+    mpl, plt = import_mpl_plt()
+    backend_ =  mpl.get_backend()
 
-        plt.ioff()
-        mpl.use("Agg")
+    plt.ioff()
+    mpl.use("agg")
+    for x in range(max(out_subject.spatial_shape)):
         out_subject.plot(
             reorient=False,
             indices=(min(x, out_subject.spatial_shape[0] - 1), min(x, out_subject.spatial_shape[1] - 1), min(x, out_subject.spatial_shape[2] - 1)),
             output_path=f'{save_plot_path}/{x:03d}.png',
             show=False
         )
-        plt.ion()
-        mpl.use(backend_)
+    plt.ion()
+    mpl.use(backend_)
 
     create_gifs(save_plot_path, f'{save_plot_path}/{os.path.basename(save_plot_path)}.gif')
 
