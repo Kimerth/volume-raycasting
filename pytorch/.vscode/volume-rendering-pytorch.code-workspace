@@ -3,10 +3,6 @@
 		{
 			"name": "pytorch",
 			"path": ".."
-		},
-		{
-			"name": "torchio",
-			"path": "..\\..\\externals\\code\\torchio"
 		}
 	],
 	"settings": {},
@@ -21,7 +17,7 @@
 				"console": "integratedTerminal",
 				"args": [
 					"hydra.verbose=[__main__, hydra, data, train]",
-                	"data=[generic, tcia_ct_scan]"
+                	"data=[generic, ct_org]"
 				]
 			}
 		]

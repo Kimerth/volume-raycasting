@@ -5,10 +5,9 @@ import logging
 from typing import Any
 
 from dotenv import load_dotenv
+from hydra.core.utils import JobReturn
 
 load_dotenv()
-for path in re.split('; |: ', os.environ['PYTHONPATH']):
-    sys.path.append(path)
 
 import hydra
 import torch
@@ -19,6 +18,9 @@ from hydra.utils import get_original_cwd
 from data import get_data_loader
 from train import train
 
+import google
+import shutil
+from datetime import datetime
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -29,10 +31,17 @@ if torch.cuda.is_available():
 # FIXME
 class DataCallback(Callback):
     def __init__(self) -> None:
-        pass
+        ...
 
     def on_run_start(self, config: DictConfig, **kwargs: Any) -> None:
-        pass
+        if hasattr(google, 'colab'):
+            getattr(google, 'colab').drive.mount('/content/drive')
+
+
+    def on_run_end(elf, config: DictConfig, job_return: JobReturn, **kwargs: Any) -> None:
+        shutil.make_archive(f'/content/drive/MyDrive/{config["hparams"]["drive_save_path"]}/{datetime.now()}', 'zip', os.environ['OUTPUT_PATH'])
+        if hasattr(google, 'colab'):
+            getattr(google, 'colab').drive.flush_and_unmount()
 
 
 @hydra.main(config_path='conf', config_name='config')
@@ -43,8 +52,8 @@ def my_app(cfg: DictConfig) -> None:
     os.chdir(get_original_cwd())
     log.debug(f'cwd: {get_original_cwd()}')
 
-    data_loader = get_data_loader(cfg['data'])
-    train(cfg['hparams'], data_loader)
+    data_loaders = get_data_loader(cfg['data'])
+    train(cfg['hparams'], data_loaders)
 
 
 if __name__ == '__main__':

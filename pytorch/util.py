@@ -6,8 +6,9 @@ import random
 from torch.utils.data import DataLoader
 
 
-metrics_dict = ['acc', 'fpr', 'fnr', 'precision', 'recall', 'f1']
+metrics_map = ['acc', 'fpr', 'fnr', 'precision', 'recall', 'f1']
 
+# TODO return dict
 def metric(y, y_pred):
     acc = torch.sum(y == y_pred) / torch.numel(y)
 
