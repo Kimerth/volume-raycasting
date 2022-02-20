@@ -5,6 +5,6 @@ validation_plots_dir: 'plots'
 tb_output_dir: 'metrics'
 plots_output_path: "${hparams.tb_output_dir}/plots/"
 latest_checkpoint_file: 'checkpoint_latest.pt'
-save_every: 5
+save_every: 20
 metrics_every: 5
 anomaly_detection: False
