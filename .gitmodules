@@ -1,0 +1,7 @@
+[submodule "VolumeRendering/extern/include/imgui"]
+	path = VolumeRendering/extern/include/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "VolumeRendering/extern/include/imguiFD"]
+	path = VolumeRendering/extern/include/imguiFD
+	url = https://github.com/aiekick/ImGuiFileDialog.git
+	branch = Lib_Only
