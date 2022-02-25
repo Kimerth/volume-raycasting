@@ -26,6 +26,10 @@
 #include "Loader.h"
 #include "transfer_function_widget.h"
 
+#define FRAG_SHADER_PATH "source/shaders/raycasting.frag"
+#define VERT_SHADER_PATH "source/shaders/raycasting.vert"
+#define COMP_SHADER_PATH "source/shaders/grads.comp"
+
 #define FRAME_DURATON 32
 #define ANGLE_SPEED 0.68 // approx 40degrees/sec
 
@@ -80,7 +84,7 @@ void display()
 
 void loadShaders()
 {
-	s.load("raycasting.vert", "raycasting.frag", v);
+	s.load(VERT_SHADER_PATH, FRAG_SHADER_PATH, COMP_SHADER_PATH, v);
 	s.use();
 
 	s.setVec2("screen", windowWidth, windowHeight);
@@ -249,8 +253,11 @@ void render()
 	s.setMat4("viewMatrix", model);
 	s.setMat4("MVP", projection * model);
 
-	glBindVertexArray(v.vao);
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLuint*)NULL);
+	if (v.vao != NULL)
+	{
+		glBindVertexArray(v.vao);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (GLuint*)NULL);
+	}
 }
 
 void init()

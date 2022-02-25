@@ -15,7 +15,7 @@ import data.datasets as datasets
 from .visualization import plot_subject
 
 
-def get_data_loader(cfg: dictconfig) -> Tuple[DataLoader, DataLoader]:
+def get_data_loader(cfg: dictconfig, _) -> Tuple[DataLoader, DataLoader]:
     log = logging.getLogger(__name__)
 
     # maintain consitent preprocessing across datasets

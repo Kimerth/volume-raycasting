@@ -120,12 +120,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;USE_BOOKMARK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>extern/include/imgui;extern/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>extern/include;extern/include/imgui;extern/libtorch/include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>extern/libtorch/lib/*.lib;extern/libtorch/lib/*.dll;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -155,6 +155,7 @@
     <ClCompile Include="extern\include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="source\Loader.cpp" />
     <ClCompile Include="source\main.cpp" />
+    <ClCompile Include="source\PytorchModel.cpp" />
     <ClCompile Include="source\Shader.cpp" />
     <ClCompile Include="source\transfer_function_widget.cpp" />
     <ClCompile Include="source\Volume.cpp" />
@@ -170,6 +171,7 @@
     <ClInclude Include="extern\include\imgui\imstb_textedit.h" />
     <ClInclude Include="extern\include\imgui\imstb_truetype.h" />
     <ClInclude Include="source\Loader.h" />
+    <ClInclude Include="source\PytorchModel.h" />
     <ClInclude Include="source\Shader.h" />
     <ClInclude Include="source\transfer_function_widget.h" />
     <ClInclude Include="source\utils.h" />

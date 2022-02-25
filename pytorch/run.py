@@ -15,8 +15,7 @@ from hydra.experimental.callback import Callback
 from omegaconf import DictConfig, OmegaConf
 from hydra.utils import get_original_cwd
 
-from data import get_data_loader
-from train import train
+import jobs
 
 import google
 import shutil
@@ -28,7 +27,6 @@ if torch.cuda.is_available():
 # TODO in C++: possibility to load different models
 # TODO switch to pathlib
 
-# FIXME
 class DataCallback(Callback):
     def __init__(self) -> None:
         ...
@@ -36,7 +34,6 @@ class DataCallback(Callback):
     def on_run_start(self, config: DictConfig, **kwargs: Any) -> None:
         if hasattr(google, 'colab'):
             getattr(google, 'colab').drive.mount('/content/drive')
-
 
     def on_run_end(elf, config: DictConfig, job_return: JobReturn, **kwargs: Any) -> None:
         shutil.make_archive(f'/content/drive/MyDrive/{config["hparams"]["drive_save_path"]}/{datetime.now()}', 'zip', os.environ['OUTPUT_PATH'])
@@ -52,8 +49,9 @@ def my_app(cfg: DictConfig) -> None:
     os.chdir(get_original_cwd())
     log.debug(f'cwd: {get_original_cwd()}')
 
-    data_loaders = get_data_loader(cfg['data'])
-    train(cfg['hparams'], data_loaders)
+    dependencies = {}
+    for job_name, job_config in cfg['jobs'].items():
+        dependencies[job_name] = getattr(jobs, job_config['fun'])(job_config, dependencies)
 
 
 if __name__ == '__main__':

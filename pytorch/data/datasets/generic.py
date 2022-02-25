@@ -34,8 +34,8 @@ class Dataset(SubjectsDataset):
         ...
 
     def _get_subjects_list(self) -> List[Subject]:
-        if not os.path.exists(self.cfg['pt_path']):
-            os.makedirs(self.cfg['pt_path'])
+        if not os.path.exists(self.cfg['cache_path']):
+            os.makedirs(self.cfg['cache_path'])
 
             data_map = self._create_data_map()
 
@@ -66,13 +66,13 @@ class Dataset(SubjectsDataset):
                         'image': image.data,
                         'seg': label_map.data
                     },
-                    os.path.join(self.cfg['pt_path'], f'{subject_id}.pt')
+                    os.path.join(self.cfg['cache_path'], f'{subject_id}.pt')
                 )
 
         subjects = []
-        for pt_name in os.listdir(self.cfg['pt_path']):
+        for pt_name in os.listdir(self.cfg['cache_path']):
             pt_data = torch.load(
-                os.path.join(self.cfg['pt_path'], pt_name)
+                os.path.join(self.cfg['cache_path'], pt_name)
             )
 
             subjects.append(

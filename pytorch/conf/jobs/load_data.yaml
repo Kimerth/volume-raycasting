@@ -1,0 +1,6 @@
+# @package jobs.load_data
+defaults:
+  - base_job
+  - /data/ct_org@_here_
+
+fun: get_data_loader

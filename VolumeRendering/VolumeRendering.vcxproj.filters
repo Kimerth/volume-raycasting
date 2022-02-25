@@ -16,6 +16,9 @@
     <Filter Include="Source Files\Shaders">
       <UniqueIdentifier>{3a804a5d-7be4-4ab2-a0b3-582ee444803c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Other External Dependencies">
+      <UniqueIdentifier>{21a65d06-a211-47d0-9688-2833f9c53f59}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\Loader.cpp">
@@ -34,27 +37,30 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\imgui\imgui.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\imgui\imgui_demo.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\imgui\imgui_draw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="extern\include\imgui\imgui_tables.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="extern\include\imgui\imgui_widgets.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\imgui\backends\imgui_impl_glut.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\imgui\backends\imgui_impl_opengl3.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\imgui\imgui_tables.cpp">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\imgui\imgui_widgets.cpp">
+      <Filter>Other External Dependencies</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\imguiFD\ImGuiFileDialog.cpp">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="source\PytorchModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -75,30 +81,33 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="extern\include\imgui\imgui.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="extern\include\imgui\imgui_internal.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="extern\include\imgui\imstb_rectpack.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="extern\include\imgui\imstb_textedit.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="extern\include\imgui\imstb_truetype.h">
-      <Filter>Header Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClInclude>
     <ClInclude Include="extern\include\imgui\backends\imgui_impl_glut.h">
-      <Filter>Header Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClInclude>
     <ClInclude Include="extern\include\imgui\backends\imgui_impl_opengl3.h">
-      <Filter>Header Files</Filter>
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\imgui_internal.h">
+      <Filter>Other External Dependencies</Filter>
     </ClInclude>
     <ClInclude Include="extern\include\imguiFD\ImGuiFileDialog.h">
-      <Filter>Header Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClInclude>
     <ClInclude Include="extern\include\imguiFD\ImGuiFileDialogConfig.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\imstb_rectpack.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\imstb_textedit.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\imstb_truetype.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="source\PytorchModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

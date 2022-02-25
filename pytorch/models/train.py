@@ -91,8 +91,13 @@ def _train_epoch(
     return epoch_metrics
 
 
-def train(cfg: DictConfig, data_loaders: Sequence[torch.utils.data.DataLoader]) -> torch.nn.Module:
+def train(cfg: DictConfig, dependencies: dict) -> torch.nn.Module:
     log = logging.getLogger(__name__)
+
+    if 'load_data' not in dependencies:
+        raise Exception("Missing required dependency: data_loaders from load_data")
+
+    data_loaders: Sequence[torch.utils.data.DataLoader] = dependencies['load_data']
 
     train_loader, val_loader = data_loaders
 
@@ -132,15 +137,16 @@ def train(cfg: DictConfig, data_loaders: Sequence[torch.utils.data.DataLoader]) 
 
     start_epoch = 1
 
-    if cfg['load_checkpoint_path'] is not None:
-        log.info(f'loading checkpoint: {cfg["load_checkpoint_path"]}...')
+    # TODO move this in separate load_model function
+    # if cfg['load_checkpoint_path'] is not None:
+    #     log.info(f'loading checkpoint: {cfg["load_checkpoint_path"]}...')
 
-        checkpoint = torch.load(cfg['load_checkpoint_path'])
-        model.load_state_dict(checkpoint['model'])
-        optimizer.load_state_dict(checkpoint['optim'])
-        # TODO option to ignore resuming of scheduler
-        scheduler.load_state_dict(checkpoint['scheduler'])
-        start_epoch = int(checkpoint['epoch']) + 1
+    #     checkpoint = torch.load(cfg['load_checkpoint_path'])
+    #     model.load_state_dict(checkpoint['model'])
+    #     optimizer.load_state_dict(checkpoint['optim'])
+    #     # TODO option to ignore resuming of scheduler
+    #     scheduler.load_state_dict(checkpoint['scheduler'])
+    #     start_epoch = int(checkpoint['epoch']) + 1
 
     tqdm_obj = tqdm(
         range(start_epoch, start_epoch + cfg['total_epochs']),

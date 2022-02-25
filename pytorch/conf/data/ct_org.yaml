@@ -1,8 +1,10 @@
+defaults:
+  - base_data
+
 drive_path: 'MyDrive/CT-ORG.zip'
 base_path: "${oc.env:TOP_PROJECT_PATH}/pytorch/extern/data/CT-ORG/"
 scan_pattern: "volume-*.nii.gz"
-cache_dir: "${data.base_path}/cache"
-pt_path: "${data.base_path}/cache/"
+cache_path: "${jobs.load_data.base_path}/cache/"
 desired_size: [96,96,96]
 patch_size: [32, 32, 32]
 num_classes: 6

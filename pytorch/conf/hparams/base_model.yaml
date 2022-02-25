@@ -1,6 +1,5 @@
 drive_save_path: 'licenta/colab/outputs/'
 checkpoints_dir: 'checkpoints'
-load_checkpoint_path: null
 validation_plots_dir: 'plots'
 tb_output_dir: 'metrics'
 plots_output_path: "${hparams.tb_output_dir}/plots/"

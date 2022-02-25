@@ -39,11 +39,11 @@ void detachShaders()
 		glDetachShader(Shader::shader_programme, shaders[i]);
 }
 
-void Shader::load(const char* vertexPath, const char* fragmentPath, Volume& vol)
+void Shader::load(const char* vertexPath, const char* fragmentPath, const char* computePath, Volume& vol)
 {
 	load(vertexPath, fragmentPath);
 
-	std::string stext = textFileRead("grads.comp");
+	std::string stext = textFileRead(computePath);
 	const char* comp_shader = stext.c_str();
 
 	GLuint cs = glCreateShader(GL_COMPUTE_SHADER);

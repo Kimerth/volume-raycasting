@@ -1,10 +1,7 @@
 defaults:
-  - data:
-    - generic
-    - ct_org
-  - hparams:
-    - generic
-    - UNet3D
+  - jobs:
+    - load_data
+    - train
   - /hydra/callbacks:
     - data_callback
   - override hydra/job_logging: colorlog
