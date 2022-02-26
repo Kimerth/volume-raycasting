@@ -2,7 +2,6 @@ import logging
 import os
 import random
 from pprint import pformat
-from typing import Tuple
 
 import torchio.datasets
 from omegaconf import dictconfig, open_dict
@@ -15,7 +14,7 @@ import data.datasets as datasets
 from .visualization import plot_subject
 
 
-def get_data_loader(cfg: dictconfig, _) -> Tuple[DataLoader, DataLoader]:
+def get_data_loader(cfg: dictconfig, _) -> dict:
     log = logging.getLogger(__name__)
 
     # maintain consitent preprocessing across datasets
@@ -80,16 +79,20 @@ def get_data_loader(cfg: dictconfig, _) -> Tuple[DataLoader, DataLoader]:
         num_workers=2
     )
 
-    return DataLoader(
-        train_queue,
-        batch_size=cfg['batch'],
-        shuffle=True,
-        drop_last=True,
-        pin_memory=True
-    ), DataLoader(
-        val_queue,
-        batch_size=cfg['batch'],
-        shuffle=True,
-        drop_last=True,
-        pin_memory=True
-    )
+    return {
+        'data_loaders': (
+            DataLoader(
+                train_queue,
+                batch_size=cfg['batch'],
+                shuffle=True,
+                drop_last=True,
+                pin_memory=True
+            ), DataLoader(
+                val_queue,
+                batch_size=cfg['batch'],
+                shuffle=True,
+                drop_last=True,
+                pin_memory=True
+            )
+        )
+    }

@@ -1,2 +1,5 @@
+# @package jobs.deploy
 defaults:
   - base_job
+
+fun: deploy_model

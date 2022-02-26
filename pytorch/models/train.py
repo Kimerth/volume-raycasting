@@ -15,7 +15,7 @@ from data.visualization import train_visualizations
 
 from util import metric, metrics_map
 
-# FIXME not working
+# FIXME
 # try:
 #     if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
 #         from tqdm.notebook import tqdm
@@ -27,7 +27,8 @@ from tqdm.notebook import tqdm
 
 from models.unet3d import UNet3D
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def _train_epoch(
@@ -94,20 +95,20 @@ def _train_epoch(
 def train(cfg: DictConfig, dependencies: dict) -> torch.nn.Module:
     log = logging.getLogger(__name__)
 
-    if 'load_data' not in dependencies:
-        raise Exception("Missing required dependency: data_loaders from load_data")
+    if 'data_loaders' not in dependencies:
+        raise Exception("Missing required dependency: data_loaders")
 
-    data_loaders: Sequence[torch.utils.data.DataLoader] = dependencies['load_data']
-
-    train_loader, val_loader = data_loaders
+    train_loader, val_loader = dependencies['data_loaders']
 
     # TODO get device from config
     log.info(f'Using device: {device}')
 
     torch.autograd.set_detect_anomaly(cfg['anomaly_detection'])
 
-    # model = UNet3D(cfg).to(device)
-    model = UNet3D(cfg).to(device)
+    if 'model' in dependencies:
+        model = dependencies['model']
+    else:
+        model = UNet3D(cfg).to(device)
 
     # TODO figure out a way for better logging
     if device.type == 'cuda':
@@ -137,16 +138,11 @@ def train(cfg: DictConfig, dependencies: dict) -> torch.nn.Module:
 
     start_epoch = 1
 
-    # TODO move this in separate load_model function
-    # if cfg['load_checkpoint_path'] is not None:
-    #     log.info(f'loading checkpoint: {cfg["load_checkpoint_path"]}...')
-
-    #     checkpoint = torch.load(cfg['load_checkpoint_path'])
-    #     model.load_state_dict(checkpoint['model'])
-    #     optimizer.load_state_dict(checkpoint['optim'])
-    #     # TODO option to ignore resuming of scheduler
-    #     scheduler.load_state_dict(checkpoint['scheduler'])
-    #     start_epoch = int(checkpoint['epoch']) + 1
+    if 'checkpoint' in dependencies:
+        checkpoint = dependencies['checkpoint']
+        optimizer.load_state_dict(checkpoint['optim'])
+        scheduler.load_state_dict(checkpoint['scheduler'])
+        start_epoch = int(checkpoint['epoch']) + 1
 
     tqdm_obj = tqdm(
         range(start_epoch, start_epoch + cfg['total_epochs']),

@@ -1,6 +1,4 @@
 import os
-import re
-import sys
 import logging
 from typing import Any
 
@@ -36,8 +34,8 @@ class DataCallback(Callback):
             getattr(google, 'colab').drive.mount('/content/drive')
 
     def on_run_end(elf, config: DictConfig, job_return: JobReturn, **kwargs: Any) -> None:
-        shutil.make_archive(f'/content/drive/MyDrive/{config["hparams"]["drive_save_path"]}/{datetime.now()}', 'zip', os.environ['OUTPUT_PATH'])
         if hasattr(google, 'colab'):
+            shutil.make_archive(f'/content/drive/MyDrive/{config["hparams"]["drive_save_path"]}/{datetime.now()}', 'zip', os.environ['OUTPUT_PATH'])
             getattr(google, 'colab').drive.flush_and_unmount()
 
 
@@ -51,7 +49,8 @@ def my_app(cfg: DictConfig) -> None:
 
     dependencies = {}
     for job_name, job_config in cfg['jobs'].items():
-        dependencies[job_name] = getattr(jobs, job_config['fun'])(job_config, dependencies)
+        log.info(f'Starting stage === {job_name} ===')
+        dependencies.update(getattr(jobs, job_config['fun'])(job_config, dependencies))
 
 
 if __name__ == '__main__':
