@@ -4,6 +4,8 @@
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
 
+#include "IO/nifti1_io.h"
+
 #define DDS_BLOCKSIZE (1<<20)
 #define DDS_INTERLEAVE (1<<24)
 #define DDS_RL (7)
@@ -15,13 +17,13 @@ typedef unsigned int uint;
 
 enum class Format
 {
-    NRRD, PVM, UNKNOWN
+    NRRD, PVM, NIFTI, UNKNOWN
 };
 
 Format getFileFormat(const char* path);
 
-uchar* readPVM(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
-uchar* readNRRD(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
+//uchar* readPVM(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
+//uchar* readNRRD(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
 
 uchar* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
 

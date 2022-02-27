@@ -333,8 +333,39 @@ Format getFileFormat(const char* path)
         return Format::NRRD;
     else if (strcmp(last_tok, "pvm") == 0)
         return Format::PVM;
+    else if (strcmp(last_tok, "nii") == 0 || strcmp(last_tok, "gz") == 0)
+        return Format::NIFTI;
     else
         return Format::UNKNOWN;
+}
+
+uchar* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+{
+    nifti_image* nim;
+
+    nim = nifti_image_read(path, 1);
+
+    width = nim->nx, height = nim->ny, depth = nim->nz;
+
+    scaleX = nim->dx; scaleY = nim->dy, scaleZ = nim->dz;
+
+    uchar* data;
+
+    switch (nim->datatype)
+    {
+    case NIFTI_TYPE_UINT8:
+        data = (uchar*)nim->data;
+        break;
+    case NIFTI_TYPE_INT16:
+        data = (uchar*)malloc(width * height * depth);
+        for (int i = 0; i < width * height * depth; ++i)
+            data[i] = (uchar)(((short int*)nim->data)[i] >> 8);
+        break;
+    default:
+        throw std::exception("Unexpected data type");
+    }
+
+    return data;
 }
 
 uchar* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
@@ -343,12 +374,12 @@ uchar* readVolume(const char* path, int& width, int& height, int& depth, float& 
     {
     case Format::NRRD:
         return readNRRD(path, width, height, depth, scaleX, scaleY, scaleZ);
-        break;
     case Format::PVM:
         return readPVM(path, width, height, depth, scaleX, scaleY, scaleZ);
-        break;
+    case Format::NIFTI:
+        return readNIFTI(path, width, height, depth, scaleX, scaleY, scaleZ);
     default:
-        break;
+        return nullptr;
     }
 }
 

@@ -135,7 +135,7 @@ void displayUI()
 		if (ImGui::BeginMenuBar())
 		{
 			if (ImGui::MenuItem("Open.."))
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".pvm,.nrrd", ".");
+				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".pvm,.nrrd,.nii,.nii.gz", ".");
 
 			ImGui::EndMenuBar();
 		}

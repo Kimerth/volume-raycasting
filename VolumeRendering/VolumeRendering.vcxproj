@@ -82,6 +82,8 @@
     <Linkage-glew>static</Linkage-glew>
     <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -125,7 +127,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>extern/libtorch/lib/*.lib;extern/libtorch/lib/*.dll;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>extern/libtorch/lib/*.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -153,6 +155,8 @@
     <ClCompile Include="extern\include\imgui\imgui_draw.cpp" />
     <ClCompile Include="extern\include\imgui\imgui_tables.cpp" />
     <ClCompile Include="extern\include\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="extern\include\IO\nifti1_io.c" />
+    <ClCompile Include="extern\include\IO\znzlib.c" />
     <ClCompile Include="source\Loader.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\PytorchModel.cpp" />
@@ -170,6 +174,8 @@
     <ClInclude Include="extern\include\imgui\imstb_rectpack.h" />
     <ClInclude Include="extern\include\imgui\imstb_textedit.h" />
     <ClInclude Include="extern\include\imgui\imstb_truetype.h" />
+    <ClInclude Include="extern\include\IO\nifti1_io.h" />
+    <ClInclude Include="extern\include\IO\znzlib.h" />
     <ClInclude Include="source\Loader.h" />
     <ClInclude Include="source\PytorchModel.h" />
     <ClInclude Include="source\Shader.h" />
