@@ -54,3 +54,5 @@ Volume Rendering/res/
 data/
 
 libtorch/
+
+*.pt

@@ -9,6 +9,7 @@
 uniform sampler1D tf;
 uniform sampler3D volumeTex;  
 uniform sampler3D gradsTex;
+uniform sampler3D segTex;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;

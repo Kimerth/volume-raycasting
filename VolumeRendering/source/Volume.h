@@ -6,6 +6,8 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "PytorchModel.h"
+
 class Volume
 {
 public:
@@ -13,12 +15,13 @@ public:
 	GLuint texID;
 	GLuint tfID;
 	GLuint gradsID;
+	GLuint segID;
 	int sizeX, sizeY, sizeZ;
 	glm::vec3 scale;
 
 	float hist[256];
 
-	void load(const char* path);
+	void load(const char* path, PytorchModel ptModel);
 	void loadTF(float data[]);
 private:
 	void init();

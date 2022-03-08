@@ -64,10 +64,10 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\IO\nifti1_io.c">
-      <Filter>Source Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\IO\znzlib.c">
-      <Filter>Source Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -117,10 +117,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="extern\include\IO\nifti1_io.h">
-      <Filter>Header Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClInclude>
     <ClInclude Include="extern\include\IO\znzlib.h">
-      <Filter>Header Files</Filter>
+      <Filter>Other External Dependencies</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

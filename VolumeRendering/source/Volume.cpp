@@ -4,7 +4,7 @@
 #include <fstream>
 #include <algorithm>
 
-void Volume::load(const char* path)
+void Volume::load(const char* path, PytorchModel ptModel)
 {
     if(vao == NULL)
         init();
@@ -28,11 +28,15 @@ void Volume::load(const char* path)
 
         GLubyte* buffer = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z);
         int maxSize = std::max({sizeX, sizeY, sizeZ});
+        // TODO not right: look at affine transformation
+        // https://nipy.org/nibabel/coordinate_systems.html#the-affine-matrix-as-a-transformation-between-spaces
         scale.x *= (float)sizeX / maxSize, scale.y *= (float)sizeY / maxSize, scale.z *= (float)sizeZ / maxSize;
         scale /= std::max({ scale.x, scale.y, scale.z });
 
         glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
 
+        // TODO move this
+        // ---
         std::memset(hist, 0, 256 * sizeof(float));
         for (int i = 0; i < sizeX; ++i)
             for (int j = 0; j < sizeY; ++j)
@@ -46,8 +50,24 @@ void Volume::load(const char* path)
         float min = *std::min_element(hist + 1, hist + 256);
         for (int i = 1; i < 256; ++i)
             hist[i] = (hist[i] - min) / max;
+        // ---
+
+        GLubyte* segmentationBuffer = ptModel.forward(buffer, sizeX, sizeY, sizeZ);
 
         delete[] buffer;
+
+        glGenTextures(1, &segID);
+        glBindTexture(GL_TEXTURE_3D, segID);
+
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, segmentationBuffer);
+
+        delete[] segmentationBuffer;
     }
 
     {

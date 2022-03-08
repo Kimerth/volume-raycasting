@@ -25,18 +25,22 @@
 #include "Shader.h"
 #include "Loader.h"
 #include "transfer_function_widget.h"
+#include "PytorchModel.h"
 
 #define FRAG_SHADER_PATH "source/shaders/raycasting.frag"
 #define VERT_SHADER_PATH "source/shaders/raycasting.vert"
 #define COMP_SHADER_PATH "source/shaders/grads.comp"
 
+#define PYTORCH_SEGMANTATION_MODULE_PATH "segmentation_model.pt"
+
 #define FRAME_DURATON 32
 #define ANGLE_SPEED 0.68 // approx 40degrees/sec
 
-int windowWidth = 800, windowHeight = 800;
+int windowWidth = 1240, windowHeight = 800;
 
 Volume v;
 Shader s;
+PytorchModel ptModel;
 glm::mat4 projection, view, model;
 float angleY, angleX = 3.14f;
 
@@ -145,7 +149,7 @@ void displayUI()
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				v.load(filePathName.c_str());
+				v.load(filePathName.c_str(), ptModel);
 
 				std::string savPath = (std::string(filePathName) + ".sav");
 				if (std::fstream{ savPath })
@@ -271,6 +275,8 @@ void init()
 	view = glm::lookAt(eyePos,
 				       glm::vec3(0.0f, 0.0f, 0.0f),
 					   glm::vec3(0.0f, 1.0f, 0.0f));
+
+	ptModel.loadModel(PYTORCH_SEGMANTATION_MODULE_PATH);
 }
 
 void reshape(int w, int h)
@@ -352,7 +358,7 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowPosition(200, 200);
-	glutInitWindowSize(windowWidth, windowWidth);
+	glutInitWindowSize(windowWidth, windowHeight);
 	glutCreateWindow("Volume Rendering");
 
 	init();
