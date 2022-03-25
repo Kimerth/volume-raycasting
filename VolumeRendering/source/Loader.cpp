@@ -4,7 +4,7 @@
 #include <iostream>
 #include <vector>
 
-uchar* readNRRD(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+UCHAR* readNRRD(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     std::ifstream file(path, std::ios::binary);
 
@@ -29,7 +29,7 @@ uchar* readNRRD(const char* path, int& width, int& height, int& depth, float& sc
         }
     }
 
-    uchar* buffer = new uchar[sizeData];
+    UCHAR* buffer = new UCHAR[sizeData];
     file.read(reinterpret_cast<char*>(buffer), sizeData);
 
     file.close();
@@ -37,15 +37,15 @@ uchar* readNRRD(const char* path, int& width, int& height, int& depth, float& sc
     return buffer;
 }
 
-uchar* readRAWfile(std::ifstream &file, uint &bytes)
+UCHAR* readRAWfile(std::ifstream &file, UINT &bytes)
 {
-    uint pos = file.tellg();
+    UINT pos = file.tellg();
     file.seekg(0, file.end);
     int length = file.tellg();
     file.seekg(0, file.beg);
     file.ignore(std::numeric_limits<int>::max(), '\n');
 
-    uchar* data = new uchar[length];
+    UCHAR* data = new UCHAR[length];
     bytes = 0;
 
     for(bytes = 0; file; bytes += DDS_BLOCKSIZE)
@@ -63,10 +63,10 @@ constexpr char DDS_ID[] = "DDS v3d";
 constexpr char DDS_ID2[] = "DDS v3e";
 const int headerLen = strlen(DDS_ID);
 
-uint DDS_cachepos;
+UINT DDS_cachepos;
 
-uint DDS_buffer;
-uint DDS_bufsize;
+UINT DDS_buffer;
+UINT DDS_bufsize;
 
 unsigned short int DDS_INTEL = 1;
 
@@ -76,19 +76,19 @@ void DDS_initbuffer()
     DDS_bufsize = 0;
 }
 
-inline uint DDS_shiftl(const uint value, const uint bits)
+inline UINT DDS_shiftl(const UINT value, const UINT bits)
 {
     return (bits >= 32) ? 0 : value << bits;
 }
 
-inline uint DDS_shiftr(const uint value, const uint bits)
+inline UINT DDS_shiftr(const UINT value, const UINT bits)
 {
     return (bits >= 32) ? 0 : value >> bits;
 }
 
-inline void DDS_swapuint(uint* x)
+inline void DDS_swapUINT(UINT* x)
 {
-    uint tmp = *x;
+    UINT tmp = *x;
 
     *x = ((tmp & 0xff) << 24) |
         ((tmp & 0xff00) << 8) |
@@ -96,9 +96,9 @@ inline void DDS_swapuint(uint* x)
         ((tmp & 0xff000000) >> 24);
 }
 
-uint DDS_readbits(uint bits, uchar* data, size_t size)
+UINT DDS_readbits(UINT bits, UCHAR* data, size_t size)
 {
-    uint value;
+    UINT value;
 
     if (bits < DDS_bufsize)
     {
@@ -112,8 +112,8 @@ uint DDS_readbits(uint bits, uchar* data, size_t size)
         if (DDS_cachepos >= size) DDS_buffer = 0;
         else
         {
-            DDS_buffer = *((uint*)&data[DDS_cachepos]);
-            if (DDS_ISINTEL) DDS_swapuint(&DDS_buffer);
+            DDS_buffer = *((UINT*)&data[DDS_cachepos]);
+            if (DDS_ISINTEL) DDS_swapUINT(&DDS_buffer);
             DDS_cachepos += 4;
         }
 
@@ -126,17 +126,17 @@ uint DDS_readbits(uint bits, uchar* data, size_t size)
     return value;
 }
 
-void DDS_deinterleave(uchar* data, uint bytes, uint skip, uint block = 0, bool restore = false)
+void DDS_deinterleave(UCHAR* data, UINT bytes, UINT skip, UINT block = 0, bool restore = false)
 {
-    uint i, j, k;
+    UINT i, j, k;
 
-    uchar* data2, * ptr;
+    UCHAR* data2, * ptr;
 
     if (skip <= 1) return;
 
     if (block == 0)
     {
-        data2 = new uchar[bytes];
+        data2 = new UCHAR[bytes];
 
         if (!restore)
             for (ptr = data2, i = 0; i < skip; i++)
@@ -149,7 +149,7 @@ void DDS_deinterleave(uchar* data, uint bytes, uint skip, uint block = 0, bool r
     }
     else
     {
-        data2 = new uchar[bytes < skip* block ? bytes : skip * block];
+        data2 = new UCHAR[bytes < skip* block ? bytes : skip * block];
 
         if (!restore)
         {
@@ -186,22 +186,22 @@ void DDS_deinterleave(uchar* data, uint bytes, uint skip, uint block = 0, bool r
     delete[] data2;
 }
 
-void DDS_decode(uchar* chunk, uint size,
-    uchar** data, uint &bytes,
-    uint block)
+void DDS_decode(UCHAR* chunk, UINT size,
+    UCHAR** data, UINT &bytes,
+    UINT block)
 {
-    uint skip, strip;
+    UINT skip, strip;
 
-    uchar* ptr1, * ptr2;
+    UCHAR* ptr1, * ptr2;
 
-    uint cnt1, cnt2;
+    UINT cnt1, cnt2;
     int bits, act;
 
     DDS_initbuffer();
 
     DDS_cachepos = 0;
     
-    auto readbits = [&](uint bits) 
+    auto readbits = [&](UINT bits) 
     {
         return DDS_readbits(bits, chunk, size);
     };
@@ -209,7 +209,7 @@ void DDS_decode(uchar* chunk, uint size,
     skip = readbits(2) + 1;
     strip = readbits(16) + 1;
 
-    ptr1 = ptr2 = new uchar[3 * size];
+    ptr1 = ptr2 = new UCHAR[3 * size];
     bytes = act = 0;
 
     while ((cnt1 = readbits(DDS_RL)) != 0)
@@ -233,7 +233,7 @@ void DDS_decode(uchar* chunk, uint size,
 
             if (bytes % size == 0)
             {
-                ptr2 = new uchar[bytes + size];
+                ptr2 = new UCHAR[bytes + size];
                 std::copy(ptr1, ptr1 + bytes, ptr2);
                 delete[] ptr1;
                 ptr1 = ptr2;
@@ -242,19 +242,19 @@ void DDS_decode(uchar* chunk, uint size,
         }
     }
 
-    *data = new uchar[bytes];
+    *data = new UCHAR[bytes];
     std::copy(ptr1, ptr1 + bytes, *data);
     delete[] ptr1;
 
     DDS_deinterleave(*data, bytes, skip, block, true);
 }
 
-uchar* readDDSfile(std::ifstream& file, uint &bytes, uint block)
+UCHAR* readDDSfile(std::ifstream& file, UINT &bytes, UINT block)
 {
     int cnt;
 
-    uchar* chunk, * data;
-    uint size;
+    UCHAR* chunk, * data;
+    UINT size;
 
     if ((chunk = readRAWfile(file, size)) == NULL)
         exit(EXIT_FAILURE);
@@ -268,11 +268,11 @@ uchar* readDDSfile(std::ifstream& file, uint &bytes, uint block)
 
 #pragma endregion
 
-uchar* readPVM(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+UCHAR* readPVM(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
-    uchar* data;
+    UCHAR* data;
     char* ptr;
-    uint bytes, numc, block;
+    UINT bytes, numc, block;
 
     bool is_DDS = false;
 
@@ -312,7 +312,7 @@ uchar* readPVM(const char* path, int& width, int& height, int& depth, float& sca
 
     ptr = strchr((char*)ptr, '\n') + 1;
 
-    uchar* volume = new uchar[width * height * depth * numc];
+    UCHAR* volume = new UCHAR[width * height * depth * numc];
 
     std::copy(ptr, ptr + width * height * depth * numc, volume);
     free(data);
@@ -339,7 +339,7 @@ Format getFileFormat(const char* path)
         return Format::UNKNOWN;
 }
 
-uchar* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+USHORT* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     nifti_image* nim;
 
@@ -349,17 +349,12 @@ uchar* readNIFTI(const char* path, int& width, int& height, int& depth, float& s
 
     scaleX = nim->dx; scaleY = nim->dy, scaleZ = nim->dz;
 
-    uchar* data;
+    USHORT* data;
 
     switch (nim->datatype)
     {
-    case NIFTI_TYPE_UINT8:
-        data = (uchar*)nim->data;
-        break;
     case NIFTI_TYPE_INT16:
-        data = (uchar*)malloc(width * height * depth);
-        for (int i = 0; i < width * height * depth; ++i)
-            data[i] = (uchar)(((short int*)nim->data)[i] >> 8);
+        data = (USHORT*)nim->data;
         break;
     default:
         throw std::exception("Unexpected data type");
@@ -368,14 +363,17 @@ uchar* readNIFTI(const char* path, int& width, int& height, int& depth, float& s
     return data;
 }
 
-uchar* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+// TODO implement 16 bit loading for NRRD and PVM (or remove those completly)
+USHORT* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     switch (getFileFormat(path))
     {
     case Format::NRRD:
-        return readNRRD(path, width, height, depth, scaleX, scaleY, scaleZ);
+        // return readNRRD(path, width, height, depth, scaleX, scaleY, scaleZ);
+        return nullptr;
     case Format::PVM:
-        return readPVM(path, width, height, depth, scaleX, scaleY, scaleZ);
+        // return readPVM(path, width, height, depth, scaleX, scaleY, scaleZ);
+        return nullptr;
     case Format::NIFTI:
         return readNIFTI(path, width, height, depth, scaleX, scaleY, scaleZ);
     default:

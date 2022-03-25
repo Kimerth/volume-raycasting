@@ -11,13 +11,15 @@ void PytorchModel::loadModel(const char* path)
     }
 }
 
-uchar* PytorchModel::forward(uchar* data, int width, int height, int depth)
+uchar* PytorchModel::forward(ushort* data, int width, int height, int depth)
 {
     namespace F = torch::nn::functional;
 
-    float* dataFloat = new float[width * height * depth];
-    for (int i = 0; i < width * height * depth; ++i)
-        dataFloat[i] = 1 / static_cast<float>(data[i]);
+    size_t size = width * height * depth;
+
+    float* dataFloat = new float[size];
+    for (int i = 0; i < size; ++i)
+        dataFloat[i] = ((static_cast<float>(data[i]) / 256) - 0.5) /** 3076*/;
 
     torch::Tensor dataTensor = torch::from_blob(
         dataFloat,
@@ -85,7 +87,6 @@ uchar* PytorchModel::forward(uchar* data, int width, int height, int depth)
             torch::Tensor patch = torch::cat(seq, i);
             patches.push_back(patch);
         }
-        std::cout << std::endl;
         patches.erase(patches.begin(), patches.begin() + oldPatchesNb);
     }
 
@@ -103,14 +104,23 @@ uchar* PytorchModel::forward(uchar* data, int width, int height, int depth)
 
     std::cout << outputTensor.sizes() << std::endl;
 
-    // TODO standardize output in Pytorch: same shape as input
+    int nbLabels = outputTensor.sizes().at(1);
+
+    outputTensor = torch::flatten(outputTensor);
+    std::cout << outputTensor.sizes() << std::endl;
+
     float* oneHotOutput = outputTensor.contiguous().data_ptr<float>();
 
-    uchar* output = new uchar[width * height * depth];
-    int nbLabels = outputTensor.sizes().at(0);
+    uchar* output = new uchar[size];
+    memset(output, 0, size * sizeof(uchar));
     for (int i = 0; i < nbLabels; ++i)
-        for (int k = 0; k < width * height * depth; ++k)
-            output[k] = static_cast<uchar>(oneHotOutput[i + nbLabels + k]) * i;
+        for (int k = 0; k < size; ++k)
+        {
+            float val = oneHotOutput[i * size + k];
+            val = 1 / (1 + exp(-val));
+            if(val > 0.3)
+                output[k] = i + 1;
+        }
 
     // expect [W, H, D]
     return output;

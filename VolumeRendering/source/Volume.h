@@ -18,11 +18,13 @@ public:
 	GLuint segID;
 	int sizeX, sizeY, sizeZ;
 	glm::vec3 scale;
+	GLubyte* seg;
 
-	float hist[256];
+	float hist[1 << 16];
 
 	void load(const char* path, PytorchModel ptModel);
 	void loadTF(float data[]);
 private:
+
 	void init();
 };

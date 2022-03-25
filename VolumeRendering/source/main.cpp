@@ -99,8 +99,12 @@ void loadShaders()
 	s.setInt("volumeTex", 0);
 
 	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_3D, v.segID);
+	s.setInt("segTex", 2);
+
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_3D, v.gradsID);
-	s.setInt("gradsTex", 2);
+	s.setInt("gradsTex", 3);
 
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_1D, v.tfID);
@@ -165,7 +169,7 @@ void displayUI()
 		}
 
 		ImGui::Text("Size: %dx%dx%d 8 bit", v.sizeX, v.sizeY, v.sizeZ);
-		ImGui::PlotHistogram("Histogram", v.hist, 256, 0, NULL, 0.0f, 1.0f, ImVec2(0, 100.0f), sizeof(float));
+		ImGui::PlotHistogram("Histogram", v.hist, (1 << 16), 0, NULL, 0.0f, 1.0f, ImVec2(0, 100.0f), sizeof(float));
 
 		ImGui::End();
 	}
@@ -335,7 +339,7 @@ void mouseWheel(int button, int dir, int x, int y)
 {
 	zoom += dir > 0 ? 0.05f : -0.05f;
 
-	zoom = std::max(0.0f, std::min(2.0f, zoom));
+	zoom = std::max(-0.75f, std::min(1.0f, zoom));
 	eyePos = glm::vec3(0.0f, 0.0f, 1.0f + zoom);
 	view = glm::lookAt(eyePos,
 					   glm::vec3(0.0f, 0.0f, 0.0f),

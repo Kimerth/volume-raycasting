@@ -3,7 +3,7 @@
 #define MAX_PASSES 1000
 #define STEP 0.01
 #define THRESHOLD 0.07
-#define EXPOSURE 2
+#define EXPOSURE 10
 #define GAMMA 1
 
 uniform sampler1D tf;
@@ -66,6 +66,8 @@ void main()
     float rayLength = length(intersection.p2- intersection.p1);
     vec3 deltaDir = STEP * normalize(intersection.p2 - intersection.p1);
 
+    float intensityScale = rayLength * STEP;
+
     float len = 0.0;
 
     vec3 pos = intersection.p1;
@@ -82,13 +84,17 @@ void main()
             if(intensity >= THRESHOLD)
             {
                 vec4 tfSample = texture(tf, intensity);
+
+                float seg = texture(segTex, pos / scale).x;
+
+                tfSample.a *= seg;
             
-                vec3 grad = texture(gradsTex, pos).xyz;
+                vec3 grad = texture(gradsTex, pos / scale).xyz;
 
                 vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;
                 float coef = max(0.0, dot(N, N));
 
-                intensity = max(0.0, 1 - pow((1 - intensity), tfSample.a));
+                intensity = max(0.0, 1 - pow((1 - intensity * intensityScale), tfSample.a));
                 fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, coef) * intensity;
             }
         }
