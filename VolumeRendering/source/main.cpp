@@ -143,7 +143,9 @@ void displayUI()
 		if (ImGui::BeginMenuBar())
 		{
 			if (ImGui::MenuItem("Open.."))
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".pvm,.nrrd,.nii,.nii.gz", ".");
+				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".nii,.nii.gz", ".");
+			if (ImGui::MenuItem("Load segmentation"))
+				ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationOpen", "Choose Segmentation", ".nii,.nii.gz", ".");
 
 			ImGui::EndMenuBar();
 		}
@@ -153,7 +155,7 @@ void displayUI()
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				v.load(filePathName.c_str(), ptModel);
+				v.load(filePathName.c_str());
 
 				std::string savPath = (std::string(filePathName) + ".sav");
 				if (std::fstream{ savPath })
@@ -161,8 +163,17 @@ void displayUI()
 					float* buffer = readTF(savPath.c_str());
 					tfWidget.loadTF(buffer);
 				}
+			}
 
-				loadShaders();
+			ImGuiFileDialog::Instance()->Close();
+		}
+
+		if (ImGuiFileDialog::Instance()->Display("ChooseSegmentationOpen"))
+		{
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+				v.loadSegmentation(filePathName.c_str());
 			}
 
 			ImGuiFileDialog::Instance()->Close();

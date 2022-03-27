@@ -27,9 +27,9 @@ uchar* PytorchModel::forward(ushort* data, int width, int height, int depth)
         torch::TensorOptions()
         .dtype(torch::kFloat32)
         .device(torch::kCPU)
-    ).unsqueeze(0).unsqueeze(0);
+    );
     dataTensor = F::interpolate(
-        dataTensor,
+        dataTensor.unsqueeze(0).unsqueeze(0),
         F::InterpolateFuncOptions()
         .mode(torch::kNearest)
         .size(std::vector<int64_t>{ 96, 96, 96 })
@@ -96,7 +96,7 @@ uchar* PytorchModel::forward(ushort* data, int width, int height, int depth)
 
     // expect [L, W, H, D]
     outputTensor = F::interpolate(
-        outputTensor.unsqueeze(0),
+        outputTensor.unsqueeze(1),
         F::InterpolateFuncOptions()
         .mode(torch::kNearest)
         .size(std::vector<int64_t>({ width, height, depth }))
@@ -118,7 +118,7 @@ uchar* PytorchModel::forward(ushort* data, int width, int height, int depth)
         {
             float val = oneHotOutput[i * size + k];
             val = 1 / (1 + exp(-val));
-            if(val > 0.3)
+            if(val > 0.5)
                 output[k] = i + 1;
         }
 

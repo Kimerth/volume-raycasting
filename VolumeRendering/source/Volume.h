@@ -18,13 +18,17 @@ public:
 	GLuint segID;
 	int sizeX, sizeY, sizeZ;
 	glm::vec3 scale;
-	GLubyte* seg;
+
+	GLushort* volumeData;
+	GLubyte* segmentationData;
 
 	float hist[1 << 16];
 
-	void load(const char* path, PytorchModel ptModel);
+	void load(const char* path);
+	void loadSegmentation(const char* path);
+	void computeSegmentation(PytorchModel ptModel);
 	void loadTF(float data[]);
 private:
-
 	void init();
+	void addSegmentation();
 };

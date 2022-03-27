@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <thread>
 
-void Volume::load(const char* path, PytorchModel ptModel)
+void Volume::load(const char* path)
 {
     if(vao == NULL)
         init();
@@ -27,14 +27,14 @@ void Volume::load(const char* path, PytorchModel ptModel)
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        GLushort* buffer = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z);
+        volumeData = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z);
         int maxSize = std::max({sizeX, sizeY, sizeZ});
         // TODO not right: look at affine transformation
         // https://nipy.org/nibabel/coordinate_systems.html#the-affine-matrix-as-a-transformation-between-spaces
         scale.x *= (float)sizeX / maxSize, scale.y *= (float)sizeY / maxSize, scale.z *= (float)sizeZ / maxSize;
         scale /= std::max({ scale.x, scale.y, scale.z });
 
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_SHORT, buffer);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_SHORT, volumeData);
 
         // TODO move this
         // ---
@@ -42,7 +42,7 @@ void Volume::load(const char* path, PytorchModel ptModel)
         for (int i = 0; i < sizeX; ++i)
             for (int j = 0; j < sizeY; ++j)
                 for (int k = 0; k < sizeZ; ++k)
-                    hist[buffer[(k * sizeX * sizeY) + (j * sizeX) + i]]++;
+                    hist[volumeData[(k * sizeX * sizeY) + (j * sizeX) + i]]++;
 
         hist[0] = 0;
         for (int i = 0; i < (1 << 16); ++i)
@@ -56,34 +56,16 @@ void Volume::load(const char* path, PytorchModel ptModel)
         glGenTextures(1, &segID);
         glBindTexture(GL_TEXTURE_3D, segID);
 
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-        /*std::thread segmentThreadObj([](Volume *v, PytorchModel ptModel, GLushort* buffer, int sizeX, int sizeY, int sizeZ) {*/
-            seg = ptModel.forward(buffer, sizeX, sizeY, sizeZ);
-
-            size_t size = sizeX * sizeY * sizeZ;
-            GLubyte* segmentationBuffer = new GLubyte[size];
-            int count = 0;
-            for (int i = 0; i < size; ++i)
-                if (seg[i] > 0)
-                {
-                    segmentationBuffer[i] = 255;
-                    count += 1;
-                }
-                else
-                    segmentationBuffer[i] = 0;
-            std::cout << count << std::endl;
-            glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, segmentationBuffer);
-
-            delete[] buffer;
-            delete[] segmentationBuffer;
-        //}, this, ptModel, buffer, sizeX, sizeY, sizeZ);
-
-        //segmentThreadObj.detach();
+        GLubyte* buffer = new GLubyte[sizeX * sizeY * sizeZ];
+        memset(buffer, 255, sizeX * sizeY * sizeZ);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
+        delete[] buffer;
     }
 
     {
@@ -98,6 +80,33 @@ void Volume::load(const char* path, PytorchModel ptModel)
 
         glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB16F, sizeX, sizeY, sizeZ, 0, GL_RGB, GL_FLOAT, NULL);
     }
+}
+
+void Volume::loadSegmentation(const char* path)
+{
+    GLushort* buffer = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z);
+
+    size_t size = sizeX * sizeY * sizeZ;
+    segmentationData = new GLubyte[size];
+    for (int i = 0; i < size; ++i)
+        segmentationData[i] = (GLubyte)buffer[i];
+
+    delete[] buffer;
+
+    addSegmentation();
+}
+
+void Volume::computeSegmentation(PytorchModel ptModel)
+{
+    // std::thread segmentThreadObj([](Volume *v, PytorchModel ptModel, GLushort* buffer, int sizeX, int sizeY, int sizeZ) {
+
+    segmentationData = ptModel.forward(volumeData, sizeX, sizeY, sizeZ);
+
+    addSegmentation();
+
+    //}, this, ptModel, buffer, sizeX, sizeY, sizeZ);
+
+    //segmentThreadObj.detach();
 }
 
 void Volume::loadTF(float data[])
@@ -172,4 +181,25 @@ void Volume::init()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLfloat*)NULL);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLfloat*)NULL);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, veridxdat);
+}
+
+void Volume::addSegmentation()
+{
+    size_t size = sizeX * sizeY * sizeZ;
+    GLubyte* segmentationBuffer = new GLubyte[size];
+    int count = 0;
+    for (int i = 0; i < size; ++i)
+        if (segmentationData[i] > 0)
+        {
+            segmentationBuffer[i] = 255;
+            count += 1;
+        }
+        else
+            segmentationBuffer[i] = 0;
+    std::cout << count << std::endl;
+
+    glBindTexture(GL_TEXTURE_3D, segID);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, segmentationBuffer);
+
+    delete[] segmentationBuffer;
 }
