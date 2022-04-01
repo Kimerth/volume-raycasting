@@ -11,7 +11,7 @@ void PytorchModel::loadModel(const char* path)
     }
 }
 
-uchar* PytorchModel::forward(ushort* data, int width, int height, int depth)
+uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 {
     namespace F = torch::nn::functional;
 
@@ -19,7 +19,7 @@ uchar* PytorchModel::forward(ushort* data, int width, int height, int depth)
 
     float* dataFloat = new float[size];
     for (int i = 0; i < size; ++i)
-        dataFloat[i] = ((static_cast<float>(data[i]) / 256) - 0.5) /** 3076*/;
+        dataFloat[i] = (static_cast<float>(data[i]) / (1 << 16)) /* - 0.5 ) * 3076 */;
 
     torch::Tensor dataTensor = torch::from_blob(
         dataFloat,

@@ -34,15 +34,15 @@ void Volume::load(const char* path)
         scale.x *= (float)sizeX / maxSize, scale.y *= (float)sizeY / maxSize, scale.z *= (float)sizeZ / maxSize;
         scale /= std::max({ scale.x, scale.y, scale.z });
 
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_SHORT, volumeData);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_SHORT, volumeData);
 
         // TODO move this
         // ---
         std::memset(hist, 0, (1 << 16) * sizeof(float));
-        for (int i = 0; i < sizeX; ++i)
-            for (int j = 0; j < sizeY; ++j)
-                for (int k = 0; k < sizeZ; ++k)
-                    hist[volumeData[(k * sizeX * sizeY) + (j * sizeX) + i]]++;
+        //for (int i = 0; i < sizeX; ++i)
+        //    for (int j = 0; j < sizeY; ++j)
+        //        for (int k = 0; k < sizeZ; ++k)
+        //            hist[volumeData[(k * sizeX * sizeY) + (j * sizeX) + i]]++;
 
         hist[0] = 0;
         for (int i = 0; i < (1 << 16); ++i)
@@ -84,16 +84,20 @@ void Volume::load(const char* path)
 
 void Volume::loadSegmentation(const char* path)
 {
-    GLushort* buffer = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z);
+    short* buffer = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z);
 
     size_t size = sizeX * sizeY * sizeZ;
-    segmentationData = new GLubyte[size];
+    segmentationData = new uchar[size];
     for (int i = 0; i < size; ++i)
-        segmentationData[i] = (GLubyte)buffer[i];
+        segmentationData[i] = (uchar)((buffer[i] + (1 << 15)) / ((1 << 16) / 6));
 
+    //for (int i = 0; i < size; ++i)
+    //    if (segmentationData[i] > 0)
+    //        std::cout << buffer[i] << '\t' << +segmentationData[i] << std::endl;
+	
     delete[] buffer;
 
-    addSegmentation();
+    applySegmentation();
 }
 
 void Volume::computeSegmentation(PytorchModel ptModel)
@@ -102,11 +106,28 @@ void Volume::computeSegmentation(PytorchModel ptModel)
 
     segmentationData = ptModel.forward(volumeData, sizeX, sizeY, sizeZ);
 
-    addSegmentation();
+    applySegmentation();
 
     //}, this, ptModel, buffer, sizeX, sizeY, sizeZ);
 
     //segmentThreadObj.detach();
+}
+
+void Volume::applySegmentation()
+{
+    size_t size = sizeX * sizeY * sizeZ;
+    uchar* segmentationBuffer = new uchar[size];
+	
+    for (int i = 0; i < size; ++i)
+        if (segmentationData[i] <= 7 && labelsEnabled[segmentationData[i]])
+            segmentationBuffer[i] = 255;
+        else
+            segmentationBuffer[i] = 0;
+	
+    glBindTexture(GL_TEXTURE_3D, segID);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, segmentationBuffer);
+
+    delete[] segmentationBuffer;
 }
 
 void Volume::loadTF(float data[])
@@ -181,25 +202,6 @@ void Volume::init()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLfloat*)NULL);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLfloat*)NULL);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, veridxdat);
-}
 
-void Volume::addSegmentation()
-{
-    size_t size = sizeX * sizeY * sizeZ;
-    GLubyte* segmentationBuffer = new GLubyte[size];
-    int count = 0;
-    for (int i = 0; i < size; ++i)
-        if (segmentationData[i] > 0)
-        {
-            segmentationBuffer[i] = 255;
-            count += 1;
-        }
-        else
-            segmentationBuffer[i] = 0;
-    std::cout << count << std::endl;
-
-    glBindTexture(GL_TEXTURE_3D, segID);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, segmentationBuffer);
-
-    delete[] segmentationBuffer;
+    memset(labelsEnabled, true, 7 * sizeof(bool));
 }

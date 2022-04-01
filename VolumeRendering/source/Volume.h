@@ -19,8 +19,10 @@ public:
 	int sizeX, sizeY, sizeZ;
 	glm::vec3 scale;
 
-	GLushort* volumeData;
-	GLubyte* segmentationData;
+	short* volumeData;
+	uchar* segmentationData;
+
+	bool labelsEnabled[7];
 
 	float hist[1 << 16];
 
@@ -28,7 +30,7 @@ public:
 	void loadSegmentation(const char* path);
 	void computeSegmentation(PytorchModel ptModel);
 	void loadTF(float data[]);
+	void applySegmentation();
 private:
 	void init();
-	void addSegmentation();
 };

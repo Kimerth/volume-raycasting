@@ -13,6 +13,6 @@ enum class Format
 
 Format getFileFormat(const char* path);
 
-USHORT* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
+short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
 
 float* readTF(const char* path);

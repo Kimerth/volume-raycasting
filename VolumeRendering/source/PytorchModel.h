@@ -11,7 +11,7 @@ class PytorchModel
 {
 public:
 	void loadModel(const char* path);
-	uchar* forward(ushort* data, int width, int height, int depth);
+	uchar* forward(short* data, int width, int height, int depth);
 
 private:
 	torch::jit::script::Module model;

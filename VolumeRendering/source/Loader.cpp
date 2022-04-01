@@ -20,7 +20,7 @@ Format getFileFormat(const char* path)
         return Format::UNKNOWN;
 }
 
-USHORT* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+short* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     nifti_image* nim;
 
@@ -30,12 +30,12 @@ USHORT* readNIFTI(const char* path, int& width, int& height, int& depth, float& 
 
     scaleX = nim->dx; scaleY = nim->dy, scaleZ = nim->dz;
 
-    USHORT* data;
+    short* data;
 
     switch (nim->datatype)
     {
     case NIFTI_TYPE_INT16:
-        data = (USHORT*)nim->data;
+        data = (short*)nim->data;
         break;
     default:
         throw std::exception("Unexpected data type");
@@ -44,7 +44,7 @@ USHORT* readNIFTI(const char* path, int& width, int& height, int& depth, float& 
     return data;
 }
 
-USHORT* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     switch (getFileFormat(path))
     {
