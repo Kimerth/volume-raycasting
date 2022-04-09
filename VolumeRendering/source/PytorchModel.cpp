@@ -19,21 +19,30 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 
     float* dataFloat = new float[size];
     for (int i = 0; i < size; ++i)
-        dataFloat[i] = (static_cast<float>(data[i]) / (1 << 16)) /* - 0.5 ) * 3076 */;
+        dataFloat[i] = data[i];
 
     torch::Tensor dataTensor = torch::from_blob(
         dataFloat,
-        { width, height, depth },
+        { 1, 1, depth, height, width },
         torch::TensorOptions()
         .dtype(torch::kFloat32)
         .device(torch::kCPU)
     );
+
+    dataTensor = dataTensor.transpose(2, 4);
+    
+    std::cout << dataTensor.sizes() << std::endl;
+
     dataTensor = F::interpolate(
-        dataTensor.unsqueeze(0).unsqueeze(0),
+        dataTensor,
         F::InterpolateFuncOptions()
         .mode(torch::kNearest)
         .size(std::vector<int64_t>{ 96, 96, 96 })
     );
+
+    //dataTensor = dataTensor.transpose(2, 4);
+
+    std::cout << dataTensor.sizes() << std::endl;
 
     dataTensor = dataTensor.squeeze();
 
@@ -53,10 +62,12 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
     std::vector<torch::Tensor> patchData;
     for (torch::Tensor& patch : patches)
         // 1, 32, 32, 32
-        patchData.push_back(patch.unsqueeze(0).unsqueeze(0));
+        patchData.push_back(patch.unsqueeze(0));
 
     // [B, 1, 32, 32, 32]
-    torch::Tensor nnData = torch::vstack(patchData);
+    torch::Tensor nnData = torch::stack(patchData);
+
+    std::cout << nnData.sizes() << std::endl;
 
     std::vector<torch::jit::IValue> nnInput{ nnData };
 
@@ -65,16 +76,12 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 
     std::cout << outputTensor.sizes() << std::endl;
 
-    // expect [L, 96, 96, 96]
-    //outputTensor = outputTensor.view({-1, 96, 96, 96});
-    
     patches.clear();
     {
         std::vector<torch::Tensor> patchesNew = torch::split(outputTensor, 1, 0);
         for (auto patch : patchesNew)
             patches.push_back(patch.squeeze());
     }
-
 
     for (int i = 3; i > 0; --i)
     {
@@ -90,19 +97,23 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
         patches.erase(patches.begin(), patches.begin() + oldPatchesNb);
     }
 
-    outputTensor = patches[0].squeeze();
+    outputTensor = patches[0].unsqueeze(0);
 
     std::cout << outputTensor.sizes() << std::endl;
+
+    outputTensor = outputTensor.transpose(2, 4);
 
     // expect [L, W, H, D]
     outputTensor = F::interpolate(
-        outputTensor.unsqueeze(1),
+        outputTensor,
         F::InterpolateFuncOptions()
         .mode(torch::kNearest)
-        .size(std::vector<int64_t>({ width, height, depth }))
+        .size(std::vector<int64_t>({ depth, height, width }))
     );
 
     std::cout << outputTensor.sizes() << std::endl;
+
+    //outputTensor = outputTensor.transpose(2, 4);
 
     int nbLabels = outputTensor.sizes().at(1);
 

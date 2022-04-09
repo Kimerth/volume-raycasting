@@ -192,7 +192,7 @@ void displayUI()
 		{
 			if (ImGui::CollapsingHeader("Semantic segmentation"))
 			{
-				std::string labels[] = { "background", "liver", "bladder", "lung", "kidneys", "brain", "bones" };
+				std::string labels[] = { "background", "liver", "bladder", "lungs", "kidneys", "bone", "brain" };
 
 				for (int i = 0; i < 7; i++)
 					if (ImGui::Checkbox(labels[i].c_str(), &v.labelsEnabled[i]))

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <algorithm>
 #include <thread>
+#include <set>
 
 
 void Volume::load(const char* path)
@@ -12,9 +13,14 @@ void Volume::load(const char* path)
         init();
     else
     {
-        GLuint textures[] = { texID, gradsID };
-        glDeleteTextures(2, textures);
+        GLuint textures[] = { texID, gradsID, segID };
+        glDeleteTextures(3, textures);
     }
+
+    if (volumeData)
+        delete[] volumeData;
+	if(segmentationData)
+        delete[] segmentationData;
 
     {
         glGenTextures(1, &texID);
@@ -90,7 +96,7 @@ void Volume::loadSegmentation(const char* path)
     size_t size = sizeX * sizeY * sizeZ;
     segmentationData = new uchar[size];
     for (int i = 0; i < size; ++i)
-        segmentationData[i] = (uchar)((buffer[i] + (1 << 15)) / ((1 << 16) / 6));
+        segmentationData[i] = (uchar)((buffer[i] + SHRT_MAX) / ((2 * SHRT_MAX) / 5));
 
     //for (int i = 0; i < size; ++i)
     //    if (segmentationData[i] > 0)
