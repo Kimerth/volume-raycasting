@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <thread>
 
+
 void Volume::load(const char* path)
 {
     if(vao == NULL)
@@ -34,23 +35,23 @@ void Volume::load(const char* path)
         scale.x *= (float)sizeX / maxSize, scale.y *= (float)sizeY / maxSize, scale.z *= (float)sizeZ / maxSize;
         scale /= std::max({ scale.x, scale.y, scale.z });
 
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_SHORT, volumeData);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_SHORT, volumeData);
 
         // TODO move this
         // ---
-        std::memset(hist, 0, (1 << 16) * sizeof(float));
+        std::memset(hist, 0, USHRT_MAX * sizeof(float));
         //for (int i = 0; i < sizeX; ++i)
         //    for (int j = 0; j < sizeY; ++j)
         //        for (int k = 0; k < sizeZ; ++k)
-        //            hist[volumeData[(k * sizeX * sizeY) + (j * sizeX) + i]]++;
+        //            hist[volumeData[(k * sizeX * sizeY) + (j * sizeX) + i] - SHRT_MIN]++;
 
-        hist[0] = 0;
-        for (int i = 0; i < (1 << 16); ++i)
-            hist[i] = std::log(hist[i] + 1);
-        float max = *std::max_element(hist, hist + 256);
-        float min = *std::min_element(hist + 1, hist + 256);
-        for (int i = 1; i < 256; ++i)
-            hist[i] = (hist[i] - min) / max;
+        //hist[0] = 0;
+        //for (int i = 0; i < USHRT_MAX; ++i)
+        //    hist[i] = std::log(hist[i] + 1);
+        //float max = *std::max_element(hist, hist + USHRT_MAX);
+        //float min = *std::min_element(hist + 1, hist + USHRT_MAX);
+        //for (int i = 1; i < USHRT_MAX; ++i)
+        //    hist[i] = (hist[i] - min) / max;
         // ---
 
         glGenTextures(1, &segID);
@@ -64,7 +65,7 @@ void Volume::load(const char* path)
 
         GLubyte* buffer = new GLubyte[sizeX * sizeY * sizeZ];
         memset(buffer, 255, sizeX * sizeY * sizeZ);
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
         delete[] buffer;
     }
 
@@ -84,7 +85,7 @@ void Volume::load(const char* path)
 
 void Volume::loadSegmentation(const char* path)
 {
-    short* buffer = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z);
+    short* buffer = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z, false);
 
     size_t size = sizeX * sizeY * sizeZ;
     segmentationData = new uchar[size];

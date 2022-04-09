@@ -120,9 +120,13 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;USE_BOOKMARK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;USE_BOOKMARK;HAVE_ZLIB;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>extern/include;extern/include/imgui;extern/libtorch/include;extern/libtorch/include/torch/csrc/api/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>extern/include;extern/include/RNifti;extern/include/imgui;extern/libtorch/include;extern/libtorch/include/torch/csrc/api/include</AdditionalIncludeDirectories>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -155,8 +159,23 @@
     <ClCompile Include="extern\include\imgui\imgui_draw.cpp" />
     <ClCompile Include="extern\include\imgui\imgui_tables.cpp" />
     <ClCompile Include="extern\include\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="extern\include\IO\nifti1_io.c" />
-    <ClCompile Include="extern\include\IO\znzlib.c" />
+    <ClCompile Include="extern\include\RNifti\niftilib\nifti2_io.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\adler32.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\compress.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\crc32.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\deflate.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\gzclose.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\gzlib.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\gzread.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\gzwrite.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\infback.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\inffast.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\inflate.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\inftrees.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\trees.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\uncompr.c" />
+    <ClCompile Include="extern\include\RNifti\zlib\zutil.c" />
+    <ClCompile Include="extern\include\RNifti\znzlib\znzlib.c" />
     <ClCompile Include="source\Loader.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\PytorchModel.cpp" />
@@ -174,8 +193,27 @@
     <ClInclude Include="extern\include\imgui\imstb_rectpack.h" />
     <ClInclude Include="extern\include\imgui\imstb_textedit.h" />
     <ClInclude Include="extern\include\imgui\imstb_truetype.h" />
-    <ClInclude Include="extern\include\IO\nifti1_io.h" />
-    <ClInclude Include="extern\include\IO\znzlib.h" />
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti1.h" />
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti2.h" />
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti2_image.h" />
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti2_io.h" />
+    <ClInclude Include="extern\include\RNifti\RNifti.h" />
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage.h" />
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage_impl.h" />
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage_matrix.h" />
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage_print.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\crc32.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\deflate.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\gzguts.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\inffast.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\inffixed.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\inflate.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\inftrees.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\trees.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\zconf.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\zlib.h" />
+    <ClInclude Include="extern\include\RNifti\zlib\zutil.h" />
+    <ClInclude Include="extern\include\RNifti\znzlib\znzlib.h" />
     <ClInclude Include="source\Loader.h" />
     <ClInclude Include="source\PytorchModel.h" />
     <ClInclude Include="source\Shader.h" />

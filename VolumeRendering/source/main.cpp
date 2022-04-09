@@ -143,9 +143,9 @@ void displayUI()
 		if (ImGui::BeginMenuBar())
 		{
 			if (ImGui::MenuItem("Open.."))
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".nii,.gz", ".");
+				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".gz,.nii", ".");
 			if (ImGui::MenuItem("Load segmentation"))
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationOpen", "Choose Segmentation", ".nii,.nii.gz", ".");
+				ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationOpen", "Choose Segmentation", ".gz,.nii", ".");
 			if (ImGui::MenuItem("Compute segmentation"))
 				v.computeSegmentation(ptModel);
 
@@ -185,14 +185,14 @@ void displayUI()
 		if (ImGui::CollapsingHeader("Info"))
 		{
 			ImGui::Text("Size: %dx%dx%d 8 bit", v.sizeX, v.sizeY, v.sizeZ);
-			ImGui::PlotHistogram("Histogram", v.hist, (1 << 16), 0, NULL, 0.0f, 1.0f, ImVec2(0, 100.0f), sizeof(float));
+			ImGui::PlotHistogram("Histogram", v.hist, USHRT_MAX, 0, NULL, 0.0f, 1.0f, ImVec2(0, 100.0f), sizeof(float));
 		}
 
 		if (v.segmentationData)
 		{
 			if (ImGui::CollapsingHeader("Semantic segmentation"))
 			{
-				std::string labels[] = { "background", "lung", "bladder", "liver", "kidneys", "brain", "bones" };
+				std::string labels[] = { "background", "liver", "bladder", "lung", "kidneys", "brain", "bones" };
 
 				for (int i = 0; i < 7; i++)
 					if (ImGui::Checkbox(labels[i].c_str(), &v.labelsEnabled[i]))

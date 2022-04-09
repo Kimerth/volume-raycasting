@@ -3,6 +3,8 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <algorithm>
+#include <limits>
 
 
 Format getFileFormat(const char* path)
@@ -20,7 +22,15 @@ Format getFileFormat(const char* path)
         return Format::UNKNOWN;
 }
 
-short* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+float mean(short* data, int size)
+{
+	float sum = 0;
+	for (int i = 0; i < size; i++)
+		sum += data[i];
+	return sum / size;
+}
+
+short* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ, bool normalize)
 {
     nifti_image* nim;
 
@@ -41,15 +51,32 @@ short* readNIFTI(const char* path, int& width, int& height, int& depth, float& s
         throw std::exception("Unexpected data type");
     }
 
+    // normalize
+    if (normalize)
+    {
+        size_t size = width * height * depth;
+        float avg = mean(data, size);
+	
+        for (size_t i = 0; i < size; i++)
+            data[i] -= avg;
+
+        short min = *std::min_element(data, data + size);
+        short max = *std::max_element(data, data + size);
+        float scale = (SHRT_MAX - SHRT_MIN) / (max - min);
+
+	    for (size_t i = 0; i < size; i++)
+		    data[i] = scale * data[i];
+    }
+
     return data;
 }
 
-short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ, bool normalize)
 {
     switch (getFileFormat(path))
     {
     case Format::NIFTI:
-        return readNIFTI(path, width, height, depth, scaleX, scaleY, scaleZ);
+        return readNIFTI(path, width, height, depth, scaleX, scaleY, scaleZ, normalize);
     default:
         return nullptr;
     }

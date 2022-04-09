@@ -4,7 +4,8 @@
 #include <GL/freeglut.h>
 #include <glm/glm.hpp>
 
-#include "IO/nifti1_io.h"
+#include "niftilib/nifti2_io.h"
+
 
 enum class Format
 {
@@ -13,6 +14,6 @@ enum class Format
 
 Format getFileFormat(const char* path);
 
-short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
+short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ, bool normalize = true);
 
 float* readTF(const char* path);

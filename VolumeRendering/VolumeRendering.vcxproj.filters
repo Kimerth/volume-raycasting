@@ -63,17 +63,59 @@
     <ClCompile Include="source\PytorchModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="extern\include\IO\nifti1_io.c">
+    <ClCompile Include="extern\include\RNifti\zlib\adler32.c">
       <Filter>Other External Dependencies</Filter>
     </ClCompile>
-    <ClCompile Include="extern\include\IO\znzlib.c">
+    <ClCompile Include="extern\include\RNifti\zlib\compress.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\crc32.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\deflate.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\gzclose.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\gzlib.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\gzread.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\gzwrite.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\infback.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\inffast.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\inflate.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\inftrees.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\niftilib\nifti2_io.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\trees.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\uncompr.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\znzlib\znzlib.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\zutil.c">
       <Filter>Other External Dependencies</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\Loader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="source\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -116,11 +158,71 @@
     <ClInclude Include="source\PytorchModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="extern\include\IO\nifti1_io.h">
+    <ClInclude Include="extern\include\RNifti\zlib\crc32.h">
       <Filter>Other External Dependencies</Filter>
     </ClInclude>
-    <ClInclude Include="extern\include\IO\znzlib.h">
+    <ClInclude Include="extern\include\RNifti\zlib\deflate.h">
       <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\gzguts.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\inffast.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\inffixed.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\inflate.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\inftrees.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti1.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti2.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti2_image.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti2_io.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage_impl.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage_matrix.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage_print.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\zutil.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\zconf.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\zlib.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\znzlib\znzlib.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\trees.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Loader.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

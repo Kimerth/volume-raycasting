@@ -1,4 +1,5 @@
 #pragma once
+#include <limits>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
@@ -24,7 +25,7 @@ public:
 
 	bool labelsEnabled[7];
 
-	float hist[1 << 16];
+	float hist[USHRT_MAX];
 
 	void load(const char* path);
 	void loadSegmentation(const char* path);
