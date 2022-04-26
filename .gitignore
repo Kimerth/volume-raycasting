@@ -51,7 +51,12 @@ Volume Rendering/res/
 **/output
 **/outputs
 
-data/
+*.tgz
+*.gz
+*.zip
+*.tar
+
+README.txt
 
 libtorch/
 
