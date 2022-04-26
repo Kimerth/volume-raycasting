@@ -31,7 +31,7 @@
 #define VERT_SHADER_PATH "source/shaders/raycasting.vert"
 #define COMP_SHADER_PATH "source/shaders/grads.comp"
 
-#define PYTORCH_SEGMANTATION_MODULE_PATH "segmentation_model.pt"
+#define PYTORCH_SEGMENTATION_MODULE_PATH "segmentation_model.pt"
 
 #define FRAME_DURATON 32
 #define ANGLE_SPEED 0.68 // approx 40degrees/sec
@@ -309,7 +309,7 @@ void init()
 				       glm::vec3(0.0f, 0.0f, 0.0f),
 					   glm::vec3(0.0f, 1.0f, 0.0f));
 
-	ptModel.loadModel(PYTORCH_SEGMANTATION_MODULE_PATH);
+	ptModel.loadModel(PYTORCH_SEGMENTATION_MODULE_PATH);
 }
 
 void reshape(int w, int h)

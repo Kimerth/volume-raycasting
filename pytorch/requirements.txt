@@ -1,0 +1,9 @@
+hydra-core
+hydra_colorlog
+hydra-nevergrad-sweeper
+python-dotenv
+torchio
+monai
+tensorboardX
+plotly
+multitasking

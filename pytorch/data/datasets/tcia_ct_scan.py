@@ -1,14 +1,13 @@
 from glob import glob
 import os
 from typing import Dict, List
-from omegaconf import dictconfig
-from torchio import transforms
-from torchio.transforms import transform
+from omegaconf.dictconfig import DictConfig
+from torchio.transforms.transform import Transform
 from .generic import Dataset
 
 
 class TCIADataset(Dataset):
-    def __init__(self, cfg: dictconfig, transform: transform, **kwargs):
+    def __init__(self, cfg: DictConfig, transform: Transform, **kwargs):
          super().__init__(cfg, transform, **kwargs)
 
     def _create_data_map(self) -> Dict[str, List[str]]:

@@ -8,7 +8,7 @@ from torchio.data.dataset import SubjectsDataset
 from torchio.transforms import Transform, OneHot
 from torch.nn.functional import max_pool3d
 import logging
-from omegaconf import dictconfig
+from omegaconf.dictconfig import DictConfig
 from tqdm.notebook import tqdm
 from torchio.transforms import Resize
 import numpy as np
@@ -17,7 +17,7 @@ import numpy as np
 class Dataset(SubjectsDataset):
     log = logging.getLogger(__name__)
 
-    def __init__(self, cfg: dictconfig, transform: Transform, **kwargs):
+    def __init__(self, cfg: DictConfig, transform: Transform, **kwargs):
         self.cfg = cfg
 
         super().__init__(
@@ -50,10 +50,10 @@ class Dataset(SubjectsDataset):
 
                 image = ScalarImage(path, check_nans=True)
                 label_map = LabelMap(label_paths, check_nans=True)
-                if not isinstance(label_map, list):
-                    one_hot = OneHot(self.cfg['num_classes'] + 1)
-                    label_map = one_hot(label_map)
-                    label_map = LabelMap(tensor=label_map.tensor[1:])
+                # if not isinstance(label_map, list):
+                #     one_hot = OneHot(self.cfg['num_classes'] + 1)
+                #     label_map = one_hot(label_map)
+                #     label_map = LabelMap(tensor=label_map.tensor[1:])
 
                 image.load()
                 label_map.load()

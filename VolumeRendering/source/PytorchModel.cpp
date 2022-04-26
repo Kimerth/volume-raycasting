@@ -1,18 +1,33 @@
 #include "PytorchModel.h"
 
 
+PytorchModel::PytorchModel()
+{
+    if (torch::cuda::is_available())
+    {
+        std::cout << "CUDA is available" << std::endl;
+        std::cout << "CUDA DEVICE COUNT: " << torch::cuda::device_count() << std::endl;
+        //device = torch::kCUDA;
+        //device.set_index(0);
+        //std::cout << "Using CUDA device: " << device.index() << std::endl;
+    }
+}
+
 void PytorchModel::loadModel(const char* path)
 {
     try {
-        model = torch::jit::load(path, torch::kCPU);
+        model = torch::jit::load(path, device);
     }
     catch (const c10::Error& e) {
-        std::cerr << "error loading the model\n";
+        std::cerr << "error loading the model " << std::endl;
+        std::cerr << e.msg() << std::endl;
     }
 }
 
 uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 {
+    std::cout << device.index() << std::endl;
+
     namespace F = torch::nn::functional;
 
     size_t size = width * height * depth;
@@ -26,8 +41,9 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
         { 1, 1, depth, height, width },
         torch::TensorOptions()
         .dtype(torch::kFloat32)
-        .device(torch::kCPU)
-    );
+    ).to(device);
+
+    std::cout << device.index() << std::endl;
 
     dataTensor = dataTensor.transpose(2, 4);
     

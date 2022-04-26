@@ -1,6 +1,6 @@
-# @package jobs.train
+# @package jobs.test_model
 defaults:
   - base_job
   - /hparams/UNet3D@_here_
 
-fun: train
+fun: test

@@ -109,28 +109,26 @@ void Volume::loadSegmentation(const char* path)
 
 void Volume::computeSegmentation(PytorchModel ptModel)
 {
-    // std::thread segmentThreadObj([](Volume *v, PytorchModel ptModel, GLushort* buffer, int sizeX, int sizeY, int sizeZ) {
+    std::thread segmentThreadObj([](Volume *v, PytorchModel ptModel, int sizeX, int sizeY, int sizeZ) {
+        v->segmentationData = ptModel.forward(v->volumeData, sizeX, sizeY, sizeZ);
 
-    segmentationData = ptModel.forward(volumeData, sizeX, sizeY, sizeZ);
+        v->applySegmentation();
+    }, this, ptModel, sizeX, sizeY, sizeZ);
 
-    applySegmentation();
-
-    //}, this, ptModel, buffer, sizeX, sizeY, sizeZ);
-
-    //segmentThreadObj.detach();
+    segmentThreadObj.detach();
 }
 
 void Volume::applySegmentation()
 {
     size_t size = sizeX * sizeY * sizeZ;
     uchar* segmentationBuffer = new uchar[size];
-	
+
     for (int i = 0; i < size; ++i)
         if (segmentationData[i] <= 7 && labelsEnabled[segmentationData[i]])
             segmentationBuffer[i] = 255;
         else
             segmentationBuffer[i] = 0;
-	
+
     glBindTexture(GL_TEXTURE_3D, segID);
     glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, segmentationBuffer);
 

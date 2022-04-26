@@ -80,7 +80,6 @@ def plot_aggregated_image(
     log = logging.getLogger(__name__)
 
     sampler = random_subject_from_loader(data_loader)
-    val_metrics = CumulativeAverage()
     aggregator_x = GridAggregator(sampler)
     aggregator_y = GridAggregator(sampler)
     aggregator_y_pred = GridAggregator(sampler)
@@ -93,13 +92,6 @@ def plot_aggregated_image(
         logits = model(x.to(device))
         y_pred = (torch.sigmoid(logits) > 0.5).float()
         aggregator_y_pred.add_batch(y_pred, locations)
-
-        val_metrics.append(metric(y.cpu(), y_pred.cpu()))
-
-    average_metrics = val_metrics.aggregate()
-    for idx, name in enumerate(metrics_map):
-        writer.add_scalar(f'validation/{name}', average_metrics[idx], epoch)
-        log.info(f'\tvalidation/{name}: {average_metrics[idx]}')
 
     whole_x = aggregator_x.get_output_tensor()
     whole_y = aggregator_y.get_output_tensor()

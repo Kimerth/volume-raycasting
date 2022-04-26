@@ -1,14 +1,14 @@
 from glob import glob
 import os
 from typing import Dict, List
-from omegaconf import dictconfig
-from torchio.transforms import transform
+from omegaconf.dictconfig import DictConfig
+from torchio.transforms.transform import Transform
 from .generic import Dataset
 import zipfile
 
 
 class CTORGDataset(Dataset):
-    def __init__(self, cfg: dictconfig, transform: transform, **kwargs):
+    def __init__(self, cfg: DictConfig, transform: Transform, **kwargs):
         if not os.path.isdir(cfg['base_path']):
             os.makedirs(cfg['base_path'])
 
@@ -23,7 +23,7 @@ class CTORGDataset(Dataset):
 
         return {
             image_path: os.path.join(os.path.dirname(image_path), os.path.basename(image_path).replace('volume', 'labels'))
-            for image_path in glob(scan_pattern, recursive=True)
+            for image_path in sorted(glob(scan_pattern, recursive=True))
         }
 
     def _get_subject_id(self, path: str) -> str:

@@ -1,8 +1,9 @@
 defaults:
   - jobs:
-    # - load_data
-    - load_model
-    # - train
+    - load_data
+    # - load_model
+    - train_model
+    - test_model
     - deploy
   - /hydra/callbacks:
     - data_callback
