@@ -18,7 +18,7 @@ import jobs
 import google
 import shutil
 from datetime import datetime
-import traceback
+
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -35,8 +35,8 @@ class DataCallback(Callback):
             getattr(google, 'colab').drive.mount('/content/drive')
 
     def on_run_end(self, config: DictConfig, job_return: JobReturn, **kwargs: Any) -> None:
-        if hasattr(google, 'colab'):
-            shutil.make_archive(f'/content/drive/MyDrive/{config["hparams"]["drive_save_path"]}/{datetime.now()}', 'zip', os.environ['OUTPUT_PATH'])
+        if hasattr(google, 'colab') and 'train_model' in config.jobs:
+            shutil.make_archive(f'/content/drive/MyDrive/{config.jobs.train_model.drive_save_path}/{datetime.now()}', 'zip', os.environ['OUTPUT_PATH'])
             getattr(google, 'colab').drive.flush_and_unmount()
 
 
@@ -54,8 +54,7 @@ def my_app(cfg: DictConfig) -> None:
         try:
             dependencies.update(getattr(jobs, job_config['fun'])(job_config, dependencies))
         except Exception as e:
-            log.error(f'Error in job {job_name}: {e}')
-            log.debug(traceback.format_exc())
+            log.exception(f'Error in job {job_name}: {e}')
 
 
 if __name__ == '__main__':

@@ -122,4 +122,7 @@ def train_visualizations(
     log = logging.getLogger(__name__)
     log.info(f'visualisations for epoch: {epoch}')
 
-    plot_aggregated_image(writer, epoch, model, data_loader, device, save_path)
+    try:
+        plot_aggregated_image(writer, epoch, model, data_loader, device, save_path)
+    except Exception as e:
+        log.exception(f'Failed to plot vizualization: {e}')
