@@ -116,16 +116,16 @@ def _get_metrics_for_model(
 
 def _validate_model(
     data_loader: torch.utils.data.DataLoader,
-    criterion: torch.nn.Module,
     model: torch.nn.Module,
+    criterion: torch.nn.Module,
 ):
     return _get_metrics_for_model(data_loader, model, criterion, "Validation")
 
 
 def _test_model(
     data_loader: torch.utils.data.DataLoader,
-    criterion: torch.nn.Module,
     model: torch.nn.Module,
+    criterion: torch.nn.Module,
 ):
     return _get_metrics_for_model(data_loader, model, criterion, "Test")
 
