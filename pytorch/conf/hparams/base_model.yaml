@@ -2,7 +2,7 @@ drive_save_path: 'licenta/colab/outputs/'
 checkpoints_dir: 'checkpoints'
 validation_plots_dir: 'plots'
 tb_output_dir: 'metrics'
-plots_output_path: "${hparams.tb_output_dir}/plots/"
+plots_output_path: "metrics/plots/"
 latest_checkpoint_file: 'checkpoint_latest.pt'
 save_every: 20
 metrics_every: 5
