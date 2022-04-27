@@ -4,7 +4,7 @@ from omegaconf import DictConfig
 from torch.nn import BCEWithLogitsLoss
 from util import metric, metrics_map
 
-from train import _test_model
+from .train import _test_model
 
 
 def test(cfg: DictConfig, dependencies: dict) -> dict:

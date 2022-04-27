@@ -18,6 +18,7 @@ import jobs
 import google
 import shutil
 from datetime import datetime
+import traceback
 
 if torch.cuda.is_available():
     torch.cuda.empty_cache()
@@ -54,6 +55,7 @@ def my_app(cfg: DictConfig) -> None:
             dependencies.update(getattr(jobs, job_config['fun'])(job_config, dependencies))
         except Exception as e:
             log.error(f'Error in job {job_name}: {e}')
+            log.debug(traceback.format_exc())
 
 
 if __name__ == '__main__':

@@ -74,7 +74,7 @@ def _train_epoch(
 
         optimizer.zero_grad()
 
-        logits = model(x.to(device))
+        logits = model(x.to(device).float())
         loss: torch.Tensor = criterion(logits, y.to(torch.float).to(device))
 
         loss.backward()
@@ -105,7 +105,7 @@ def _get_metrics_for_model(
         x: torch.Tensor = batch["image"]["data"]
         y: torch.Tensor = batch["seg"]["data"]
 
-        logits = model(x.to(device))
+        logits = model(x.to(device).float())
         loss: torch.Tensor = criterion(logits, y.to(torch.float).to(device))
 
         y_pred = (torch.sigmoid(logits) > 0.5).float()
@@ -133,8 +133,8 @@ def _test_model(
 def train(cfg: DictConfig, dependencies: dict) -> dict:
     log = logging.getLogger(__name__)
 
-    if "data_loaders" not in dependencies:
-        raise Exception("Missing required dependency: data_loaders")
+    if "data_loader_train" not in dependencies or "data_loader_val" not in dependencies:
+        raise Exception("Missing required dependencies: data loaders")
 
     train_loader, val_loader = (
         dependencies["data_loader_train"],

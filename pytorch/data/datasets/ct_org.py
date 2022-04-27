@@ -5,6 +5,7 @@ from omegaconf.dictconfig import DictConfig
 from torchio.transforms.transform import Transform
 from .generic import Dataset
 import zipfile
+import re
 
 
 class CTORGDataset(Dataset):
@@ -23,7 +24,7 @@ class CTORGDataset(Dataset):
 
         return {
             image_path: os.path.join(os.path.dirname(image_path), os.path.basename(image_path).replace('volume', 'labels'))
-            for image_path in sorted(glob(scan_pattern, recursive=True))
+            for image_path in sorted(glob(scan_pattern, recursive=True), key=lambda x: int(re.search(r'\d+', x).group())) # type: ignore
         }
 
     def _get_subject_id(self, path: str) -> str:

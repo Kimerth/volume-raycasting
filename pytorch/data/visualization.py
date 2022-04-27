@@ -34,7 +34,8 @@ def create_gifs(path_in: str, path_out: str):
     imageio.mimsave(path_out, images)
 
 # TODO performance considerations
-def plot_subject(subject: Subject, save_plot_path: str = None):
+# matplotlib not thread safe: can't use multitasking
+def plot_subject(subject: Subject, save_plot_path: str):
     if save_plot_path:
         os.makedirs(save_plot_path, exist_ok=True)
 
@@ -62,7 +63,7 @@ def plot_subject(subject: Subject, save_plot_path: str = None):
             output_path=f'{save_plot_path}/{x:03d}.png',
             show=False
         )
-    plt.close('all')
+        plt.close('all')
     plt.ion()
     mpl.use(backend_)
 

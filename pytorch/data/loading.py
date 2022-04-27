@@ -17,7 +17,7 @@ import numpy as np
 
 import data.datasets as datasets
 from .visualization import plot_subject
-from datasets.generic import Dataset
+from .datasets.generic import Dataset
 
 
 def __create_data_loader(
@@ -53,10 +53,10 @@ def split_dataset(dataset: Dataset, lengths: List[int]) -> List[Dataset]:
     Returns:
         A list of datasets.
     """
-    div_points = [0] + lengths + [len(dataset)]
+    div_points = [0] + np.cumsum(lengths).tolist()
 
     datasets = []
-    for i in range(len(div_points)):
+    for i in range(len(div_points) - 1):
         st = div_points[i]
         end = div_points[i + 1]
         datasets.append(SubjectsDataset(dataset._subjects[st:end]))

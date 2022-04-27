@@ -12,6 +12,7 @@ from omegaconf.dictconfig import DictConfig
 from tqdm.notebook import tqdm
 from torchio.transforms import Resize
 import numpy as np
+import multitasking
 
 
 class Dataset(SubjectsDataset):
@@ -35,39 +36,8 @@ class Dataset(SubjectsDataset):
 
     def _get_subjects_list(self) -> List[Subject]:
         if not os.path.exists(self.cfg['cache_path']):
-            os.makedirs(self.cfg['cache_path'])
-
-            data_map = self._create_data_map()
-
-            for path, label_paths in tqdm(
-                data_map.items(),
-                total=len(data_map),
-                position=0,
-                leave=False,
-                desc='Caching pooled data'
-            ):
-                subject_id = self._get_subject_id(path)
-
-                image = ScalarImage(path, check_nans=True)
-                label_map = LabelMap(label_paths, check_nans=True)
-                # if not isinstance(label_map, list):
-                #     one_hot = OneHot(self.cfg['num_classes'] + 1)
-                #     label_map = one_hot(label_map)
-                #     label_map = LabelMap(tensor=label_map.tensor[1:])
-
-                image.load()
-                label_map.load()
-
-                image, label_map = self._resize(image, label_map)
-
-                torch.save(
-                    {
-                        'subject_id': subject_id,
-                        'image': image.data,
-                        'seg': label_map.data
-                    },
-                    os.path.join(self.cfg['cache_path'], f'{subject_id}.pt')
-                )
+            self._generate_cache()
+            multitasking.wait_for_tasks()
 
         subjects = []
         for pt_name in os.listdir(self.cfg['cache_path']):
@@ -83,6 +53,42 @@ class Dataset(SubjectsDataset):
                 )
             )
         return subjects
+
+    @multitasking.task
+    def _generate_cache(self):
+        os.makedirs(self.cfg['cache_path'])
+
+        data_map = self._create_data_map()
+
+        for path, label_paths in tqdm(
+            data_map.items(),
+            total=len(data_map),
+            position=0,
+            leave=False,
+            desc='Caching pooled data'
+        ):
+            subject_id = self._get_subject_id(path)
+
+            image = ScalarImage(path, check_nans=True)
+            label_map = LabelMap(label_paths, check_nans=True)
+            if not isinstance(label_map, list):
+                one_hot = OneHot(self.cfg['num_classes'] + 1)
+                label_map = one_hot(label_map)
+                label_map = LabelMap(tensor=label_map.tensor[1:])  # type: ignore
+
+            image.load()
+            label_map.load()
+
+            image, label_map = self._resize(image, label_map)
+
+            torch.save(
+                {
+                    'subject_id': subject_id,
+                    'image': image.data,
+                    'seg': label_map.data
+                },
+                os.path.join(self.cfg['cache_path'], f'{subject_id}.pt')
+            )
 
     # TODO determine if needed
     def _max_pool_data(self, image: ScalarImage, label_map: LabelMap):
