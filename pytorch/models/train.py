@@ -183,6 +183,15 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
         scheduler.load_state_dict(checkpoint["scheduler"])
         start_epoch = int(checkpoint["epoch"]) + 1
 
+    train_visualizations(
+        writer,
+        0,
+        model,
+        val_loader,
+        device,
+        f'{os.environ["OUTPUT_PATH"]}/{cfg["plots_output_path"]}',
+    )
+
     tqdm_obj = tqdm(
         range(start_epoch, start_epoch + cfg["total_epochs"]),
         initial=start_epoch,
@@ -203,6 +212,7 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
             }
         )
 
+        log.info(f'Training metrics for epoch {epoch}')
         for idx, name in enumerate(["loss"] + metrics_map):
             writer.add_scalar(f"training/{name}", average_metrics[idx], epoch)
             if epoch % cfg["metrics_every"] == 0:
@@ -233,6 +243,7 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
                 if early_stopping_patience_counter >= 3:
                     early_stopping = True
 
+            log.info(f'Validation metrics for epoch {epoch}')
             for idx, name in enumerate(["loss"] + metrics_map):
                 writer.add_scalar(f"validation/{name}", average_metrics[idx], epoch)
                 log.info(f"\tvalidation/{name}: {average_metrics[idx]}")

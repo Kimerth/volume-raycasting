@@ -6,7 +6,7 @@ import random
 from torch.utils.data import DataLoader
 
 
-metrics_map = ['acc', 'fpr', 'fnr', 'precision', 'recall', 'f1']
+metrics_map = ["acc", "fpr", "fnr", "precision", "recall", "f1"]
 
 # TODO return dict
 def metric(y, y_pred):
@@ -21,7 +21,7 @@ def metric(y, y_pred):
     recall = tp / (torch.sum(y) + eps)
 
     with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
+        warnings.simplefilter("ignore")
         # FIXME (RuntimeWarning: invalid value encountered in double_scalars)
         f1 = 2 * (precision * recall) / (precision + recall + eps)
 
@@ -32,11 +32,14 @@ def metric(y, y_pred):
 
 
 def random_subject_from_loader(data_loader):
-    return GridSampler(
-        subject=data_loader.dataset.subjects_dataset[
-            random.randrange(0, len(data_loader.dataset.subjects_dataset))
-        ],
-        patch_size=data_loader.dataset.sampler.patch_size
+    random_subject = data_loader.dataset.subjects_dataset[
+        random.randrange(0, len(data_loader.dataset.subjects_dataset))
+    ]
+    return (
+        GridSampler(
+            subject=random_subject, patch_size=data_loader.dataset.sampler.patch_size
+        ),
+        random_subject["subject_id"],
     )
 
 
@@ -44,5 +47,7 @@ def batches_from_sampler(sampler, batch_size):
     loader = iter(DataLoader(sampler, batch_size=batch_size))
     idx = 0
     while idx < len(sampler):
-        yield next(loader), torch.Tensor(sampler.locations[idx:idx + batch_size])
+        yield next(loader), torch.Tensor(
+            sampler.locations[idx : idx + batch_size]
+        ).int()
         idx += batch_size
