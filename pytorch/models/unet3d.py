@@ -74,7 +74,7 @@ class UNet3D(nn.Module):
                             bias=True,
                         ),
                     ),
-                    (f'{name}_norm1', nn.BatchNorm3d(num_features=features)),
+                    (f'{name}_Dropout1', nn.Dropout()),
                     (f'{name}_relu1', nn.ReLU(inplace=True)),
                     (
                         f'{name}_conv2',
@@ -86,7 +86,7 @@ class UNet3D(nn.Module):
                             bias=True,
                         ),
                     ),
-                    (f'{name}_norm2', nn.BatchNorm3d(num_features=features)),
+                    (f'{name}_Dropout2', nn.Dropout()),
                     (f'{name}_relu2', nn.ReLU(inplace=True)),
                 ]
             )
