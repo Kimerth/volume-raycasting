@@ -1,47 +1,39 @@
 import logging
 import os
-from typing import Sequence
 
 import torch
+from data.visualization import train_visualizations
+from monai.metrics.cumulative_average import CumulativeAverage
 from omegaconf import DictConfig
+from tensorboardX import SummaryWriter
 from torch.nn import BCEWithLogitsLoss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import StepLR
-from tensorboardX import SummaryWriter
-from monai.metrics.cumulative_average import CumulativeAverage
-
-# from torchsummary import summary
-from data.visualization import train_visualizations
-
-
+from pytorch_model_summary import summary
 from util import metric, metrics_map
 
-# FIXME
-# try:
-#     if get_ipython().__class__.__name__ == 'ZMQInteractiveShell':
-#         from tqdm.notebook import tqdm
-#     else:
-#         from tqdm import tqdm
-# except NameError:
-#     from tqdm import tqdm
-from tqdm.notebook import tqdm
+from .nets import get_net
 
-from models.unet3d import UNet3D
+try:
+    if get_ipython().__class__.__name__ == "ZMQInteractiveShell" or "google.colab" in str(get_ipython()):  # type: ignore
+        from tqdm.notebook import tqdm
+    else:
+        from tqdm import tqdm
+except NameError:
+    from tqdm import tqdm
 
 # device = torch.device('cpu')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def _train_epoch(
-    data_loader: torch.utils.data.DataLoader,
+    data_loader: torch.utils.data.DataLoader,  # type: ignore
     model: torch.nn.Module,
     criterion: torch.nn.Module,
     optimizer: Optimizer,
 ) -> CumulativeAverage:
-
     epoch_metrics = CumulativeAverage()
 
-    # TODO find a way to cache dataset
     for batch in tqdm(
         data_loader,
         total=len(data_loader),
@@ -52,25 +44,6 @@ def _train_epoch(
         # TODO check out torchtyping
         x: torch.Tensor = batch["image"]["data"]
         y: torch.Tensor = batch["seg"]["data"]
-
-        # FIXME add code in repo as external (not submodule) and change it to suit needs
-        # if first_iter:
-        #     log.info(f'Getting summary of {model.__class__.__name__}...')
-        #     log.info(
-        #         summary(model, input_size=x.shape[1:], device=str(device))
-        #     )
-
-        # FIXME this is plain ugly (maybe check tqdm handlers/events)
-        # if first_iter and device.type == 'cuda':
-        #     memory_allocated = round(torch.cuda.memory_allocated()/1024**3,1)
-
-        #     log.info(f'Data Memory Usage on {torch.cuda.get_device_name()}:')
-        #     log.info(f'\tAllocated: {memory_allocated - model_memory_allocated} GB')
-
-        #     log.info(f'Total Memory Usage on {torch.cuda.get_device_name()}:')
-        #     log.info(f'\tAllocated: {memory_allocated} GB')
-
-        #     first_iter = False
 
         optimizer.zero_grad()
 
@@ -88,7 +61,7 @@ def _train_epoch(
 
 
 def _get_metrics_for_model(
-    data_loader: torch.utils.data.DataLoader,
+    data_loader: torch.utils.data.DataLoader,  # type: ignore
     model: torch.nn.Module,
     criterion: torch.nn.Module,
     step: str,
@@ -115,7 +88,7 @@ def _get_metrics_for_model(
 
 
 def _validate_model(
-    data_loader: torch.utils.data.DataLoader,
+    data_loader: torch.utils.data.DataLoader,  # type: ignore
     model: torch.nn.Module,
     criterion: torch.nn.Module,
 ):
@@ -123,7 +96,7 @@ def _validate_model(
 
 
 def _test_model(
-    data_loader: torch.utils.data.DataLoader,
+    data_loader: torch.utils.data.DataLoader,  # type: ignore
     model: torch.nn.Module,
     criterion: torch.nn.Module,
 ):
@@ -144,21 +117,28 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
     # TODO get device from config
     log.info(f"Using device: {device}")
 
-    torch.autograd.set_detect_anomaly(cfg["anomaly_detection"])
+    torch.autograd.set_detect_anomaly(cfg["anomaly_detection"])  # type: ignore
 
     if "model" in dependencies:
         model = dependencies["model"]
         dependencies["model"].train(True)
     else:
-        model = UNet3D(cfg).to(device)
+        # model = UNet3D(cfg).to(device)
+        model = get_net(cfg).to(device)
 
-    # TODO figure out a way for better logging
-    if device.type == "cuda":
+    try:
+        log.info(f"Getting summary of {model.__class__.__name__}...")
         log.info(
-            f"{model.__class__.__name__} Memory Usage on {torch.cuda.get_device_name()}:"
+            summary(
+                model,
+                torch.zeros((1, 1, 32, 32, 32)).to(device),
+                show_input=True,
+                show_hierarchical=True,
+                show_parent_layers=True,
+            )
         )
-        model_memory_allocated = round(torch.cuda.memory_allocated() / 1024**3, 1)
-        log.info(f"\tAllocated: {model_memory_allocated} GB")
+    except Exception as e:
+        log.warn(f"Failed to get summary of {model.__class__.__name__}: {e}")
 
     optimizer: Optimizer = torch.optim.Adam(model.parameters(), lr=cfg["init_lr"])
     scheduler = StepLR(
@@ -171,6 +151,13 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
         os.path.join(os.environ["OUTPUT_PATH"], cfg["tb_output_dir"])
     )
 
+    if device.type == "cuda":
+        log.info(
+            f"{model.__class__.__name__} Memory Usage on {torch.cuda.get_device_name()}:"
+        )
+        model_memory_allocated = round(torch.cuda.memory_allocated() / 1024**3, 1)
+        log.info(f"\tAllocated: {model_memory_allocated} GB")
+
     best_val_loss = float("inf")
     early_stopping_patience_counter = 0
     early_stopping = False
@@ -182,15 +169,6 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
         optimizer.load_state_dict(checkpoint["optim"])
         scheduler.load_state_dict(checkpoint["scheduler"])
         start_epoch = int(checkpoint["epoch"]) + 1
-
-    train_visualizations(
-        writer,
-        0,
-        model,
-        val_loader,
-        device,
-        f'{os.environ["OUTPUT_PATH"]}/{cfg["plots_output_path"]}',
-    )
 
     tqdm_obj = tqdm(
         range(start_epoch, start_epoch + cfg["total_epochs"]),
@@ -207,12 +185,13 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
         average_metrics = epoch_metrics.aggregate()
         tqdm_obj.set_postfix(
             {
-                name: average_metrics[idx]
+                name: average_metrics[idx].item()
                 for idx, name in enumerate(["loss"] + metrics_map)
             }
         )
 
-        log.info(f'Training metrics for epoch {epoch}')
+        if epoch % cfg["metrics_every"] == 0:
+            log.info(f"Training metrics for epoch {epoch}")
         for idx, name in enumerate(["loss"] + metrics_map):
             writer.add_scalar(f"training/{name}", average_metrics[idx], epoch)
             if epoch % cfg["metrics_every"] == 0:
@@ -227,26 +206,6 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
                 device,
                 f'{os.environ["OUTPUT_PATH"]}/{cfg["plots_output_path"]}',
             )
-
-        if epoch % cfg["validate_every"] == 0:
-            val_metrics = _validate_model(val_loader, model, criterion)
-            average_metrics = val_metrics.aggregate()
-
-            average_val_loss = average_metrics[0]
-            if average_val_loss < best_val_loss:
-                best_val_loss = average_val_loss
-                early_stopping_patience_counter = 0
-            elif average_val_loss > best_val_loss + 1e-3:
-                log.warn(f'Validation loss is increasing. Early stopping in {3 - early_stopping_patience_counter}.')
-                early_stopping_patience_counter += 1
-
-                if early_stopping_patience_counter >= 3:
-                    early_stopping = True
-
-            log.info(f'Validation metrics for epoch {epoch}')
-            for idx, name in enumerate(["loss"] + metrics_map):
-                writer.add_scalar(f"validation/{name}", average_metrics[idx], epoch)
-                log.info(f"\tvalidation/{name}: {average_metrics[idx]}")
 
         def save_model(name):
             checkpoints_path = os.path.join(
@@ -264,6 +223,29 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
                 os.path.join(checkpoints_path, name),
             )
 
+        if epoch % cfg["validate_every"] == 0:
+            val_metrics = _validate_model(val_loader, model, criterion)
+            average_metrics = val_metrics.aggregate()
+
+            average_val_loss = average_metrics[0]
+            if average_val_loss < best_val_loss:
+                best_val_loss = average_val_loss
+                early_stopping_patience_counter = 0
+                save_model(f"checkpoint_best.pt")
+            elif average_val_loss > best_val_loss + 1e-3:
+                log.warn(
+                    f"Validation loss is increasing. Early stopping in {cfg['early_stop_patience'] - early_stopping_patience_counter}."
+                )
+                early_stopping_patience_counter += 1
+
+                if early_stopping_patience_counter > cfg["early_stop_patience"]:
+                    early_stopping = True
+
+            log.info(f"Validation metrics for epoch {epoch}")
+            for idx, name in enumerate(["loss"] + metrics_map):
+                writer.add_scalar(f"validation/{name}", average_metrics[idx], epoch)
+                log.info(f"\tvalidation/{name}: {average_metrics[idx]}")
+
         # save_model(cfg['latest_checkpoint_file'])
 
         if epoch % cfg["save_every"] == 0 or early_stopping:
@@ -271,6 +253,8 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
 
         if early_stopping:
             break
+
+        first_epoch = False
 
     writer.flush()
     writer.close()

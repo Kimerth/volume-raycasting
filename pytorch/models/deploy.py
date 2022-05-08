@@ -13,7 +13,7 @@ def deploy_model(cfg: DictConfig, dependencies: dict) -> dict:
     example = torch.rand(1, 1, 32, 32, 32).to(device)
 
     dependencies['model'].train(False)
-    script_module = torch.jit.trace(dependencies['model'], example)
+    script_module = torch.jit.trace(dependencies['model'], example)  # type: ignore
 
     script_module.save(f"{os.environ['OUTPUT_PATH']}/torchscript_module_model.pt")
 

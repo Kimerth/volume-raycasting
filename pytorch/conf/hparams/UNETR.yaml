@@ -7,7 +7,6 @@ init_lr: 0.02
 scheduer_step_size: 20
 total_epochs: 1000
 scheduer_gamma: 0.9
-channels: [32, 64, 128, 256, 512]
-strides: [2, 2, 2, 2]
+img_size: 32
 dropout: 0.5
-net_name: UNet
+net_name: UNETR

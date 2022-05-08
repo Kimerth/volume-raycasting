@@ -87,7 +87,7 @@ def plot_aggregated_image(
     writer: SummaryWriter,
     epoch: int,
     model: torch.nn.Module,
-    data_loader: torch.utils.data.DataLoader,
+    data_loader: torch.utils.data.DataLoader,  # type: ignore
     device: torch.device,
     save_path: str,
 ):
@@ -128,7 +128,7 @@ def train_visualizations(
     writer: SummaryWriter,
     epoch: int,
     model: torch.nn.Module,
-    data_loader: torch.utils.data.DataLoader,
+    data_loader: torch.utils.data.DataLoader,  # type: ignore
     device: torch.device,
     save_path: str,
 ):

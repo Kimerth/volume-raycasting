@@ -41,13 +41,13 @@ class UNet3D(nn.Module):
         last_output: torch.Tensor = x
         enc_outputs: list[torch.Tensor] = []
 
-        for (encoder, pool) in zip(self.encoders[0::2], self.encoders[1::2]):
+        for (encoder, pool) in zip(self.encoders[0::2], self.encoders[1::2]):  # type: ignore
             enc_outputs.append(encoder(last_output))
             last_output = pool(enc_outputs[-1])
 
         last_output = self.bottleneck(last_output)
 
-        for (upconv, decoder) in zip(self.decoders[0::2], self.decoders[1::2]):
+        for (upconv, decoder) in zip(self.decoders[0::2], self.decoders[1::2]):  # type: ignore
             last_output = decoder(
                 torch.cat(
                 (

@@ -11,7 +11,14 @@ from omegaconf.dictconfig import DictConfig
 from torch.utils.data import DataLoader
 from torchio.data.queue import Queue
 from torchio.data.sampler import GridSampler
-from torchio.transforms import *
+from torchio.transforms import (
+    ZNormalization,
+    RandomMotion,
+    RandomBiasField,
+    RandomNoise,
+    RandomFlip,
+    Compose,
+)
 
 import numpy as np
 
