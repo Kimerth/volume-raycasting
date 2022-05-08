@@ -20,6 +20,7 @@ def get_net(cfg: DictConfig) -> torch.nn.Module:
             out_channels=cfg.out_channels,
             img_size=cfg.img_size,
             dropout_rate=cfg.dropout,
+            res_block=cfg.res_block,
         )
 
     raise NotImplementedError
