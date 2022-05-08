@@ -32,6 +32,7 @@ def _train_epoch(
     criterion: torch.nn.Module,
     optimizer: Optimizer,
 ) -> CumulativeAverage:
+    model.train()
     epoch_metrics = CumulativeAverage()
 
     for batch in tqdm(
@@ -92,6 +93,7 @@ def _validate_model(
     model: torch.nn.Module,
     criterion: torch.nn.Module,
 ):
+    model.eval()
     return _get_metrics_for_model(data_loader, model, criterion, "Validation")
 
 
@@ -100,6 +102,7 @@ def _test_model(
     model: torch.nn.Module,
     criterion: torch.nn.Module,
 ):
+    model.eval()
     return _get_metrics_for_model(data_loader, model, criterion, "Test")
 
 
