@@ -3,7 +3,7 @@ hydra_colorlog
 hydra-nevergrad-sweeper
 python-dotenv
 torchio
-monai
+monai[all]
 tensorboardX
 plotly
 multitasking
