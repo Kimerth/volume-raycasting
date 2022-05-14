@@ -78,7 +78,7 @@ def get_data_loader(cfg: DictConfig, _) -> dict:
     transform = Compose(
         [
             # ToCanonical(),
-            ZNormalization(),
+            # ZNormalization(),
             RandomMotion(),
             RandomBiasField(),
             RandomNoise(),
