@@ -9,11 +9,11 @@ from torchio.transforms import Transform, OneHot
 from torch.nn.functional import max_pool3d
 import logging
 from omegaconf.dictconfig import DictConfig
-from tqdm.notebook import tqdm
 from torchio.transforms import Resize
-import numpy as np
 import multitasking
+from util import import_tqdm
 
+tqdm = import_tqdm()
 
 class Dataset(SubjectsDataset):
     log = logging.getLogger(__name__)

@@ -6,6 +6,18 @@ import random
 from torch.utils.data import DataLoader
 
 
+def import_tqdm():
+    try:
+        if get_ipython().__class__.__name__ == "ZMQInteractiveShell" or "google.colab" in str(get_ipython()):  # type: ignore
+            from tqdm.notebook import tqdm
+        else:
+            from tqdm import tqdm
+    except NameError:
+        from tqdm import tqdm
+
+    return tqdm
+
+
 metrics_map = ["acc", "fpr", "fnr", "precision", "recall", "f1"]
 
 # TODO return dict

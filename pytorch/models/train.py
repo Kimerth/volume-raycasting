@@ -10,17 +10,11 @@ from torch.nn import BCEWithLogitsLoss
 from torch.optim import Optimizer
 from torch.optim.lr_scheduler import StepLR
 from pytorch_model_summary import summary
-from util import metric, metrics_map
+from util import import_tqdm, metric, metrics_map
 
 from .nets import get_net
 
-try:
-    if get_ipython().__class__.__name__ == "ZMQInteractiveShell" or "google.colab" in str(get_ipython()):  # type: ignore
-        from tqdm.notebook import tqdm
-    else:
-        from tqdm import tqdm
-except NameError:
-    from tqdm import tqdm
+tqdm = import_tqdm()
 
 # device = torch.device('cpu')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

@@ -32,16 +32,14 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 
     size_t size = width * height * depth;
 
-    float* dataFloat = new float[size];
-    for (int i = 0; i < size; ++i)
-        dataFloat[i] = data[i];
-
     torch::Tensor dataTensor = torch::from_blob(
-        dataFloat,
+        data,
         { 1, 1, depth, height, width },
         torch::TensorOptions()
-        .dtype(torch::kFloat32)
-    ).to(device);
+        .dtype(torch::kInt16)
+    ).to(torch::kFloat32).to(device);
+
+    dataTensor = (dataTensor - dataTensor.mean()) / dataTensor.std();
 
     std::cout << device.index() << std::endl;
 
@@ -133,22 +131,18 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 
     int nbLabels = outputTensor.sizes().at(1);
 
+    outputTensor = torch::sigmoid(outputTensor) > 0.5;
+	
+    outputTensor = torch::mul(outputTensor, torch::arange(1, nbLabels + 1).to(device).reshape({ 1, nbLabels, 1, 1, 1 }));
+    std::cout << outputTensor.sizes() << std::endl;
+
+    outputTensor = std::get<0>(torch::max(outputTensor, 1));
+    std::cout << outputTensor.sizes() << std::endl;
+
     outputTensor = torch::flatten(outputTensor);
     std::cout << outputTensor.sizes() << std::endl;
 
-    float* oneHotOutput = outputTensor.contiguous().data_ptr<float>();
-
-    uchar* output = new uchar[size];
-    memset(output, 0, size * sizeof(uchar));
-    for (int i = 0; i < nbLabels; ++i)
-        for (int k = 0; k < size; ++k)
-        {
-            float val = oneHotOutput[i * size + k];
-            val = 1 / (1 + exp(-val));
-            if(val > 0.5)
-                output[k] = i + 1;
-        }
-
-    // expect [W, H, D]
-    return output;
+	uchar* result = new uchar[size];
+	std::memcpy(result, outputTensor.to(torch::kUInt8).contiguous().data_ptr<uchar>(), size * sizeof(uchar));
+    return result;
 }
