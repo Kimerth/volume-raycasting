@@ -128,7 +128,7 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
         log.info(
             summary(
                 model,
-                torch.zeros((1, 1, 32, 32, 32)).to(device),
+                torch.zeros((1, 1, 64, 32, 64)).to(device),
                 show_input=True,
                 show_hierarchical=True,
                 show_parent_layers=True,
@@ -229,7 +229,7 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
                 best_val_loss = average_val_loss
                 early_stopping_patience_counter = 0
                 save_model(f"checkpoint_best.pt")
-            elif average_val_loss > best_val_loss + 1e-3:
+            elif average_val_loss > best_val_loss + 1e-3 and epoch < cfg['early_stop_ignore']:
                 log.warn(
                     f"Validation loss is increasing. Early stopping in {cfg['early_stop_patience'] - early_stopping_patience_counter}."
                 )

@@ -7,5 +7,6 @@ latest_checkpoint_file: 'checkpoint_latest.pt'
 save_every: 20
 metrics_every: 20
 validate_every: 1
+early_stop_ignore: 100
 early_stop_patience: 10
 anomaly_detection: False

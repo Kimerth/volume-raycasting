@@ -1,5 +1,6 @@
 from monai.networks.nets.unet import UNet
 from monai.networks.nets.unetr import UNETR
+from .unet3d import UNet3D
 from omegaconf import DictConfig
 import torch
 
@@ -14,6 +15,8 @@ def get_net(cfg: DictConfig) -> torch.nn.Module:
             strides=cfg.strides,
             dropout=cfg.dropout,
         )
+    elif cfg["net_name"] == "MyUNet":
+        return UNet3D(cfg)
     elif cfg["net_name"] == "UNETR":
         return UNETR(
             in_channels=cfg.in_channels,
