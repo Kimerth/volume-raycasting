@@ -5,8 +5,8 @@ drive_path: 'MyDrive/CT-ORG.zip'
 base_path: "${oc.env:TOP_PROJECT_PATH}/pytorch/extern/data/CT-ORG/"
 scan_pattern: "volume-*.nii.gz"
 cache_path: "${jobs.load_data.base_path}/cache/"
-desired_size: [192,192,96]
-patch_size: [64, 64, 32]
+desired_size: [192,96,192]
+patch_size: [64,32,64]
 num_classes: 6
 batch: 10
 dataset: CTORGDataset
