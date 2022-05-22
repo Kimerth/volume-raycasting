@@ -107,13 +107,50 @@ void Volume::loadSegmentation(const char* path)
     applySegmentation();
 }
 
+void smoothLabel(uchar* labels, int radius, int x, int y, int z, int width, int height, int depth)
+{
+    int freq[7];
+    std::memset(freq, 0, 7 * sizeof(int));
+
+    for (int i = x - radius; i <= x + radius; ++i)
+        for (int j = y - radius; j <= y + radius; ++j)
+            for (int k = z - radius; k <= z + radius; ++k)
+                if (i >= 0 && i < width && j >= 0 && j < height && k >= 0 && k < depth)
+                    freq[labels[k * width * height + j * width + i]] ++;
+
+    labels[z * width * height + y * width + x] = std::distance(freq, std::max_element(freq, freq + 7));
+}
+
+void Volume::applySmoothingLabels()
+{
+    if (smoothedSegmentationData != nullptr)
+        delete[] smoothedSegmentationData;
+
+    smoothedSegmentationData = new uchar[sizeX * sizeY * sizeZ];
+	std::memcpy(smoothedSegmentationData, segmentationData, sizeX * sizeY * sizeZ);
+	
+    if (smoothingRadius > 0)
+    {
+        std::thread smoothingThreadObj([](Volume* v) {
+            for (int x = 0; x < v->sizeX; ++x)
+                for (int y = 0; y < v->sizeY; ++y)
+                    for (int z = 0; z < v->sizeZ; ++z)
+                        smoothLabel(v->smoothedSegmentationData, v->smoothingRadius, x, y, z, v->sizeX, v->sizeY, v->sizeZ);
+        }, this);
+
+        smoothingThreadObj.detach();
+    }
+}
+
 void Volume::computeSegmentation(PytorchModel ptModel)
 {
-    std::thread segmentThreadObj([](Volume *v, PytorchModel ptModel, int sizeX, int sizeY, int sizeZ) {
-        v->segmentationData = ptModel.forward(v->volumeData, sizeX, sizeY, sizeZ);
+    std::thread segmentThreadObj([](Volume *v, PytorchModel ptModel) {
+        v->segmentationData = ptModel.forward(v->volumeData, v->sizeX, v->sizeY, v->sizeZ);
 
+        v->applySmoothingLabels();
+		
         v->applySegmentation();
-    }, this, ptModel, sizeX, sizeY, sizeZ);
+    }, this, ptModel);
 
     segmentThreadObj.detach();
 }
@@ -124,7 +161,7 @@ void Volume::applySegmentation()
     uchar* segmentationBuffer = new uchar[size];
 
     for (int i = 0; i < size; ++i)
-        if (segmentationData[i] <= 7 && labelsEnabled[segmentationData[i]])
+        if (smoothedSegmentationData[i] <= 7 && labelsEnabled[smoothedSegmentationData[i]])
             segmentationBuffer[i] = 255;
         else
             segmentationBuffer[i] = 0;

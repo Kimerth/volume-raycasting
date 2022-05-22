@@ -14,7 +14,9 @@ public:
 	void loadModel(const char* path);
 	uchar* forward(short* data, int width, int height, int depth);
 
-private:
 	torch::Device device = torch::kCPU;
 	torch::jit::script::Module model;
+
+	std::vector<int> inputSize;
+	std::vector<int> patchSize;
 };

@@ -33,8 +33,9 @@
 
 #define PYTORCH_SEGMENTATION_MODULE_PATH "segmentation_model.pt"
 
-#define FRAME_DURATON 32
-#define ANGLE_SPEED 0.68 // approx 40degrees/sec
+#define FRAME_DURATION 32
+#define ROTATION_SPEED 0.68 // approx 40degrees/sec
+#define TRANSLATION_SPEED 0.1
 
 int windowWidth = 1240, windowHeight = 800;
 
@@ -43,6 +44,7 @@ Shader s;
 PytorchModel ptModel;
 glm::mat4 projection, view, model;
 float angleY, angleX = 3.14f;
+float translationX, translationY;
 
 bool autoRotate = true;
 
@@ -78,12 +80,12 @@ void display()
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 
 	int passed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
-	std::this_thread::sleep_for(std::chrono::microseconds(std::max(0, FRAME_DURATON * 1000 - passed)));
+	std::this_thread::sleep_for(std::chrono::microseconds(std::max(0, FRAME_DURATION * 1000 - passed)));
 
-	int deltaTime = std::max(FRAME_DURATON * 1000, passed);
+	int deltaTime = std::max(FRAME_DURATION * 1000, passed);
 
 	if(autoRotate)
-		angleY += ANGLE_SPEED * deltaTime / 1e+6;
+		angleY += ROTATION_SPEED * deltaTime / 1e+6;
 }
 
 void loadShaders()
@@ -190,6 +192,10 @@ void displayUI()
 
 		if (v.segmentationData)
 		{
+			ImGui::SliderInt("Label smoothing radius", &v.smoothingRadius, 0, 3);
+			if (ImGui::Button("Apply label smoothing"))
+				v.applySmoothingLabels();
+
 			if (ImGui::CollapsingHeader("Semantic segmentation"))
 			{
 				std::string labels[] = { "background", "liver", "bladder", "lungs", "kidneys", "bone", "brain" };
@@ -281,7 +287,7 @@ void render()
 
 	model = glm::rotate(angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	model *= glm::rotate(angleY, glm::vec3(0.0f, 1.0f, 0.0f));
-	model *= glm::translate(glm::vec3(-0.5f, -0.5f, -0.5f));
+	model *= glm::translate(glm::vec3(-0.5f + translationX, -0.5f + translationY, -0.5f));
 
 	s.setMat4("modelMatrix", model);
 	s.setVec3("origin", glm::vec4(eyePos, 0) * model);
@@ -328,37 +334,81 @@ void mouseWheel(int button, int dir, int x, int y);
 
 void keyboard(unsigned char key, int x, int y) 
 {
-	switch (key) 
+	switch (key)
 	{
-		case ' ':
-			autoRotate = !autoRotate;	
-			break;
-		case 'w':
-			mouseWheel(0, 1, 0, 0);
-			break;
-		case 's':
-			mouseWheel(0, -1, 0, 0);
-			break;
-		default:
-			break;
+	case ' ':
+		autoRotate = !autoRotate;
+		break;
+	case '+':
+	case 'w':
+		mouseWheel(0, 1, 0, 0);
+		break;
+	case '-':
+	case 's':
+		mouseWheel(0, -1, 0, 0);
+		break;
+	default:
+		break;
 	}
 
 	ImGui_ImplGLUT_KeyboardFunc(key, x, y);
 
 }
 
-bool doMove = false;
-int oldX, oldY;
-void mouse(int button, int state, int x, int y)
+void specialInput(int key, int x, int y)
 {
-	switch(button)
-	{
-		case GLUT_LEFT_BUTTON:
-			doMove = state == GLUT_DOWN;
-			oldX = x, oldY = y;
+	int mod_key = glutGetModifiers();
+
+	if(mod_key == GLUT_ACTIVE_CTRL)
+		switch (key)
+		{
+		case GLUT_KEY_UP:
+			translationY += TRANSLATION_SPEED / FRAME_DURATION;
+			break;
+		case GLUT_KEY_DOWN:
+			translationY -= TRANSLATION_SPEED / FRAME_DURATION;
+			break;
+		case GLUT_KEY_LEFT:
+			translationX -= TRANSLATION_SPEED / FRAME_DURATION;
+			break;
+		case GLUT_KEY_RIGHT:
+			translationX += TRANSLATION_SPEED / FRAME_DURATION;
 			break;
 		default:
 			break;
+		}
+	else
+		switch (key)
+		{
+		case GLUT_KEY_UP:
+			angleX += ROTATION_SPEED / FRAME_DURATION;
+			break;
+		case GLUT_KEY_DOWN:
+			angleX -= ROTATION_SPEED / FRAME_DURATION;
+			break;
+		case GLUT_KEY_LEFT:
+			angleY -= ROTATION_SPEED / FRAME_DURATION;
+			break;
+		case GLUT_KEY_RIGHT:
+			angleY += ROTATION_SPEED / FRAME_DURATION;
+			break;
+		default:
+			break;
+		}
+
+	ImGui_ImplGLUT_SpecialFunc(key, x, y);
+}
+
+int oldX, oldY;
+void mouse(int button, int state, int x, int y)
+{
+	switch (button)
+	{
+	case GLUT_LEFT_BUTTON:
+		oldX = x, oldY = y;
+		break;
+	default:
+		break;
 	}
 
 	ImGui_ImplGLUT_MouseFunc(button, state, x, y);
@@ -411,6 +461,7 @@ int main(int argc, char** argv)
 
 	glutReshapeFunc(reshape);
 	glutKeyboardFunc(keyboard);
+	glutSpecialFunc(specialInput);
 	glutMouseFunc(mouse);
 	glutMouseWheelFunc(mouseWheel);
 	glutMotionFunc(motion);

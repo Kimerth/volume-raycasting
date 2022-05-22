@@ -17,6 +17,24 @@ void PytorchModel::loadModel(const char* path)
 {
     try {
         model = torch::jit::load(path, device);
+
+        size_t dotPos = std::string(path).find_last_of(".");
+		std::string modelName = std::string(path).substr(0, dotPos);
+
+        std::ifstream f(modelName + ".hdr");
+	    
+        int width, height, depth;
+		f >> width >> height >> depth;
+        inputSize = { width, height, depth };
+
+        f >> width >> height >> depth;
+		patchSize = { width, height, depth };
+
+        for(int i = 0; i < 3; ++i)
+			if(inputSize[i] % patchSize[i] != 0)
+				throw std::runtime_error("Patch size must be a divisor of input size");
+
+		f.close();
     }
     catch (const c10::Error& e) {
         std::cerr << "error loading the model " << std::endl;
@@ -51,10 +69,8 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
         dataTensor,
         F::InterpolateFuncOptions()
         .mode(torch::kNearest)
-        .size(std::vector<int64_t>{ 96, 96, 96 })
+        .size(std::vector<int64_t>{ inputSize[0], inputSize[1], inputSize[2] })
     );
-
-    //dataTensor = dataTensor.transpose(2, 4);
 
     std::cout << dataTensor.sizes() << std::endl;
 
@@ -67,7 +83,7 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 
         for (int idx = 0; idx < oldPatchesNb; ++idx)
         {
-            std::vector<torch::Tensor> patchesNew = torch::split(patches[idx], 32, i);
+            std::vector<torch::Tensor> patchesNew = torch::split(patches[idx], patchSize[i], i);
             patches.insert(patches.end(), patchesNew.begin(), patchesNew.end());
         }
 
@@ -97,15 +113,15 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
             patches.push_back(patch.squeeze());
     }
 
-    for (int i = 3; i > 0; --i)
+    for (int i = 2; i >= 0; --i)
     {
         auto oldPatchesNb = std::distance(patches.begin(), patches.end());
 
-        for (int idx = 0; idx < oldPatchesNb; idx += 3)
+        for (int idx = 0; idx < oldPatchesNb; idx += inputSize[i] / patchSize[i])
         {
             std::vector<torch::Tensor> seq;
-            seq.insert(seq.begin(), patches.begin() + idx, patches.begin() + idx + 3);
-            torch::Tensor patch = torch::cat(seq, i);
+            seq.insert(seq.begin(), patches.begin() + idx, patches.begin() + idx + inputSize[i] / patchSize[i]);
+            torch::Tensor patch = torch::cat(seq, i + 1);
             patches.push_back(patch);
         }
         patches.erase(patches.begin(), patches.begin() + oldPatchesNb);
@@ -127,8 +143,6 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 
     std::cout << outputTensor.sizes() << std::endl;
 
-    //outputTensor = outputTensor.transpose(2, 4);
-
     int nbLabels = outputTensor.sizes().at(1);
 
     outputTensor = torch::sigmoid(outputTensor) > 0.5;
@@ -144,5 +158,6 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 
 	uchar* result = new uchar[size];
 	std::memcpy(result, outputTensor.to(torch::kUInt8).contiguous().data_ptr<uchar>(), size * sizeof(uchar));
+
     return result;
 }
