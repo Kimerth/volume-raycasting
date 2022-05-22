@@ -30,6 +30,9 @@ public:
 
 	float hist[USHRT_MAX];
 
+	bool computingSegmentation = false;
+	bool smoothingSegmentation = false;
+
 	void load(const char* path);
 	void loadSegmentation(const char* path);
 	void computeSegmentation(PytorchModel ptModel);

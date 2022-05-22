@@ -44,13 +44,16 @@ Shader s;
 PytorchModel ptModel;
 glm::mat4 projection, view, model;
 float angleY, angleX = 3.14f;
-float translationX, translationY;
+float translationX, translationY, translationZ;
 
 bool autoRotate = true;
 
 glm::vec3 eyePos(0.0f, 0.0f, 1.5f);
 
 float zoom = 0.5f;
+
+float exposure = 10, gamma = 1;
+int sampleRate = 100;
 
 TransferFunctionWidget tfWidget;
 
@@ -148,7 +151,7 @@ void displayUI()
 				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".gz,.nii", ".");
 			if (ImGui::MenuItem("Load segmentation"))
 				ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationOpen", "Choose Segmentation", ".gz,.nii", ".");
-			if (ImGui::MenuItem("Compute segmentation"))
+			if (ImGui::MenuItem("Compute segmentation", NULL, false, ptModel.isLoaded && !v.computingSegmentation))
 				v.computeSegmentation(ptModel);
 
 			ImGui::EndMenuBar();
@@ -192,9 +195,15 @@ void displayUI()
 
 		if (v.segmentationData)
 		{
+			if (v.smoothingSegmentation)
+				ImGui::BeginDisabled();
+
 			ImGui::SliderInt("Label smoothing radius", &v.smoothingRadius, 0, 3);
 			if (ImGui::Button("Apply label smoothing"))
 				v.applySmoothingLabels();
+
+			if (v.smoothingSegmentation)
+				ImGui::EndDisabled();
 
 			if (ImGui::CollapsingHeader("Semantic segmentation"))
 			{
@@ -228,6 +237,10 @@ void displayUI()
 
 			ImGui::EndMenuBar();
 		}
+
+		ImGui::SliderInt("Sample Rate", &sampleRate, 100, 500);
+		ImGui::SliderFloat("Exposure", &exposure, 1, 10, "%.1f");
+		ImGui::SliderFloat("Gamma", &gamma, 0, 1, "%.2f");
 
 		tfWidget.draw_ui();
 
@@ -285,16 +298,24 @@ void render()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	model = glm::rotate(angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::translate(glm::vec3(-translationX, translationY, translationZ));
+	model *= glm::rotate(angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	model *= glm::rotate(angleY, glm::vec3(0.0f, 1.0f, 0.0f));
-	model *= glm::translate(glm::vec3(-0.5f + translationX, -0.5f + translationY, -0.5f));
+	model *= glm::translate(glm::vec3(-0.5f, -0.5f, -0.5f));
+
+	s.setVec3("translation", glm::vec3(translationX, translationY, translationZ));
 
 	s.setMat4("modelMatrix", model);
+	
 	s.setVec3("origin", glm::vec4(eyePos, 0) * model);
 
 	model = view * model;
 	s.setMat4("viewMatrix", model);
 	s.setMat4("MVP", projection * model);
+
+	s.setFloat("exposure", exposure);
+	s.setFloat("gamma", gamma);
+	s.setInt("sampleRate", sampleRate);
 
 	if (v.vao != NULL)
 	{
@@ -334,22 +355,37 @@ void mouseWheel(int button, int dir, int x, int y);
 
 void keyboard(unsigned char key, int x, int y) 
 {
-	switch (key)
-	{
-	case ' ':
-		autoRotate = !autoRotate;
-		break;
-	case '+':
-	case 'w':
-		mouseWheel(0, 1, 0, 0);
-		break;
-	case '-':
-	case 's':
-		mouseWheel(0, -1, 0, 0);
-		break;
-	default:
-		break;
-	}
+	if (glutGetModifiers() == GLUT_ACTIVE_ALT)
+		switch (key)
+		{
+		case '+':
+		case 'w':
+			translationZ += TRANSLATION_SPEED / FRAME_DURATION;
+			break;
+		case '-':
+		case 's':
+			translationZ -= TRANSLATION_SPEED / FRAME_DURATION;
+			break;
+		default:
+			break;
+		}
+	else
+		switch (key)
+		{
+		case ' ':
+			autoRotate = !autoRotate;
+			break;
+		case '+':
+		case 'w':
+			mouseWheel(0, 1, 0, 0);
+			break;
+		case '-':
+		case 's':
+			mouseWheel(0, -1, 0, 0);
+			break;
+		default:
+			break;
+		}
 
 	ImGui_ImplGLUT_KeyboardFunc(key, x, y);
 
@@ -357,9 +393,7 @@ void keyboard(unsigned char key, int x, int y)
 
 void specialInput(int key, int x, int y)
 {
-	int mod_key = glutGetModifiers();
-
-	if(mod_key == GLUT_ACTIVE_CTRL)
+	if(glutGetModifiers() == GLUT_ACTIVE_ALT)
 		switch (key)
 		{
 		case GLUT_KEY_UP:
@@ -369,10 +403,10 @@ void specialInput(int key, int x, int y)
 			translationY -= TRANSLATION_SPEED / FRAME_DURATION;
 			break;
 		case GLUT_KEY_LEFT:
-			translationX -= TRANSLATION_SPEED / FRAME_DURATION;
+			translationX += TRANSLATION_SPEED / FRAME_DURATION;
 			break;
 		case GLUT_KEY_RIGHT:
-			translationX += TRANSLATION_SPEED / FRAME_DURATION;
+			translationX -= TRANSLATION_SPEED / FRAME_DURATION;
 			break;
 		default:
 			break;

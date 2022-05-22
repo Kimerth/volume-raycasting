@@ -16,6 +16,8 @@ PytorchModel::PytorchModel()
 void PytorchModel::loadModel(const char* path)
 {
     try {
+        isLoaded = false;
+		
         model = torch::jit::load(path, device);
 
         size_t dotPos = std::string(path).find_last_of(".");
@@ -35,6 +37,8 @@ void PytorchModel::loadModel(const char* path)
 				throw std::runtime_error("Patch size must be a divisor of input size");
 
 		f.close();
+
+        isLoaded = true;
     }
     catch (const c10::Error& e) {
         std::cerr << "error loading the model " << std::endl;

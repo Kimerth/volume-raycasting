@@ -19,4 +19,6 @@ public:
 
 	std::vector<int> inputSize;
 	std::vector<int> patchSize;
+
+	bool isLoaded = false;
 };

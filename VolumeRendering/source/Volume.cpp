@@ -123,6 +123,9 @@ void smoothLabel(uchar* labels, int radius, int x, int y, int z, int width, int 
 
 void Volume::applySmoothingLabels()
 {
+    if (smoothingSegmentation)
+        return;
+
     if (smoothedSegmentationData != nullptr)
         delete[] smoothedSegmentationData;
 
@@ -132,10 +135,12 @@ void Volume::applySmoothingLabels()
     if (smoothingRadius > 0)
     {
         std::thread smoothingThreadObj([](Volume* v) {
+            v->smoothingSegmentation = true;
             for (int x = 0; x < v->sizeX; ++x)
                 for (int y = 0; y < v->sizeY; ++y)
                     for (int z = 0; z < v->sizeZ; ++z)
                         smoothLabel(v->smoothedSegmentationData, v->smoothingRadius, x, y, z, v->sizeX, v->sizeY, v->sizeZ);
+            v->smoothingSegmentation = false;
         }, this);
 
         smoothingThreadObj.detach();
@@ -144,12 +149,19 @@ void Volume::applySmoothingLabels()
 
 void Volume::computeSegmentation(PytorchModel ptModel)
 {
+    if (computingSegmentation)
+        return;
+
     std::thread segmentThreadObj([](Volume *v, PytorchModel ptModel) {
+        v->computingSegmentation = true;
+
         v->segmentationData = ptModel.forward(v->volumeData, v->sizeX, v->sizeY, v->sizeZ);
 
         v->applySmoothingLabels();
 		
         v->applySegmentation();
+
+        v->computingSegmentation = false;
     }, this, ptModel);
 
     segmentThreadObj.detach();
