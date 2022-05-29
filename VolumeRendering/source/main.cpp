@@ -142,23 +142,23 @@ void init()
 
 	ptModel.loadModel(PYTORCH_SEGMENTATION_MODULE_PATH);
 
-	ui.segmentationAvailableFunc([] { return v.segmentationData != nullptr; });
-	ui.canComputeSegmentationFunc([] { return ptModel.isLoaded && v.volumeData != nullptr; });
-	ui.canSmoothSegmentationFunc([] { return !v.computingSegmentation && !v.smoothingSegmentation && v.segmentationData != nullptr; });
+	ui.segmentationAvailableFunc([&] { return v.segmentationData != nullptr; });
+	ui.canComputeSegmentationFunc([&] { return ptModel.isLoaded && v.volumeData != nullptr && !v.computingSegmentation; });
+	ui.canSmoothSegmentationFunc([&] { return !v.computingSegmentation && !v.smoothingSegmentation && v.segmentationData != nullptr; });
 
-	ui.computeSegmentationFunc([] { v.computeSegmentation(ptModel); });
-	ui.smoothLabelsFunc([](int radius) { v.applySmoothingLabels(radius); });
-	ui.loadShadersFunc([] { loadShaders(); });
+	ui.computeSegmentationFunc([&] { v.computeSegmentation(ptModel); });
+	ui.smoothLabelsFunc([&](int radius) { v.applySmoothingLabels(radius); });
+	ui.loadShadersFunc([&] { loadShaders(); });
 
-	ui.loadVolumeFunc([](const char* path) { v.load(path); });
-	ui.loadTFFunc([]() {
+	ui.loadVolumeFunc([&](const char* path) { v.load(path); });
+	ui.loadTFFunc([&]() {
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_1D, v.tfID);
 		s.setInt("tf", 1);
 	});
-	ui.loadSegmentationFunc([](const char* path) { v.loadSegmentation(path); });
-	ui.applySegmentationFunc([]() { v.applySegmentation(); });
-	ui.getlabelsEnabledFunc([]() { return v.labelsEnabled; });
+	ui.loadSegmentationFunc([&](const char* path) { v.loadSegmentation(path); });
+	ui.applySegmentationFunc([&]() { v.applySegmentation(); });
+	ui.getlabelsEnabledFunc([&]() { return v.labelsEnabled; });
 }
 
 void reshape(int w, int h)

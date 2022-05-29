@@ -19,29 +19,28 @@ void Interface::render(float deltaTime)
 
 void Interface::displayUI()
 {
-	ImGui::Begin("Main", NULL, ImGuiWindowFlags_MenuBar);
-
-	if (ImGui::BeginMenuBar())
+	if (ImGui::BeginMainMenuBar())
 	{
-		if (ImGui::MenuItem("Show Volume Window"))
-			show_volume_window = !show_volume_window;
+		if (ImGui::BeginMenu("Windows"))
+		{
+			ImGui::Checkbox("Show Volume Window", &show_volume_window);
 
-		if (ImGui::MenuItem("Show TF Window"))
-			show_tf_window = !show_tf_window;
-		ImGui::EndMenuBar();
-	}
+			ImGui::Checkbox("Show TF Window", &show_tf_window);
 
-	if (ImGui::Button("Reload Shaders"))
-	{
-		loadShaders();
-	}
+			ImGui::EndMenu();
+		}
 
-	if (ImGui::CollapsingHeader("Info"))
-	{
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	}
+		if (ImGui::MenuItem("Reload Shaders"))
+		{
+			loadShaders();
+		}
+		//if (ImGui::CollapsingHeader("Info"))
+		//{
+		//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+		//}
 
-	ImGui::End();
+		ImGui::EndMainMenuBar();
+	}		
 
 	if (show_volume_window)
 	{
@@ -96,12 +95,9 @@ void Interface::displayUI()
 
 		if (ImGui::CollapsingHeader("Slicing"))
 		{
-			ImGui::SliderFloat("-x", &bbLow.x, -0.5, 0.5);
-			ImGui::SliderFloat("+x", &bbHigh.x, -0.5, 0.5);
-			ImGui::SliderFloat("-y", &bbLow.y, -0.5, 0.5);
-			ImGui::SliderFloat("+y", &bbHigh.y, -0.5, 0.5);
-			ImGui::SliderFloat("-z", &bbLow.z, -0.5, 0.5);
-			ImGui::SliderFloat("+z", &bbHigh.z, -0.5, 0.5);
+			sliceSlider("x", &bbLow.x, &bbHigh.x, -0.5, 0.5);
+			sliceSlider("y", &bbLow.y, &bbHigh.y, -0.5, 0.5);
+			sliceSlider("z", &bbLow.z, &bbHigh.z, -0.5, 0.5);
 		}
 
 		if (segmentationAvailable())
@@ -196,6 +192,85 @@ void Interface::displayUI()
 
 		ImGui::End();
 	}
+}
+
+void Interface::sliceSlider(const char* label, float* min, float* max, float v_min, float v_max)
+{
+	ImGuiWindow* window = ImGui::GetCurrentWindow();
+	if (window->SkipItems)
+		return;
+
+	ImGuiContext& g = *GImGui;
+	const ImGuiStyle& style = g.Style;
+	const ImGuiID id = window->GetID(label);
+	const float w = ImGui::CalcItemWidth();
+
+	const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
+	const ImRect frame_bb(window->DC.CursorPos, ImVec2(window->DC.CursorPos.x + w, window->DC.CursorPos.y + label_size.y + style.FramePadding.y * 2.0f));
+	const ImRect total_bb(frame_bb.Min, ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x + label_size.x, frame_bb.Max.y));
+
+	ImGui::ItemAdd(total_bb, id);
+	ImGui::ItemSize(total_bb, style.FramePadding.y);
+
+	bool hovered = g.HoveredWindow == window && ImGui::IsMouseHoveringRect(frame_bb.Min, frame_bb.Max);
+	if (hovered)
+		ImGui::SetHoveredID(id);
+
+	if (hovered)
+	{
+		if(g.IO.MouseClicked[0])
+		{
+			ImGui::SetActiveID(id, window);
+			ImGui::FocusWindow(window);
+		}
+		else if(!g.IO.MouseDown[0])
+		{
+			ImGui::SetActiveID(0, NULL);
+			ImGui::FocusWindow(NULL);
+		}
+	}
+
+	ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), style.FrameBorderSize > 0, style.FrameRounding);
+
+	const float grab_padding = 2.0f;
+	const float slider_size = frame_bb.GetWidth() - grab_padding * 2;
+	const float grab_size = std::min(style.GrabMinSize, slider_size);
+	const float slider_usable_size = slider_size - grab_size;
+
+	if (g.ActiveId == id)
+	{
+		float clicked_t = ImClamp((g.IO.MousePos.x - frame_bb.Min.x) / slider_usable_size, 0.0f, 1.0f);
+		float new_value = ImLerp(v_min, v_max, clicked_t);
+		
+		if (abs(*min - new_value) < abs(*max - new_value))
+			*min = new_value;
+		else
+			*max = new_value;
+	}
+
+	float grab_t = (*min - v_min) / (v_max - v_min);
+	float grab_pos = ImLerp(frame_bb.Min.x, frame_bb.Max.x, grab_t);
+	ImRect grab_bb1 = ImRect(ImVec2(grab_pos - grab_size * 0.5f, frame_bb.Min.y + grab_padding), ImVec2(grab_pos + grab_size * 0.5f, frame_bb.Max.y - grab_padding));
+	window->DrawList->AddRectFilled(grab_bb1.Min, grab_bb1.Max, ImGui::GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
+
+	grab_t = (*max - v_min) / (v_max - v_min);
+	grab_pos = ImLerp(frame_bb.Min.x, frame_bb.Max.x, grab_t);
+	ImRect grab_bb2 = ImRect(ImVec2(grab_pos - grab_size * 0.5f, frame_bb.Min.y + grab_padding), ImVec2(grab_pos + grab_size * 0.5f, frame_bb.Max.y - grab_padding));
+	window->DrawList->AddRectFilled(grab_bb2.Min, grab_bb2.Max, ImGui::GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
+	
+	ImRect connector(grab_bb1.Min, grab_bb2.Max);
+	connector.Min.x += grab_size;
+	connector.Min.y += grab_size * 0.3f;
+	connector.Max.x -= grab_size;
+	connector.Max.y -= grab_size * 0.3f;
+
+	window->DrawList->AddRectFilled(connector.Min, connector.Max, ImGui::GetColorU32(ImGuiCol_SliderGrab), style.GrabRounding);
+
+	char value_buf[64];
+	const char* value_buf_end = value_buf + ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), "%.2f %.2f", *min, *max);
+	ImGui::RenderTextClipped(frame_bb.Min, frame_bb.Max, value_buf, value_buf_end, NULL, ImVec2(0.5f, 0.5f));
+
+	ImGui::RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x * 2, frame_bb.Min.y + style.FramePadding.y), label);
 }
 
 float* Interface::getTFColormap()

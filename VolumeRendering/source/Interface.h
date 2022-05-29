@@ -1,6 +1,7 @@
 #pragma once
 
 #include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
 #include <imgui/backends/imgui_impl_glut.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 
@@ -29,20 +30,20 @@ public:
 
 	float* getTFColormap();
 
-	inline void segmentationAvailableFunc(bool (*func)()) { segmentationAvailable = func; };
-	inline void canComputeSegmentationFunc(bool (*func)()) { canComputeSegmentation = func; };
-	inline void canSmoothSegmentationFunc(bool (*func)()) { canSmoothSegmentation = func; };
+	inline void segmentationAvailableFunc(const std::function<bool()> &func) { segmentationAvailable = func; };
+	inline void canComputeSegmentationFunc(const std::function<bool()> &func) { canComputeSegmentation = func; };
+	inline void canSmoothSegmentationFunc(const std::function<bool()> &func) { canSmoothSegmentation = func; };
 
-	inline void computeSegmentationFunc(void (*func)()) { computeSegmentation = func; };
-	inline void smoothLabelsFunc(void (*func)(int)) { smoothLabels = func; };
-	inline void loadShadersFunc(void (*func)()) { loadShaders = func; };
+	inline void computeSegmentationFunc(const std::function<void()> &func) { computeSegmentation = func; };
+	inline void smoothLabelsFunc(const std::function<void(int)> &func) { smoothLabels = func; };
+	inline void loadShadersFunc(const std::function<void()> &func) { loadShaders = func; };
 
-	inline void loadVolumeFunc(void (*func)(const char*)) { loadVolume = func; };
-	inline void loadTFFunc(void (*func)()) { loadTF = func; };
-	inline void loadSegmentationFunc(void (*func)(const char*)) { loadSegmentation = func; };
-	inline void applySegmentationFunc(void (*func)()) { applySegmentation = func; };
+	inline void loadVolumeFunc(const std::function<void(const char*)> &func) { loadVolume = func; };
+	inline void loadTFFunc(const std::function<void()> &func) { loadTF = func; };
+	inline void loadSegmentationFunc(const std::function<void(const char*)> &func) { loadSegmentation = func; };
+	inline void applySegmentationFunc(const std::function<void()> &func) { applySegmentation = func; };
 
-	inline void getlabelsEnabledFunc(bool* (*func)()) { getLabelsEnabled = func; };
+	inline void getlabelsEnabledFunc(const std::function<bool*()> &func) { getLabelsEnabled = func; };
 
 	void keyboard(unsigned char key, int x, int y);
 	void specialInput(int key, int x, int y);
@@ -66,23 +67,25 @@ public:
 
 private:
 	void displayUI();
+	
+	void sliceSlider(const char* label, float* min, float* max, float v_min, float v_max);
 
 	ImGuiIO* io;
 
-	bool (*segmentationAvailable)();
-	bool (*canComputeSegmentation)();
-	bool (*canSmoothSegmentation)();
+	std::function<bool()> segmentationAvailable;
+	std::function<bool()> canComputeSegmentation;
+	std::function<bool()> canSmoothSegmentation;
 
-	void (*computeSegmentation)();
-	void (*smoothLabels)(int);
-	void (*loadShaders)();
+	std::function<void()> computeSegmentation;
+	std::function<void(int)> smoothLabels;
+	std::function<void()> loadShaders;
 
-	void (*loadVolume)(const char*);
-	void (*loadTF)();
-	void (*loadSegmentation)(const char*);
-	void (*applySegmentation)();
+	std::function<void(const char*)> loadVolume;
+	std::function<void()> loadTF;
+	std::function<void(const char*)> loadSegmentation;
+	std::function<void()> applySegmentation;
 
-	bool* (*getLabelsEnabled)();
+	std::function<bool*()> getLabelsEnabled;
 
 	TransferFunctionWidget tfWidget;
 
