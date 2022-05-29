@@ -15,17 +15,10 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <imgui/imgui.h>
-#include <imgui/backends/imgui_impl_glut.h>
-#include <imgui/backends/imgui_impl_opengl3.h>
-
-#include <imguiFD/ImGuiFileDialog.h>
-
 #include "Volume.h"
 #include "Shader.h"
-#include "Loader.h"
-#include "transfer_function_widget.h"
 #include "PytorchModel.h"
+#include "Interface.h"
 
 #define FRAG_SHADER_PATH "source/shaders/raycasting.frag"
 #define VERT_SHADER_PATH "source/shaders/raycasting.vert"
@@ -33,46 +26,24 @@
 
 #define PYTORCH_SEGMENTATION_MODULE_PATH "segmentation_model.pt"
 
-#define FRAME_DURATION 32
-#define ROTATION_SPEED 0.68 // approx 40degrees/sec
-#define TRANSLATION_SPEED 0.1
-
-int windowWidth = 1240, windowHeight = 800;
-
 Volume v;
 Shader s;
 PytorchModel ptModel;
 glm::mat4 projection, view, model;
-float angleY, angleX = 3.14f;
-float translationX, translationY, translationZ;
-
-bool autoRotate = true;
 
 glm::vec3 eyePos(0.0f, 0.0f, 1.5f);
 
-float zoom = 0.5f;
+Interface ui;
 
-float exposure = 10, gamma = 1;
-int sampleRate = 100;
+float deltaTime = FRAME_DURATION;
 
-TransferFunctionWidget tfWidget;
-
-static bool show_volume_window = true;
-static bool show_tf_window = true;
-
-void displayUI();
 void render();
 
 void display()
 {
 	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGLUT_NewFrame();
-
-	displayUI();
-	ImGui::Render();
-	ImGuiIO& io = ImGui::GetIO();
+	ui.render(deltaTime);
 
 	render();
 
@@ -85,10 +56,7 @@ void display()
 	int passed = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
 	std::this_thread::sleep_for(std::chrono::microseconds(std::max(0, FRAME_DURATION * 1000 - passed)));
 
-	int deltaTime = std::max(FRAME_DURATION * 1000, passed);
-
-	if(autoRotate)
-		angleY += ROTATION_SPEED * deltaTime / 1e+6;
+	deltaTime = std::max(FRAME_DURATION * 1000, passed) / 1000;
 }
 
 void loadShaders()
@@ -96,7 +64,7 @@ void loadShaders()
 	s.load(VERT_SHADER_PATH, FRAG_SHADER_PATH, COMP_SHADER_PATH, v);
 	s.use();
 
-	s.setVec2("screen", windowWidth, windowHeight);
+	s.setVec2("screen", ui.windowWidth, ui.windowHeight);
 	s.setVec3("scale", v.scale);
 
 	glActiveTexture(GL_TEXTURE0);
@@ -116,206 +84,42 @@ void loadShaders()
 	s.setInt("tf", 1);
 }
 
-void displayUI()
-{
-	ImGui::Begin("Main", NULL, ImGuiWindowFlags_MenuBar);
-
-	if (ImGui::BeginMenuBar())
-	{
-		if (ImGui::MenuItem("Show Volume Window"))
-			show_volume_window = !show_volume_window;
-
-		if (ImGui::MenuItem("Show TF Window"))
-			show_tf_window = !show_tf_window;
-		ImGui::EndMenuBar();
-	}
-
-	if (ImGui::Button("Reload Shaders")) 
-	{
-		loadShaders();
-	}
-
-	if (ImGui::CollapsingHeader("Info"))
-	{
-		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-	}
-
-	ImGui::End();
-
-	if (show_volume_window)
-	{
-		ImGui::Begin("Volume", &show_volume_window, ImGuiWindowFlags_MenuBar);
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::MenuItem("Open.."))
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".gz,.nii", ".");
-			if (ImGui::MenuItem("Load segmentation"))
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationOpen", "Choose Segmentation", ".gz,.nii", ".");
-			if (ImGui::MenuItem("Compute segmentation", NULL, false, ptModel.isLoaded && !v.computingSegmentation))
-				v.computeSegmentation(ptModel);
-
-			ImGui::EndMenuBar();
-		}
-
-		if (ImGuiFileDialog::Instance()->Display("ChooseVolumeOpen"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				v.load(filePathName.c_str());
-				loadShaders();
-
-				std::string savPath = (std::string(filePathName) + ".sav");
-				if (std::fstream{ savPath })
-				{
-					float* buffer = readTF(savPath.c_str());
-					tfWidget.loadTF(buffer);
-				}
-			}
-
-			ImGuiFileDialog::Instance()->Close();
-		}
-
-		if (ImGuiFileDialog::Instance()->Display("ChooseSegmentationOpen"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				v.loadSegmentation(filePathName.c_str());
-			}
-
-			ImGuiFileDialog::Instance()->Close();
-		}
-
-		if (ImGui::CollapsingHeader("Info"))
-		{
-			ImGui::Text("Size: %dx%dx%d 8 bit", v.sizeX, v.sizeY, v.sizeZ);
-			ImGui::PlotHistogram("Histogram", v.hist, USHRT_MAX, 0, NULL, 0.0f, 1.0f, ImVec2(0, 100.0f), sizeof(float));
-		}
-
-		if (v.segmentationData)
-		{
-			if (v.smoothingSegmentation)
-				ImGui::BeginDisabled();
-
-			ImGui::SliderInt("Label smoothing radius", &v.smoothingRadius, 0, 3);
-			if (ImGui::Button("Apply label smoothing"))
-				v.applySmoothingLabels();
-
-			if (v.smoothingSegmentation)
-				ImGui::EndDisabled();
-
-			if (ImGui::CollapsingHeader("Semantic segmentation"))
-			{
-				std::string labels[] = { "background", "liver", "bladder", "lungs", "kidneys", "bone", "brain" };
-
-				for (int i = 0; i < 7; i++)
-					if (ImGui::Checkbox(labels[i].c_str(), &v.labelsEnabled[i]))
-						v.applySegmentation();
-			}
-		}
-
-		ImGui::End();
-	}
-
-	if (show_tf_window)
-	{
-		ImGui::Begin("Transfer Function", &show_volume_window, ImGuiWindowFlags_MenuBar);
-		if (ImGui::BeginMenuBar())
-		{
-			if (ImGui::MenuItem("New"))
-				tfWidget.reset();
-
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Open.."))
-					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFOpen", "Choose TF", ".sav,.txt", ".");
-				if (ImGui::MenuItem("Save"))
-					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFSave", "Choose TF", ".sav,.txt", ".");
-				ImGui::EndMenu();
-			}
-
-			ImGui::EndMenuBar();
-		}
-
-		ImGui::SliderInt("Sample Rate", &sampleRate, 100, 500);
-		ImGui::SliderFloat("Exposure", &exposure, 1, 10, "%.1f");
-		ImGui::SliderFloat("Gamma", &gamma, 0, 1, "%.2f");
-
-		tfWidget.draw_ui();
-
-		if (ImGuiFileDialog::Instance()->Display("ChoseTFOpen"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				float* tf = readTF(filePathName.c_str());
-
-				tfWidget.loadTF(tf);
-
-				glActiveTexture(GL_TEXTURE1);
-				glBindTexture(GL_TEXTURE_1D, v.tfID);
-				s.setInt("tf", 1);
-			}
-
-			ImGuiFileDialog::Instance()->Close();
-		}
-
-		if (ImGuiFileDialog::Instance()->Display("ChoseTFSave"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-
-				std::ofstream f(filePathName);
-
-				for (int i = 0; i < 256; ++i)
-				{
-					f << "re=" << tfWidget.current_colormap[4 * i] << std::endl
-						<< "ge=" << tfWidget.current_colormap[4 * i + 1] << std::endl
-						<< "be=" << tfWidget.current_colormap[4 * i + 2] << std::endl
-						<< "ra=" << tfWidget.current_colormap[4 * i + 3] << std::endl
-						<< "ga=" << tfWidget.current_colormap[4 * i + 3] << std::endl
-						<< "ba=" << tfWidget.current_colormap[4 * i + 3] << std::endl;
-				}
-				
-				f.close();
-			}
-
-			ImGuiFileDialog::Instance()->Close();
-		}
-
-
-		ImGui::End();
-	}
-}
-
 void render() 
 {
-	v.loadTF(tfWidget.current_colormap);
+	v.loadTF(ui.getTFColormap());
 
 	glClearColor(0, 0, 0, 1.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	model = glm::translate(glm::vec3(-translationX, translationY, translationZ));
-	model *= glm::rotate(angleX, glm::vec3(1.0f, 0.0f, 0.0f));
-	model *= glm::rotate(angleY, glm::vec3(0.0f, 1.0f, 0.0f));
+	model = glm::translate(glm::vec3(-ui.translationX, ui.translationY, ui.translationZ));
+	model *= glm::rotate(ui.angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+	model *= glm::rotate(ui.angleY, glm::vec3(0.0f, 1.0f, 0.0f));
 	model *= glm::translate(glm::vec3(-0.5f, -0.5f, -0.5f));
 
-	s.setVec3("translation", glm::vec3(translationX, translationY, translationZ));
+	s.setVec3("translation", glm::vec3(ui.translationX, ui.translationY, ui.translationZ));
+	
+	s.setVec3("bbLow", ui.bbLow);
+	s.setVec3("bbHigh", ui.bbHigh);
 
 	s.setMat4("modelMatrix", model);
 	
+	ui.zoom = std::max(-0.75f, std::min(1.0f, ui.zoom));
+	eyePos = glm::vec3(0.0f, 0.0f, 1.0f + ui.zoom);
+	view = glm::lookAt(eyePos,
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.0f, 1.0f, 0.0f));	
+
 	s.setVec3("origin", glm::vec4(eyePos, 0) * model);
 
 	model = view * model;
 	s.setMat4("viewMatrix", model);
 	s.setMat4("MVP", projection * model);
 
-	s.setFloat("exposure", exposure);
-	s.setFloat("gamma", gamma);
-	s.setInt("sampleRate", sampleRate);
+	s.setFloat("exposure", ui.exposure);
+	s.setFloat("gamma", ui.gamma);
+	s.setInt("sampleRate", ui.sampleRate);
+
 
 	if (v.vao != NULL)
 	{
@@ -326,156 +130,59 @@ void render()
 
 void init()
 {
-	glViewport(0, 0, windowWidth, windowHeight);
+	glViewport(0, 0, ui.windowWidth, ui.windowHeight);
 	glewInit();
 
 	glEnable(GL_DEPTH_TEST);
 
-	projection = glm::perspective(1.57f, (GLfloat)windowWidth / windowHeight, 0.1f, 100.f);
+	projection = glm::perspective(1.57f, (GLfloat)ui.windowWidth / ui.windowHeight, 0.1f, 100.f);
 	view = glm::lookAt(eyePos,
 				       glm::vec3(0.0f, 0.0f, 0.0f),
 					   glm::vec3(0.0f, 1.0f, 0.0f));
 
 	ptModel.loadModel(PYTORCH_SEGMENTATION_MODULE_PATH);
+
+	ui.segmentationAvailableFunc([] { return v.segmentationData != nullptr; });
+	ui.canComputeSegmentationFunc([] { return ptModel.isLoaded && v.volumeData != nullptr; });
+	ui.canSmoothSegmentationFunc([] { return !v.computingSegmentation && !v.smoothingSegmentation && v.segmentationData != nullptr; });
+
+	ui.computeSegmentationFunc([] { v.computeSegmentation(ptModel); });
+	ui.smoothLabelsFunc([](int radius) { v.applySmoothingLabels(radius); });
+	ui.loadShadersFunc([] { loadShaders(); });
+
+	ui.loadVolumeFunc([](const char* path) { v.load(path); });
+	ui.loadTFFunc([]() {
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_1D, v.tfID);
+		s.setInt("tf", 1);
+	});
+	ui.loadSegmentationFunc([](const char* path) { v.loadSegmentation(path); });
+	ui.applySegmentationFunc([]() { v.applySegmentation(); });
+	ui.getlabelsEnabledFunc([]() { return v.labelsEnabled; });
 }
 
 void reshape(int w, int h)
 {
-	windowWidth = w, windowHeight = h;
+	ui.windowWidth = w, ui.windowHeight = h;
 
-	glViewport(0, 0, windowWidth, windowHeight);
-	projection = glm::perspective(1.57f, (GLfloat)windowWidth / windowHeight, 0.1f, 100.f);
-
-	s.setVec2("screen", windowWidth, windowHeight);
+	glViewport(0, 0, ui.windowWidth, ui.windowHeight);
+	projection = glm::perspective(1.57f, (GLfloat)ui.windowWidth / ui.windowHeight, 0.1f, 100.f);
 
 	ImGui_ImplGLUT_ReshapeFunc(w, h);
 }
 
-void mouseWheel(int button, int dir, int x, int y);
-
-void keyboard(unsigned char key, int x, int y) 
-{
-	if (glutGetModifiers() == GLUT_ACTIVE_ALT)
-		switch (key)
-		{
-		case '+':
-		case 'w':
-			translationZ += TRANSLATION_SPEED / FRAME_DURATION;
-			break;
-		case '-':
-		case 's':
-			translationZ -= TRANSLATION_SPEED / FRAME_DURATION;
-			break;
-		default:
-			break;
-		}
-	else
-		switch (key)
-		{
-		case ' ':
-			autoRotate = !autoRotate;
-			break;
-		case '+':
-		case 'w':
-			mouseWheel(0, 1, 0, 0);
-			break;
-		case '-':
-		case 's':
-			mouseWheel(0, -1, 0, 0);
-			break;
-		default:
-			break;
-		}
-
-	ImGui_ImplGLUT_KeyboardFunc(key, x, y);
-
-}
-
-void specialInput(int key, int x, int y)
-{
-	if(glutGetModifiers() == GLUT_ACTIVE_ALT)
-		switch (key)
-		{
-		case GLUT_KEY_UP:
-			translationY += TRANSLATION_SPEED / FRAME_DURATION;
-			break;
-		case GLUT_KEY_DOWN:
-			translationY -= TRANSLATION_SPEED / FRAME_DURATION;
-			break;
-		case GLUT_KEY_LEFT:
-			translationX += TRANSLATION_SPEED / FRAME_DURATION;
-			break;
-		case GLUT_KEY_RIGHT:
-			translationX -= TRANSLATION_SPEED / FRAME_DURATION;
-			break;
-		default:
-			break;
-		}
-	else
-		switch (key)
-		{
-		case GLUT_KEY_UP:
-			angleX += ROTATION_SPEED / FRAME_DURATION;
-			break;
-		case GLUT_KEY_DOWN:
-			angleX -= ROTATION_SPEED / FRAME_DURATION;
-			break;
-		case GLUT_KEY_LEFT:
-			angleY -= ROTATION_SPEED / FRAME_DURATION;
-			break;
-		case GLUT_KEY_RIGHT:
-			angleY += ROTATION_SPEED / FRAME_DURATION;
-			break;
-		default:
-			break;
-		}
-
-	ImGui_ImplGLUT_SpecialFunc(key, x, y);
-}
-
-int oldX, oldY;
-void mouse(int button, int state, int x, int y)
-{
-	switch (button)
-	{
-	case GLUT_LEFT_BUTTON:
-		oldX = x, oldY = y;
-		break;
-	default:
-		break;
-	}
-
-	ImGui_ImplGLUT_MouseFunc(button, state, x, y);
-}
-
-void mouseWheel(int button, int dir, int x, int y)
-{
-	zoom += dir > 0 ? 0.05f : -0.05f;
-
-	zoom = std::max(-0.75f, std::min(1.0f, zoom));
-	eyePos = glm::vec3(0.0f, 0.0f, 1.0f + zoom);
-	view = glm::lookAt(eyePos,
-					   glm::vec3(0.0f, 0.0f, 0.0f),
-			  		   glm::vec3(0.0f, 1.0f, 0.0f));
-	  
-	ImGui_ImplGLUT_MouseWheelFunc(button, dir, x, y);
-}
-
-void motion(int x, int y)
-{
-	angleY += ((float)x - oldX) / windowWidth;
-	angleX += ((float)y - oldY) / windowHeight;
-	oldX = x, oldY = y;
-
-	ImGui_ImplGLUT_MotionFunc(x, y);
-}
+void keyboard_wrapper(unsigned char key, int x, int y) { ui.keyboard(key, x, y); };
+void specialInput_wrapper(int key, int x, int y) { ui.specialInput(key, x, y); };
+void mouse_wrapper(int button, int state, int x, int y) { ui.mouse(button, state, x, y); };
+void mouseWheel_wrapper(int button, int dir, int x, int y) { ui.mouseWheel(button, dir, x, y); };
+void motion_wrapper(int x, int y) { ui.motion(x, y); };
 
 int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowPosition(200, 200);
-	glutInitWindowSize(windowWidth, windowHeight);
+	glutInitWindowSize(ui.windowWidth, ui.windowHeight);
 	glutCreateWindow("Volume Rendering");
 
 	init();
@@ -494,11 +201,11 @@ int main(int argc, char** argv)
 	ImGui_ImplOpenGL3_Init();
 
 	glutReshapeFunc(reshape);
-	glutKeyboardFunc(keyboard);
-	glutSpecialFunc(specialInput);
-	glutMouseFunc(mouse);
-	glutMouseWheelFunc(mouseWheel);
-	glutMotionFunc(motion);
+	glutKeyboardFunc(keyboard_wrapper);
+	glutSpecialFunc(specialInput_wrapper);
+	glutMouseFunc(mouse_wrapper);
+	glutMouseWheelFunc(mouseWheel_wrapper);
+	glutMotionFunc(motion_wrapper);
 
 	glutMainLoop();
 

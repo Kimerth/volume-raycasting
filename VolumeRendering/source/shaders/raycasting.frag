@@ -24,6 +24,9 @@ uniform float gamma;
 
 uniform vec3 translation;
 
+uniform vec3 bbLow;
+uniform vec3 bbHigh;
+
 struct Ray {
     vec3 origin;
     vec3 dir;
@@ -51,8 +54,8 @@ Intersection rayBBIntersection(Ray r, AABB aabb)
     t = min(tmax.xx, tmax.yz);
     float t1 = min(t.x, t.y);
 
-    return Intersection(r.origin + r.dir * t0 + 0.5,
-                        r.origin + r.dir * t1 + 0.5);
+    return Intersection((r.origin + r.dir * t0 + 0.5) / scale,
+                        (r.origin + r.dir * t1 + 0.5) / scale);
 }
 
 void main()
@@ -64,7 +67,7 @@ void main()
     direction = (vec4(direction, 0) * viewMatrix).xyz;
 
     Ray ray = Ray(origin + translation, direction);
-    AABB bb = AABB(vec3(-0.5), vec3(0.5));
+    AABB bb = AABB(bbLow, bbHigh);
     Intersection intersection = rayBBIntersection(ray, bb);
 
 	float step = 1.0 / float(sampleRate);
@@ -75,6 +78,9 @@ void main()
     float intensityScale = rayLength * step;
 
     float len = 0.0;
+	
+    vec3 boundaryLow = bbLow + vec3(0.5);
+	vec3 boundaryHigh = bbHigh + vec3(0.5);
 
     vec3 pos = intersection.p1;
     fragColor = vec4(0);
@@ -83,21 +89,24 @@ void main()
         i < MAX_PASSES && len < rayLength && fragColor.a < 1;
         ++i, len += step, pos += deltaDir)
     {
-    	float intensity = texture(volumeTex, pos / scale).x;
+	    if(all(greaterThan(pos, boundaryLow)) && all(lessThan(pos, boundaryHigh)))
+        {
+    	    float intensity = texture(volumeTex, pos).x;
 
-        vec4 tfSample = texture(tf, intensity);
+            vec4 tfSample = texture(tf, intensity);
 
-        float seg = texture(segTex, pos / scale).x;
+            float seg = texture(segTex, pos).x;
 
-        tfSample.a *= seg;
+            tfSample.a *= seg;
             
-        vec3 grad = texture(gradsTex, pos / scale).xyz;
+            vec3 grad = texture(gradsTex, pos).xyz;
 
-        vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;
-        float coef = max(0.0, dot(N, N));
+            vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;
+            float coef = max(0.0, dot(N, N));
 
-        intensity = max(0.0, 1 - pow((1 - intensity * tfSample.a), opacityCorrectionFactor)) * INTENSITY_CORRECTION_FACTOR;
-        fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, coef) * intensity;
+            intensity = max(0.0, 1 - pow((1 - intensity * tfSample.a), opacityCorrectionFactor)) * INTENSITY_CORRECTION_FACTOR;
+            fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, coef) * intensity;
+        }
     }
 
     fragColor = min(vec4(1), fragColor);

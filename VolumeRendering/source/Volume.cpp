@@ -121,7 +121,7 @@ void smoothLabel(uchar* labels, int radius, int x, int y, int z, int width, int 
     labels[z * width * height + y * width + x] = std::distance(freq, std::max_element(freq, freq + 7));
 }
 
-void Volume::applySmoothingLabels()
+void Volume::applySmoothingLabels(int smoothingRadius = 0)
 {
     if (smoothingSegmentation)
         return;
@@ -134,14 +134,14 @@ void Volume::applySmoothingLabels()
 	
     if (smoothingRadius > 0)
     {
-        std::thread smoothingThreadObj([](Volume* v) {
+        std::thread smoothingThreadObj([](Volume* v, int smoothingRadius) {
             v->smoothingSegmentation = true;
             for (int x = 0; x < v->sizeX; ++x)
                 for (int y = 0; y < v->sizeY; ++y)
                     for (int z = 0; z < v->sizeZ; ++z)
-                        smoothLabel(v->smoothedSegmentationData, v->smoothingRadius, x, y, z, v->sizeX, v->sizeY, v->sizeZ);
+                        smoothLabel(v->smoothedSegmentationData, smoothingRadius, x, y, z, v->sizeX, v->sizeY, v->sizeZ);
             v->smoothingSegmentation = false;
-        }, this);
+        }, this, smoothingRadius);
 
         smoothingThreadObj.detach();
     }
@@ -156,9 +156,9 @@ void Volume::computeSegmentation(PytorchModel ptModel)
         v->computingSegmentation = true;
 
         v->segmentationData = ptModel.forward(v->volumeData, v->sizeX, v->sizeY, v->sizeZ);
-
-        v->applySmoothingLabels();
 		
+        v->applySmoothingLabels();
+
         v->applySegmentation();
 
         v->computingSegmentation = false;

@@ -20,8 +20,6 @@ public:
 	int sizeX, sizeY, sizeZ;
 	glm::vec3 scale;
 
-	int smoothingRadius = 0;
-
 	short* volumeData;
 	uchar* segmentationData;
 	uchar* smoothedSegmentationData;
@@ -38,7 +36,7 @@ public:
 	void computeSegmentation(PytorchModel ptModel);
 	void loadTF(float data[]);
 	void applySegmentation();
-	void applySmoothingLabels();
+	void applySmoothingLabels(int smoothingRadius);
 private:
 	void init();
 };
