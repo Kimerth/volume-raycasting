@@ -14,7 +14,7 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "transfer_function_widget.h"
+#include "VectorColorPicker.h"
 
 #include "Loader.h"
 
@@ -28,22 +28,23 @@ class Interface
 public:
 	void render(float deltaTime);
 
-	float* getTFColormap();
+	inline float* getTFColormap() { return tfWidget.current_colormap; }
 
-	inline void segmentationAvailableFunc(const std::function<bool()> &func) { segmentationAvailable = func; };
-	inline void canComputeSegmentationFunc(const std::function<bool()> &func) { canComputeSegmentation = func; };
-	inline void canSmoothSegmentationFunc(const std::function<bool()> &func) { canSmoothSegmentation = func; };
+	inline void segmentationAvailableFunc(const std::function<bool()>& func) { segmentationAvailable = func; };
+	inline void canComputeSegmentationFunc(const std::function<bool()>& func) { canComputeSegmentation = func; };
+	inline void canSmoothSegmentationFunc(const std::function<bool()>& func) { canSmoothSegmentation = func; };
 
-	inline void computeSegmentationFunc(const std::function<void()> &func) { computeSegmentation = func; };
-	inline void smoothLabelsFunc(const std::function<void(int)> &func) { smoothLabels = func; };
-	inline void loadShadersFunc(const std::function<void()> &func) { loadShaders = func; };
+	inline void computeSegmentationFunc(const std::function<void()>& func) { computeSegmentation = func; };
+	inline void smoothLabelsFunc(const std::function<void(int)>& func) { smoothLabels = func; };
+	inline void loadShadersFunc(const std::function<void()>& func) { loadShaders = func; };
 
-	inline void loadVolumeFunc(const std::function<void(const char*)> &func) { loadVolume = func; };
-	inline void loadTFFunc(const std::function<void()> &func) { loadTF = func; };
-	inline void loadSegmentationFunc(const std::function<void(const char*)> &func) { loadSegmentation = func; };
-	inline void applySegmentationFunc(const std::function<void()> &func) { applySegmentation = func; };
+	inline void loadVolumeFunc(const std::function<void(const char*)>& func) { loadVolume = func; };
+	inline void loadTFFunc(const std::function<void()>& func) { loadTF = func; };
+	inline void loadSegmentationFunc(const std::function<void(const char*)>& func) { loadSegmentation = func; };
+	inline void applySegmentationFunc(const std::function<void()>& func) { applySegmentation = func; };
 
-	inline void getlabelsEnabledFunc(const std::function<bool*()> &func) { getLabelsEnabled = func; };
+	inline void getHistogramFunc(const std::function<float* (int nb_bins)>& func) { getHistogram = func; };
+	inline void getlabelsEnabledFunc(const std::function<bool* ()>& func) { getLabelsEnabled = func; };
 
 	void keyboard(unsigned char key, int x, int y);
 	void specialInput(int key, int x, int y);
@@ -67,7 +68,7 @@ public:
 
 private:
 	void displayUI();
-	
+
 	void sliceSlider(const char* label, float* min, float* max, float v_min, float v_max);
 
 	ImGuiIO* io;
@@ -85,15 +86,16 @@ private:
 	std::function<void(const char*)> loadSegmentation;
 	std::function<void()> applySegmentation;
 
-	std::function<bool*()> getLabelsEnabled;
+	std::function<float* (int nb_bins)> getHistogram;
+	std::function<bool* ()> getLabelsEnabled;
 
-	TransferFunctionWidget tfWidget;
+	VectorColorPicker tfWidget;
 
 	bool show_volume_window = true;
 	bool show_tf_window = true;
 
 	int smoothingRadius = 0;
-	
+
 	int oldX, oldY;
 };
 

@@ -39,40 +39,6 @@ void detachShaders()
 		glDetachShader(Shader::shader_programme, shaders[i]);
 }
 
-void Shader::load(const char* vertexPath, const char* fragmentPath, const char* computePath, Volume& vol)
-{
-	load(vertexPath, fragmentPath);
-
-	std::string stext = textFileRead(computePath);
-	const char* comp_shader = stext.c_str();
-
-	GLuint cs = glCreateShader(GL_COMPUTE_SHADER);
-	glShaderSource(cs, 1, &comp_shader, NULL);
-	glCompileShader(cs);
-	if (hasCompileErrors(cs))
-		exit(EXIT_FAILURE);
-
-	if (shader_programme == NULL)
-		shader_programme = glCreateProgram();
-
-	detachShaders();
-
-	glAttachShader(shader_programme, cs);
-	glLinkProgram(shader_programme);
-
-	if (hasLinkErrors())
-		exit(EXIT_FAILURE);
-
-	glUseProgram(shader_programme);
-
-	glBindImageTexture(0, vol.texID, 0, GL_TRUE, 0, GL_READ_ONLY, GL_R8UI);
-	glBindImageTexture(1, vol.gradsID, 0, GL_TRUE, 0, GL_WRITE_ONLY, GL_RGBA16F);
-
-	glDispatchCompute(ceil(vol.sizeX / 8), ceil(vol.sizeY / 8), ceil(vol.sizeZ / 8));
-
-	glMemoryBarrier(GL_ALL_BARRIER_BITS);
-}
-
 void Shader::use()
 {
 	if(shader_programme == NULL)

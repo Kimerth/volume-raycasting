@@ -22,7 +22,6 @@
 
 #define FRAG_SHADER_PATH "source/shaders/raycasting.frag"
 #define VERT_SHADER_PATH "source/shaders/raycasting.vert"
-#define COMP_SHADER_PATH "source/shaders/grads.comp"
 
 #define PYTORCH_SEGMENTATION_MODULE_PATH "segmentation_model.pt"
 
@@ -61,7 +60,7 @@ void display()
 
 void loadShaders()
 {
-	s.load(VERT_SHADER_PATH, FRAG_SHADER_PATH, COMP_SHADER_PATH, v);
+	s.load(VERT_SHADER_PATH, FRAG_SHADER_PATH);
 	s.use();
 
 	s.setVec2("screen", ui.windowWidth, ui.windowHeight);
@@ -159,6 +158,42 @@ void init()
 	ui.loadSegmentationFunc([&](const char* path) { v.loadSegmentation(path); });
 	ui.applySegmentationFunc([&]() { v.applySegmentation(); });
 	ui.getlabelsEnabledFunc([&]() { return v.labelsEnabled; });
+
+	ui.getHistogramFunc([&](int nb_bins) {
+		float* hist = new float[nb_bins];
+		memset(hist, 0, nb_bins * sizeof(float));
+
+		if (v.sizeX == 0 || v.sizeY == 0 || v.sizeZ == 0)
+			return hist;
+
+		size_t size = v.sizeX * v.sizeY * v.sizeZ;
+
+		short* data = new short[size];
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_3D, v.texID);
+
+		glGetTexImage(GL_TEXTURE_3D, 0, GL_LUMINANCE, GL_SHORT, data);
+
+		short maxI = *std::max_element(data, data + size);
+		short minI = *std::min_element(data, data + size);
+
+		int bin_size = (maxI - minI) / nb_bins;
+
+		for (int i = 0; i < size; ++i)
+			hist[(data[i] - minI) / bin_size]++;
+
+		for (int i = 0; i < nb_bins; ++i)
+			hist[i] = std::log(hist[i] + 1);
+		
+		float max = *std::max_element(hist, hist + nb_bins);
+		for (int i = 0; i < nb_bins; ++i)
+			hist[i] = hist[i] / max;
+
+		delete[] data;
+
+		return hist;
+	});
 }
 
 void reshape(int w, int h)

@@ -26,8 +26,8 @@ void Volume::load(const char* path)
         glGenTextures(1, &texID);
         glBindTexture(GL_TEXTURE_3D, texID);
 
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -43,28 +43,11 @@ void Volume::load(const char* path)
 
         glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_SHORT, volumeData);
 
-        // TODO move this
-        // ---
-        std::memset(hist, 0, USHRT_MAX * sizeof(float));
-        //for (int i = 0; i < sizeX; ++i)
-        //    for (int j = 0; j < sizeY; ++j)
-        //        for (int k = 0; k < sizeZ; ++k)
-        //            hist[volumeData[(k * sizeX * sizeY) + (j * sizeX) + i] - SHRT_MIN]++;
-
-        //hist[0] = 0;
-        //for (int i = 0; i < USHRT_MAX; ++i)
-        //    hist[i] = std::log(hist[i] + 1);
-        //float max = *std::max_element(hist, hist + USHRT_MAX);
-        //float min = *std::min_element(hist + 1, hist + USHRT_MAX);
-        //for (int i = 1; i < USHRT_MAX; ++i)
-        //    hist[i] = (hist[i] - min) / max;
-        // ---
-
         glGenTextures(1, &segID);
         glBindTexture(GL_TEXTURE_3D, segID);
 
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -79,13 +62,13 @@ void Volume::load(const char* path)
         glGenTextures(1, &gradsID);
         glBindTexture(GL_TEXTURE_3D, gradsID);
 
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB16F, sizeX, sizeY, sizeZ, 0, GL_RGB, GL_FLOAT, NULL);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, sizeX, sizeY, sizeZ, 0, GL_RGB, GL_FLOAT, NULL);
     }
 }
 

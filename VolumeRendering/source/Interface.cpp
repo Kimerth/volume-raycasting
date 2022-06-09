@@ -71,6 +71,10 @@ void Interface::displayUI()
 					float* buffer = readTF(savPath.c_str());
 					tfWidget.loadTF(buffer);
 				}
+
+				if (tfWidget.hist != nullptr)
+					delete[] tfWidget.hist;
+				tfWidget.hist = getHistogram(tfWidget.nb_bins);
 			}
 
 			ImGuiFileDialog::Instance()->Close();
@@ -173,7 +177,7 @@ void Interface::displayUI()
 
 				std::ofstream f(filePathName);
 
-				for (int i = 0; i < 256; ++i)
+				/*for (int i = 0; i < 256; ++i)
 				{
 					f << "re=" << tfWidget.current_colormap[4 * i] << std::endl
 						<< "ge=" << tfWidget.current_colormap[4 * i + 1] << std::endl
@@ -181,7 +185,7 @@ void Interface::displayUI()
 						<< "ra=" << tfWidget.current_colormap[4 * i + 3] << std::endl
 						<< "ga=" << tfWidget.current_colormap[4 * i + 3] << std::endl
 						<< "ba=" << tfWidget.current_colormap[4 * i + 3] << std::endl;
-				}
+				}*/
 
 				f.close();
 			}
@@ -216,18 +220,15 @@ void Interface::sliceSlider(const char* label, float* min, float* max, float v_m
 	if (hovered)
 		ImGui::SetHoveredID(id);
 
-	if (hovered)
+	if (hovered && g.IO.MouseClicked[0])
 	{
-		if(g.IO.MouseClicked[0])
-		{
-			ImGui::SetActiveID(id, window);
-			ImGui::FocusWindow(window);
-		}
-		else if(!g.IO.MouseDown[0])
-		{
-			ImGui::SetActiveID(0, NULL);
-			ImGui::FocusWindow(NULL);
-		}
+		ImGui::SetActiveID(id, window);
+		ImGui::FocusWindow(window);
+	}
+	else if (g.ActiveId == id)
+	{
+		ImGui::SetActiveID(0, NULL);
+		ImGui::FocusWindow(NULL);
 	}
 
 	ImGui::RenderFrame(frame_bb.Min, frame_bb.Max, ImGui::GetColorU32(ImGuiCol_FrameBg), style.FrameBorderSize > 0, style.FrameRounding);
@@ -273,14 +274,9 @@ void Interface::sliceSlider(const char* label, float* min, float* max, float v_m
 	ImGui::RenderText(ImVec2(frame_bb.Max.x + style.ItemInnerSpacing.x * 2, frame_bb.Min.y + style.FramePadding.y), label);
 }
 
-float* Interface::getTFColormap()
-{
-	return tfWidget.current_colormap;
-}
-
 void Interface::keyboard(unsigned char key, int x, int y)
 {
-	if (io->WantCaptureKeyboard)
+	if (io != nullptr && io->WantCaptureKeyboard)
 	{
 		ImGui_ImplGLUT_KeyboardFunc(key, x, y);
 		return;
@@ -365,7 +361,7 @@ void Interface::specialInput(int key, int x, int y)
 
 void Interface::mouse(int button, int state, int x, int y)
 {
-	if (io->WantCaptureMouse)
+	if (io != nullptr && io->WantCaptureMouse)
 	{
 		ImGui_ImplGLUT_MouseFunc(button, state, x, y);
 		return;
@@ -385,7 +381,7 @@ void Interface::mouse(int button, int state, int x, int y)
 
 void Interface::mouseWheel(int button, int dir, int x, int y)
 {
-	if (!io->WantCaptureMouse)
+	if (io != nullptr && !io->WantCaptureMouse)
 		zoom += dir > 0 ? 0.05f : -0.05f;
 
 	ImGui_ImplGLUT_MouseWheelFunc(button, dir, x, y);
@@ -393,7 +389,7 @@ void Interface::mouseWheel(int button, int dir, int x, int y)
 
 void Interface::motion(int x, int y)
 {
-	if (!io->WantCaptureMouse)
+	if (io != nullptr && !io->WantCaptureMouse)
 	{
 		angleY += ((float)x - oldX) / windowWidth;
 		angleX += ((float)y - oldY) / windowHeight;

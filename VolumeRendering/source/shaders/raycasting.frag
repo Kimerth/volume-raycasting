@@ -92,20 +92,16 @@ void main()
 	    if(all(greaterThan(pos, boundaryLow)) && all(lessThan(pos, boundaryHigh)))
         {
     	    float intensity = texture(volumeTex, pos).x;
-
-            vec4 tfSample = texture(tf, intensity);
-
             float seg = texture(segTex, pos).x;
-
+            vec4 tfSample = texture(tf, intensity);
             tfSample.a *= seg;
             
-            vec3 grad = texture(gradsTex, pos).xyz;
+//            vec3 grad = texture(gradsTex, pos).xyz;
+//            vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;
+//            float coef = max(0.0, dot(N, N));
 
-            vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;
-            float coef = max(0.0, dot(N, N));
-
-            intensity = max(0.0, 1 - pow((1 - intensity * tfSample.a), opacityCorrectionFactor)) * INTENSITY_CORRECTION_FACTOR;
-            fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, coef) * intensity;
+            intensity = max(0.0, 1 - pow((1 - intensity), opacityCorrectionFactor)) * INTENSITY_CORRECTION_FACTOR;
+            fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, 1) * intensity * tfSample.a;
         }
     }
 

@@ -11,7 +11,6 @@ public:
 	static GLuint shader_programme;
 
 	void load(const char* vertexPath, const char* fragmentPath);
-	void load(const char* vertexPath, const char* fragmentPath, const char* computePath, Volume& vol);
 
 	void use();
 

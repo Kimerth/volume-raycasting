@@ -26,8 +26,6 @@ public:
 
 	bool labelsEnabled[7];
 
-	float hist[USHRT_MAX];
-
 	bool computingSegmentation = false;
 	bool smoothingSegmentation = false;
 
