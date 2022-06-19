@@ -16,6 +16,7 @@
 
 #include "VectorColorPicker.h"
 
+#include "Volume.h"
 #include "Loader.h"
 
 
@@ -44,7 +45,7 @@ public:
 	inline void applySegmentationFunc(const std::function<void()>& func) { applySegmentation = func; };
 
 	inline void getHistogramFunc(const std::function<float* (int nb_bins)>& func) { getHistogram = func; };
-	inline void getlabelsEnabledFunc(const std::function<bool* ()>& func) { getLabelsEnabled = func; };
+	inline void getSegmentInfoFunc(const std::function<Volume::SegmentInfo* ()>& func) { getSegmentInfo = func; };
 
 	void keyboard(unsigned char key, int x, int y);
 	void specialInput(int key, int x, int y);
@@ -69,6 +70,7 @@ public:
 private:
 	void displayUI();
 
+	void segmentationPropertyEditor();
 	void sliceSlider(const char* label, float* min, float* max, float v_min, float v_max);
 
 	ImGuiIO* io;
@@ -87,7 +89,7 @@ private:
 	std::function<void()> applySegmentation;
 
 	std::function<float* (int nb_bins)> getHistogram;
-	std::function<bool* ()> getLabelsEnabled;
+	std::function<Volume::SegmentInfo* ()> getSegmentInfo;
 
 	VectorColorPicker tfWidget;
 

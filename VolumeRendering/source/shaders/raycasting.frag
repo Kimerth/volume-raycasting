@@ -8,6 +8,7 @@ uniform sampler1D tf;
 uniform sampler3D volumeTex;  
 uniform sampler3D gradsTex;
 uniform sampler3D segTex;
+uniform sampler1D segColors;
 
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
@@ -94,7 +95,14 @@ void main()
     	    float intensity = texture(volumeTex, pos).x;
             float seg = texture(segTex, pos).x;
             vec4 tfSample = texture(tf, intensity);
-            tfSample.a *= seg;
+
+			if (seg > 0)
+			{
+			    vec3 segColor = texture(segColors, seg).rgb;
+			    tfSample.rgb *= segColor;
+			}
+			else
+                tfSample.a *= int(seg > 0);
             
 //            vec3 grad = texture(gradsTex, pos).xyz;
 //            vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;

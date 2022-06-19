@@ -40,7 +40,7 @@ void Interface::displayUI()
 		//}
 
 		ImGui::EndMainMenuBar();
-	}		
+	}
 
 	if (show_volume_window)
 	{
@@ -118,11 +118,7 @@ void Interface::displayUI()
 
 			if (ImGui::CollapsingHeader("Semantic segmentation"))
 			{
-				std::string labels[] = { "background", "liver", "bladder", "lungs", "kidneys", "bone", "brain" };
-
-				for (int i = 0; i < 7; i++)
-					if (ImGui::Checkbox(labels[i].c_str(), &getLabelsEnabled()[i]))
-						applySegmentation();
+				segmentationPropertyEditor();
 			}
 		}
 
@@ -198,6 +194,59 @@ void Interface::displayUI()
 	}
 }
 
+void Interface::segmentationPropertyEditor()
+{
+	std::string labels[] = { "background", "liver", "bladder", "lungs", "kidneys", "bone", "brain" };
+
+	if (ImGui::BeginTable("seg_edit", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_Resizable))
+	{
+		for (int i = 0; i < 7; i++)
+		{
+			ImGui::PushID(i);
+
+			ImGui::TableNextRow();
+			ImGui::TableSetColumnIndex(0);
+			bool is_open = ImGui::TreeNode("Segment", labels[i].c_str());
+			ImGui::TableSetColumnIndex(1);
+			ImGui::Text("%d voxels", getSegmentInfo()[i].numVoxels);
+
+			if (is_open)
+			{
+				std::map<std::string, std::function<void()>> rows = {
+					{"Enabled", [&]() {
+						if (ImGui::Checkbox(labels[i].c_str(), &getSegmentInfo()[i].enabled))
+							applySegmentation();
+					}},
+					{"Color", [&]() {
+						ImGui::ColorEdit3("", getSegmentInfo()[i].color);
+					}}
+				};
+
+				for (const auto& [label, row] : rows)
+				{
+					ImGui::PushID(0);
+
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					ImGui::TreeNodeEx("Field", ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen, label.c_str());
+
+					ImGui::TableSetColumnIndex(1);
+					row();
+
+					ImGui::NextColumn();
+					ImGui::PopID();
+				}
+
+				ImGui::TreePop();
+			}
+
+			ImGui::PopID();
+		}
+
+		ImGui::EndTable();
+	}
+}
+
 void Interface::sliceSlider(const char* label, float* min, float* max, float v_min, float v_max)
 {
 	ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -225,7 +274,7 @@ void Interface::sliceSlider(const char* label, float* min, float* max, float v_m
 		ImGui::SetActiveID(id, window);
 		ImGui::FocusWindow(window);
 	}
-	else if (g.ActiveId == id)
+	else if (g.ActiveId == id && !g.IO.MouseDown[0])
 	{
 		ImGui::SetActiveID(0, NULL);
 		ImGui::FocusWindow(NULL);
@@ -242,7 +291,7 @@ void Interface::sliceSlider(const char* label, float* min, float* max, float v_m
 	{
 		float clicked_t = ImClamp((g.IO.MousePos.x - frame_bb.Min.x) / slider_usable_size, 0.0f, 1.0f);
 		float new_value = ImLerp(v_min, v_max, clicked_t);
-		
+
 		if (abs(*min - new_value) < abs(*max - new_value))
 			*min = new_value;
 		else
@@ -258,7 +307,7 @@ void Interface::sliceSlider(const char* label, float* min, float* max, float v_m
 	grab_pos = ImLerp(frame_bb.Min.x, frame_bb.Max.x, grab_t);
 	ImRect grab_bb2 = ImRect(ImVec2(grab_pos - grab_size * 0.5f, frame_bb.Min.y + grab_padding), ImVec2(grab_pos + grab_size * 0.5f, frame_bb.Max.y - grab_padding));
 	window->DrawList->AddRectFilled(grab_bb2.Min, grab_bb2.Max, ImGui::GetColorU32(g.ActiveId == id ? ImGuiCol_SliderGrabActive : ImGuiCol_SliderGrab), style.GrabRounding);
-	
+
 	ImRect connector(grab_bb1.Min, grab_bb2.Max);
 	connector.Min.x += grab_size;
 	connector.Min.y += grab_size * 0.3f;
@@ -281,7 +330,7 @@ void Interface::keyboard(unsigned char key, int x, int y)
 		ImGui_ImplGLUT_KeyboardFunc(key, x, y);
 		return;
 	}
-	
+
 	if (glutGetModifiers() == GLUT_ACTIVE_ALT)
 		switch (key)
 		{

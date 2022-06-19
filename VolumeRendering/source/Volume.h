@@ -12,11 +12,27 @@
 class Volume
 {
 public:
+	struct SegmentInfo
+	{
+		bool enabled;
+		float color[3];
+		size_t numVoxels;
+
+		SegmentInfo()
+		{
+			enabled = true;
+			for(int i = 0; i < 3; ++i)
+				color[i] = 1.0f;
+			numVoxels = 0;
+		}
+	};
+	
 	GLuint vao;
 	GLuint texID;
 	GLuint tfID;
 	GLuint gradsID;
 	GLuint segID;
+	GLuint segColorID;
 	int sizeX, sizeY, sizeZ;
 	glm::vec3 scale;
 
@@ -24,17 +40,21 @@ public:
 	uchar* segmentationData;
 	uchar* smoothedSegmentationData;
 
-	bool labelsEnabled[7];
+	SegmentInfo segments[7];
 
 	bool computingSegmentation = false;
 	bool smoothingSegmentation = false;
 
 	void load(const char* path);
+	void loadTF(float data[]);
+	
 	void loadSegmentation(const char* path);
 	void computeSegmentation(PytorchModel ptModel);
-	void loadTF(float data[]);
+	void calcumateSegmentationInfoNumVoxels();
+	
 	void applySegmentation();
-	void applySmoothingLabels(int smoothingRadius);
+	void applySegmentationColors();
+	void applySmoothingLabels(int smoothingRadius = 0);
 private:
 	void init();
 };

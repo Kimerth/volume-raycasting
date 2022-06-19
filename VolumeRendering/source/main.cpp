@@ -81,11 +81,16 @@ void loadShaders()
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_1D, v.tfID);
 	s.setInt("tf", 1);
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_1D, v.segColorID);
+	s.setInt("segColors", 4);
 }
 
 void render() 
 {
 	v.loadTF(ui.getTFColormap());
+	v.applySegmentationColors();
 
 	glClearColor(0, 0, 0, 1.0f);
 
@@ -157,7 +162,7 @@ void init()
 	});
 	ui.loadSegmentationFunc([&](const char* path) { v.loadSegmentation(path); });
 	ui.applySegmentationFunc([&]() { v.applySegmentation(); });
-	ui.getlabelsEnabledFunc([&]() { return v.labelsEnabled; });
+	ui.getSegmentInfoFunc([&]() { return v.segments; });
 
 	ui.getHistogramFunc([&](int nb_bins) {
 		float* hist = new float[nb_bins];

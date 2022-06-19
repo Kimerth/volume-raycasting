@@ -26,8 +26,8 @@ void Volume::load(const char* path)
         glGenTextures(1, &texID);
         glBindTexture(GL_TEXTURE_3D, texID);
 
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -46,14 +46,14 @@ void Volume::load(const char* path)
         glGenTextures(1, &segID);
         glBindTexture(GL_TEXTURE_3D, segID);
 
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
         GLubyte* buffer = new GLubyte[sizeX * sizeY * sizeZ];
-        memset(buffer, 255, sizeX * sizeY * sizeZ);
+        memset(buffer, UCHAR_MAX, sizeX * sizeY * sizeZ);
         glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
         delete[] buffer;
     }
@@ -62,8 +62,8 @@ void Volume::load(const char* path)
         glGenTextures(1, &gradsID);
         glBindTexture(GL_TEXTURE_3D, gradsID);
 
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -86,6 +86,10 @@ void Volume::loadSegmentation(const char* path)
     //        std::cout << buffer[i] << '\t' << +segmentationData[i] << std::endl;
 	
     delete[] buffer;
+	
+    applySmoothingLabels();
+	
+    calcumateSegmentationInfoNumVoxels();
 
     applySegmentation();
 }
@@ -104,7 +108,7 @@ void smoothLabel(uchar* labels, int radius, int x, int y, int z, int width, int 
     labels[z * width * height + y * width + x] = std::distance(freq, std::max_element(freq, freq + 7));
 }
 
-void Volume::applySmoothingLabels(int smoothingRadius = 0)
+void Volume::applySmoothingLabels(int smoothingRadius)
 {
     if (smoothingSegmentation)
         return;
@@ -142,6 +146,7 @@ void Volume::computeSegmentation(PytorchModel ptModel)
 		
         v->applySmoothingLabels();
 
+        v->calcumateSegmentationInfoNumVoxels();
         v->applySegmentation();
 
         v->computingSegmentation = false;
@@ -156,8 +161,8 @@ void Volume::applySegmentation()
     uchar* segmentationBuffer = new uchar[size];
 
     for (int i = 0; i < size; ++i)
-        if (smoothedSegmentationData[i] <= 7 && labelsEnabled[smoothedSegmentationData[i]])
-            segmentationBuffer[i] = 255;
+        if (smoothedSegmentationData[i] < 7 && segments[smoothedSegmentationData[i]].enabled)
+            segmentationBuffer[i] = UCHAR_MAX * ((float)(smoothedSegmentationData[i] + 1) / 8);
         else
             segmentationBuffer[i] = 0;
 
@@ -167,6 +172,29 @@ void Volume::applySegmentation()
     delete[] segmentationBuffer;
 }
 
+void Volume::applySegmentationColors()
+{
+    if (segColorID == NULL)
+    {
+        glGenTextures(1, &segColorID);
+        glBindTexture(GL_TEXTURE_1D, segColorID);
+		
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    }
+
+    float colors[3 * 8];
+    //for (int i = 0; i < 3; ++i)
+    //    colors[i] = 1.0f;
+
+    for (int i = 0; i < 7; ++i)
+		memcpy(colors + 3 * i, segments[i].color, 3 * sizeof(float));
+	
+    glBindTexture(GL_TEXTURE_1D, segColorID);
+    glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB32F, 7, 0, GL_RGB, GL_FLOAT, colors);
+}
+
 void Volume::loadTF(float data[])
 {
     if (tfID == NULL)
@@ -174,13 +202,14 @@ void Volume::loadTF(float data[])
         glGenTextures(1, &tfID);
         glBindTexture(GL_TEXTURE_1D, tfID);
 
-        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     }
 
+    glBindTexture(GL_TEXTURE_1D, tfID);
     glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA32F, 256, 0, GL_RGBA, GL_FLOAT, data);
 }
 
@@ -239,6 +268,11 @@ void Volume::init()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLfloat*)NULL);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLfloat*)NULL);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, veridxdat);
+}
 
-    memset(labelsEnabled, true, 7 * sizeof(bool));
+void Volume::calcumateSegmentationInfoNumVoxels()
+{
+	for(int i = 0; i < sizeX * sizeY * sizeZ; ++i)
+		if(segmentationData[i] < 7)
+			segments[segmentationData[i]].numVoxels++;
 }

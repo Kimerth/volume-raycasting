@@ -9,4 +9,3 @@ defaults:
     - data_callback
   - override hydra/job_logging: colorlog
   - override hydra/hydra_logging: colorlog
-  - override hydra/sweeper: nevergrad
