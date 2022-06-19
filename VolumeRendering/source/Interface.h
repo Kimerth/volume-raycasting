@@ -14,11 +14,11 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "SettingsEditor.h"
 #include "VectorColorPicker.h"
 
 #include "Volume.h"
 #include "Loader.h"
-
 
 #define ROTATION_SPEED 0.68 // approx 40degrees/sec
 #define TRANSLATION_SPEED 0.1
@@ -27,6 +27,7 @@
 class Interface
 {
 public:
+	void initialize();
 	void render(float deltaTime);
 
 	inline float* getTFColormap() { return tfWidget.current_colormap; }
@@ -91,10 +92,12 @@ private:
 	std::function<float* (int nb_bins)> getHistogram;
 	std::function<Volume::SegmentInfo* ()> getSegmentInfo;
 
+	SettingsEditor settingsEditor;
 	VectorColorPicker tfWidget;
 
 	bool show_volume_window = true;
 	bool show_tf_window = true;
+	bool show_app_style_editor = false;
 
 	int smoothingRadius = 0;
 

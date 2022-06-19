@@ -3,6 +3,7 @@
 #include <torch/script.h>
 #include <torch/torch.h>
 
+#include "SettingsEditor.h"
 
 typedef unsigned short ushort;
 typedef unsigned char uchar;
@@ -16,9 +17,6 @@ public:
 
 	torch::Device device = torch::kCPU;
 	torch::jit::script::Module model;
-
-	std::vector<int> inputSize;
-	std::vector<int> patchSize;
 
 	bool isLoaded = false;
 };

@@ -23,21 +23,6 @@ void PytorchModel::loadModel(const char* path)
         size_t dotPos = std::string(path).find_last_of(".");
 		std::string modelName = std::string(path).substr(0, dotPos);
 
-        std::ifstream f(modelName + ".hdr");
-	    
-        int width, height, depth;
-		f >> width >> height >> depth;
-        inputSize = { width, height, depth };
-
-        f >> width >> height >> depth;
-		patchSize = { width, height, depth };
-
-        for(int i = 0; i < 3; ++i)
-			if(inputSize[i] % patchSize[i] != 0)
-				throw std::runtime_error("Patch size must be a divisor of input size");
-
-		f.close();
-
         isLoaded = true;
     }
     catch (const c10::Error& e) {
@@ -48,6 +33,10 @@ void PytorchModel::loadModel(const char* path)
 
 uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 {
+    int inputSize[3], patchSize[3];
+    memcpy(inputSize, SettingsEditor::segmentationSettings.inputSize, 3 * sizeof(int));
+    memcpy(patchSize, SettingsEditor::segmentationSettings.patchSize, 3 * sizeof(int));
+
     std::cout << device.index() << std::endl;
 
     namespace F = torch::nn::functional;

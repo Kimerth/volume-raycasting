@@ -1,6 +1,17 @@
 #include "Interface.h"
 
 
+void Interface::initialize()
+{
+	io = &ImGui::GetIO();
+
+	io->ConfigWindowsMoveFromTitleBarOnly = true;
+	io->ConfigWindowsResizeFromEdges = true;
+	io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+	
+	settingsEditor.Initialize();
+}
+
 void Interface::render(float deltaTime)
 {
 	ImGui_ImplOpenGL3_NewFrame();
@@ -8,10 +19,6 @@ void Interface::render(float deltaTime)
 
 	displayUI();
 	ImGui::Render();
-	io = &ImGui::GetIO();
-
-	io->ConfigWindowsMoveFromTitleBarOnly = true;
-	io->ConfigWindowsResizeFromEdges = true;
 
 	if (autoRotate)
 		angleY += ROTATION_SPEED * deltaTime / 1000;
@@ -24,8 +31,8 @@ void Interface::displayUI()
 		if (ImGui::BeginMenu("Windows"))
 		{
 			ImGui::Checkbox("Show Volume Window", &show_volume_window);
-
 			ImGui::Checkbox("Show TF Window", &show_tf_window);
+			ImGui::Checkbox("Show Style Editor Window", &show_app_style_editor);
 
 			ImGui::EndMenu();
 		}
@@ -34,6 +41,7 @@ void Interface::displayUI()
 		{
 			loadShaders();
 		}
+
 		//if (ImGui::CollapsingHeader("Info"))
 		//{
 		//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
@@ -189,7 +197,13 @@ void Interface::displayUI()
 			ImGuiFileDialog::Instance()->Close();
 		}
 
+		ImGui::End();
+	}
 
+	if (show_app_style_editor)
+	{
+		ImGui::Begin("Dear ImGui Style Editor", &show_app_style_editor);
+		//ImGui::ShowStyleEditor();
 		ImGui::End();
 	}
 }

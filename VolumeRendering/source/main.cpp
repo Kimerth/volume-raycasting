@@ -146,6 +146,8 @@ void init()
 
 	ptModel.loadModel(PYTORCH_SEGMENTATION_MODULE_PATH);
 
+	ui.initialize();
+
 	ui.segmentationAvailableFunc([&] { return v.segmentationData != nullptr; });
 	ui.canComputeSegmentationFunc([&] { return ptModel.isLoaded && v.volumeData != nullptr && !v.computingSegmentation; });
 	ui.canSmoothSegmentationFunc([&] { return !v.computingSegmentation && !v.smoothingSegmentation && v.segmentationData != nullptr; });
@@ -225,16 +227,10 @@ int main(int argc, char** argv)
 	glutInitWindowSize(ui.windowWidth, ui.windowHeight);
 	glutCreateWindow("Volume Rendering");
 
-	init();
-
 	glutDisplayFunc(display);
 	glutIdleFunc(glutPostRedisplay);
 
 	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-
-	ImGui::StyleColorsDark();
 
 	ImGui_ImplGLUT_Init();
 	ImGui_ImplGLUT_InstallFuncs();
@@ -246,6 +242,8 @@ int main(int argc, char** argv)
 	glutMouseFunc(mouse_wrapper);
 	glutMouseWheelFunc(mouseWheel_wrapper);
 	glutMotionFunc(motion_wrapper);
+
+	init();
 
 	glutMainLoop();
 
