@@ -32,7 +32,7 @@ void Interface::displayUI()
 		{
 			ImGui::Checkbox("Show Volume Window", &show_volume_window);
 			ImGui::Checkbox("Show TF Window", &show_tf_window);
-			ImGui::Checkbox("Show Style Editor Window", &show_app_style_editor);
+			ImGui::Checkbox("Show Settings Editor Window", &show_settings_editor);
 
 			ImGui::EndMenu();
 		}
@@ -157,7 +157,7 @@ void Interface::displayUI()
 		ImGui::SliderFloat("Exposure", &exposure, 1, 10, "%.1f");
 		ImGui::SliderFloat("Gamma", &gamma, 0.75, 1.25, "%.2f");
 
-		tfWidget.draw_ui();
+		tfWidget.draw();
 
 		if (ImGuiFileDialog::Instance()->Display("ChoseTFOpen"))
 		{
@@ -200,12 +200,8 @@ void Interface::displayUI()
 		ImGui::End();
 	}
 
-	if (show_app_style_editor)
-	{
-		ImGui::Begin("Dear ImGui Style Editor", &show_app_style_editor);
-		//ImGui::ShowStyleEditor();
-		ImGui::End();
-	}
+	if (show_settings_editor)
+		settingsEditor.draw(&show_settings_editor);
 }
 
 void Interface::segmentationPropertyEditor()

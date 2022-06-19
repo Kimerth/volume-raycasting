@@ -29,7 +29,7 @@ public:
     int nb_bins = 32;
     float* hist;
 
-    void draw_ui();
+    void draw();
     void loadTF(float data[]);
     void reset();
 

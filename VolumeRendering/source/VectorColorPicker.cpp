@@ -24,7 +24,7 @@ inline float srgb_to_linear(const float x)
 	}
 }
 
-void VectorColorPicker::draw_ui()
+void VectorColorPicker::draw()
 {
 	const ImGuiIO& io = ImGui::GetIO();
 

@@ -97,7 +97,7 @@ private:
 
 	bool show_volume_window = true;
 	bool show_tf_window = true;
-	bool show_app_style_editor = false;
+	bool show_settings_editor = false;
 
 	int smoothingRadius = 0;
 
