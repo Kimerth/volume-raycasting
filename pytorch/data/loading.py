@@ -77,8 +77,6 @@ def get_data_loader(cfg: DictConfig, _) -> dict:
     # maintain consitent preprocessing across datasets
     transform = Compose(
         [
-            # ToCanonical(),
-            # ZNormalization(),
             RandomMotion(),
             RandomBiasField(),
             RandomNoise(),
@@ -109,16 +107,11 @@ def get_data_loader(cfg: DictConfig, _) -> dict:
 
     with open_dict(cfg):
         cfg["size"] = dataset[0].spatial_shape
-        # cfg['batch'] = samples_per_volume
 
-    # FIXME test_set number of samples is hardcoded
     val_size = max(1, int(0.2 * len(dataset)))
     test_set, train_set, val_set = split_dataset(
         dataset, [21, len(dataset) - val_size - 21, val_size]
     )
-
-    test_set.set_transform(ZNormalization())
-    val_set.set_transform(ZNormalization())
 
     train_loader = __create_data_loader(
         train_set,

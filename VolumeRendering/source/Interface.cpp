@@ -8,7 +8,7 @@ void Interface::initialize()
 	io->ConfigWindowsMoveFromTitleBarOnly = true;
 	io->ConfigWindowsResizeFromEdges = true;
 	io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-	
+
 	settingsEditor.Initialize();
 }
 
@@ -38,14 +38,7 @@ void Interface::displayUI()
 		}
 
 		if (ImGui::MenuItem("Reload Shaders"))
-		{
 			loadShaders();
-		}
-
-		//if (ImGui::CollapsingHeader("Info"))
-		//{
-		//	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-		//}
 
 		ImGui::EndMainMenuBar();
 	}
@@ -55,17 +48,34 @@ void Interface::displayUI()
 		ImGui::Begin("Volume", &show_volume_window, ImGuiWindowFlags_MenuBar);
 		if (ImGui::BeginMenuBar())
 		{
-			if (ImGui::MenuItem("Open"))
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeOpen", "Choose Volume", ".gz,.nii", ".");
-			if (ImGui::MenuItem("Load segmentation"))
-				ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationOpen", "Choose Segmentation", ".gz,.nii", ".");
+			if (ImGui::BeginMenu("File"))
+			{
+				if (ImGui::MenuItem("Load Volume"))
+					ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeLoad", "Choose Volume", nifti_filter, ".");
+
+				if (ImGui::BeginMenu("Segmentation"))
+				{
+					if (ImGui::MenuItem("Load segmentation", 0, false, canLoadSegmentation()))
+						ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationLoad", "Choose Segmentation", nifti_filter, ".");
+
+					if (ImGui::MenuItem("Save segmentation", 0, false, segmentationAvailable()))
+						ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationSave", "Choose Segmentation", nifti_filter, ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
+
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndMenu();
+			}
 			if (ImGui::MenuItem("Compute segmentation", NULL, false, canComputeSegmentation()))
+			{
 				computeSegmentation();
+				loadShaders();
+			}
 
 			ImGui::EndMenuBar();
 		}
 
-		if (ImGuiFileDialog::Instance()->Display("ChooseVolumeOpen"))
+		if (ImGuiFileDialog::Instance()->Display("ChooseVolumeLoad"))
 		{
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
@@ -75,10 +85,7 @@ void Interface::displayUI()
 
 				std::string savPath = (std::string(filePathName) + ".sav");
 				if (std::fstream{ savPath })
-				{
-					float* buffer = readTF(savPath.c_str());
-					tfWidget.loadTF(buffer);
-				}
+					tfWidget.save(savPath.c_str());
 
 				if (tfWidget.hist != nullptr)
 					delete[] tfWidget.hist;
@@ -88,21 +95,27 @@ void Interface::displayUI()
 			ImGuiFileDialog::Instance()->Close();
 		}
 
-		if (ImGuiFileDialog::Instance()->Display("ChooseSegmentationOpen"))
+		if (ImGuiFileDialog::Instance()->Display("ChooseSegmentationLoad"))
 		{
 			if (ImGuiFileDialog::Instance()->IsOk())
 			{
 				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
 				loadSegmentation(filePathName.c_str());
+				loadShaders();
 			}
 
 			ImGuiFileDialog::Instance()->Close();
 		}
 
-		if (ImGui::CollapsingHeader("Info"))
+		if (ImGuiFileDialog::Instance()->Display("ChooseSegmentationSave"))
 		{
-			// ImGui::Text("Size: %dx%dx%d 16 bit", v.sizeX, v.sizeY, v.sizeZ);
-			// ImGui::PlotHistogram("Histogram", v.hist, USHRT_MAX, 0, NULL, 0.0f, 1.0f, ImVec2(0, 100.0f), sizeof(float));
+			if (ImGuiFileDialog::Instance()->IsOk())
+			{
+				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+				saveSegmentation(filePathName.c_str());
+			}
+
+			ImGuiFileDialog::Instance()->Close();
 		}
 
 		if (ImGui::CollapsingHeader("Slicing"))
@@ -144,9 +157,9 @@ void Interface::displayUI()
 			if (ImGui::BeginMenu("File"))
 			{
 				if (ImGui::MenuItem("Open"))
-					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFOpen", "Choose TF", ".sav,.txt", ".");
+					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFOpen", "Choose TF", ".sav", ".");
 				if (ImGui::MenuItem("Save"))
-					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFSave", "Choose TF", ".sav,.txt", ".");
+					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFSave", "Choose TF", ".sav", ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
 				ImGui::EndMenu();
 			}
 
@@ -162,13 +175,7 @@ void Interface::displayUI()
 		if (ImGuiFileDialog::Instance()->Display("ChoseTFOpen"))
 		{
 			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				float* tf = readTF(filePathName.c_str());
-				tfWidget.loadTF(tf);
-
-				loadTF();
-			}
+				tfWidget.load(ImGuiFileDialog::Instance()->GetFilePathName().c_str());
 
 			ImGuiFileDialog::Instance()->Close();
 		}
@@ -176,23 +183,7 @@ void Interface::displayUI()
 		if (ImGuiFileDialog::Instance()->Display("ChoseTFSave"))
 		{
 			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-
-				std::ofstream f(filePathName);
-
-				/*for (int i = 0; i < 256; ++i)
-				{
-					f << "re=" << tfWidget.current_colormap[4 * i] << std::endl
-						<< "ge=" << tfWidget.current_colormap[4 * i + 1] << std::endl
-						<< "be=" << tfWidget.current_colormap[4 * i + 2] << std::endl
-						<< "ra=" << tfWidget.current_colormap[4 * i + 3] << std::endl
-						<< "ga=" << tfWidget.current_colormap[4 * i + 3] << std::endl
-						<< "ba=" << tfWidget.current_colormap[4 * i + 3] << std::endl;
-				}*/
-
-				f.close();
-			}
+				tfWidget.save(ImGuiFileDialog::Instance()->GetFilePathName().c_str());
 
 			ImGuiFileDialog::Instance()->Close();
 		}

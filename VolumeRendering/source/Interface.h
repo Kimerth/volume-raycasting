@@ -33,6 +33,7 @@ public:
 	inline float* getTFColormap() { return tfWidget.current_colormap; }
 
 	inline void segmentationAvailableFunc(const std::function<bool()>& func) { segmentationAvailable = func; };
+	inline void canLoadSegmentationFunc(const std::function<bool()>& func) { canLoadSegmentation = func; };
 	inline void canComputeSegmentationFunc(const std::function<bool()>& func) { canComputeSegmentation = func; };
 	inline void canSmoothSegmentationFunc(const std::function<bool()>& func) { canSmoothSegmentation = func; };
 
@@ -41,8 +42,8 @@ public:
 	inline void loadShadersFunc(const std::function<void()>& func) { loadShaders = func; };
 
 	inline void loadVolumeFunc(const std::function<void(const char*)>& func) { loadVolume = func; };
-	inline void loadTFFunc(const std::function<void()>& func) { loadTF = func; };
 	inline void loadSegmentationFunc(const std::function<void(const char*)>& func) { loadSegmentation = func; };
+	inline void saveSegmentationFunc(const std::function<void(const char*)>& func) { saveSegmentation = func; };
 	inline void applySegmentationFunc(const std::function<void()>& func) { applySegmentation = func; };
 
 	inline void getHistogramFunc(const std::function<float* (int nb_bins)>& func) { getHistogram = func; };
@@ -77,6 +78,7 @@ private:
 	ImGuiIO* io;
 
 	std::function<bool()> segmentationAvailable;
+	std::function<bool()> canLoadSegmentation;
 	std::function<bool()> canComputeSegmentation;
 	std::function<bool()> canSmoothSegmentation;
 
@@ -85,8 +87,8 @@ private:
 	std::function<void()> loadShaders;
 
 	std::function<void(const char*)> loadVolume;
-	std::function<void()> loadTF;
 	std::function<void(const char*)> loadSegmentation;
+	std::function<void(const char*)> saveSegmentation;
 	std::function<void()> applySegmentation;
 
 	std::function<float* (int nb_bins)> getHistogram;
@@ -98,6 +100,8 @@ private:
 	bool show_volume_window = true;
 	bool show_tf_window = true;
 	bool show_settings_editor = false;
+
+	const char* nifti_filter = "NIfTI (*.nii.gz *.nii){(.+\.nii\.gz),.nii}";
 
 	int smoothingRadius = 0;
 

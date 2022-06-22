@@ -17,10 +17,26 @@ void Volume::load(const char* path)
         glDeleteTextures(3, textures);
     }
 
-    if (volumeData)
-        delete[] volumeData;
-	if(segmentationData)
-        delete[] segmentationData;
+    {
+        if (volumeData)
+        {
+            delete[] volumeData;
+            volumeData = nullptr;
+        }
+        if (segmentationData)
+        {
+            delete[] segmentationData;
+            segmentationData = nullptr;
+        }
+        if (smoothedSegmentationData)
+        {
+            delete[] smoothedSegmentationData;
+            smoothedSegmentationData = nullptr;
+        }
+
+        for (int i = 0; i < 7; i++)
+            segments[i].reset();
+    }
 
     {
         glGenTextures(1, &texID);
@@ -74,17 +90,21 @@ void Volume::load(const char* path)
 
 void Volume::loadSegmentation(const char* path)
 {
-    short* buffer = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z, false);
+    glm::ivec3 seg_size;
+    glm::vec3 seg_scale;
+    short* buffer = readVolume(path, seg_size.x, seg_size.y, seg_size.z, seg_scale.x, seg_scale.y, seg_scale.z, false);
+
+    if (seg_size.x != sizeX || seg_size.y != sizeY || seg_size.z != sizeZ)
+    {
+        delete[] buffer;
+        return;
+    }
 
     size_t size = sizeX * sizeY * sizeZ;
     segmentationData = new uchar[size];
     for (int i = 0; i < size; ++i)
         segmentationData[i] = (uchar)((buffer[i] + SHRT_MAX) / ((2 * SHRT_MAX) / 5));
 
-    //for (int i = 0; i < size; ++i)
-    //    if (segmentationData[i] > 0)
-    //        std::cout << buffer[i] << '\t' << +segmentationData[i] << std::endl;
-	
     delete[] buffer;
 	
     applySmoothingLabels();
@@ -92,6 +112,19 @@ void Volume::loadSegmentation(const char* path)
     calcumateSegmentationInfoNumVoxels();
 
     applySegmentation();
+}
+
+void Volume::saveSegmentation(const char* path)
+{
+    size_t size = sizeX * sizeY * sizeZ;
+
+    short* buffer = new short[size];
+    for (int i = 0; i < size; ++i)
+        buffer[i] = smoothedSegmentationData[i] * ((2 * SHRT_MAX) / 5) - SHRT_MAX;
+
+    saveVolume(path, buffer, sizeX, sizeY, sizeZ);
+
+    delete[] buffer;
 }
 
 void smoothLabel(uchar* labels, int radius, int x, int y, int z, int width, int height, int depth)

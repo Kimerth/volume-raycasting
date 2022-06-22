@@ -10,13 +10,13 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
+#include "Loader.h"
 
 enum ColorSpace { LINEAR, SRGB };
 
 class VectorColorPicker {
 
     std::vector<float> color_points = { 1, 1, 1, 1, 1, 1, };
-
     std::vector<ImVec2> alpha_control_pts = { ImVec2(0.f, 1.f), ImVec2(1.f, 1.f)};
     size_t selected_point = -1;
     size_t last_point = -1;
@@ -26,12 +26,13 @@ class VectorColorPicker {
 
 public:
     float current_colormap[256 * 4];
-    int nb_bins = 32;
+    int nb_bins = 64;
     float* hist;
 
     void draw();
-    void loadTF(float data[]);
     void reset();
+    void load(const char* path);
+    void save(const char* path);
 
 private:
     void update_gpu_image();

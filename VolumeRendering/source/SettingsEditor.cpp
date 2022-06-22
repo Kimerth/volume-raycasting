@@ -53,7 +53,7 @@ void SettingsEditor::Initialize()
 
 	ImGuiSettingsHandler segmentation_ini_handler;
 	segmentation_ini_handler.TypeName = "Segmentation";
-	segmentation_ini_handler.TypeHash = ImHash("Segmentation", 0);
+	segmentation_ini_handler.TypeHash = ImHashStr("Segmentation");
 	segmentation_ini_handler.ReadOpenFn = Segmentation_ReadOpen;
 	segmentation_ini_handler.ReadLineFn = Segmentation_ReadLine;
 	segmentation_ini_handler.WriteAllFn = Segmentation_WriteAll;
@@ -61,7 +61,7 @@ void SettingsEditor::Initialize()
 
 	ImGuiSettingsHandler file_dialog_ini_handler;
 	file_dialog_ini_handler.TypeName = "FileDialog";
-	file_dialog_ini_handler.TypeHash = ImHash("FileDialog", 0);
+	file_dialog_ini_handler.TypeHash = ImHashStr("FileDialog");
 	file_dialog_ini_handler.ReadOpenFn = [](ImGuiContext*, ImGuiSettingsHandler*, const char* name) { return (void*)new std::string(); };
 	file_dialog_ini_handler.ReadLineFn = FileDialog_ReadLine;
 	file_dialog_ini_handler.WriteAllFn = FileDialog_WriteAll;

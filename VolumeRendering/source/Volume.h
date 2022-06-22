@@ -20,8 +20,13 @@ public:
 
 		SegmentInfo()
 		{
+			reset();
+		}
+
+		void reset()
+		{
 			enabled = true;
-			for(int i = 0; i < 3; ++i)
+			for (int i = 0; i < 3; ++i)
 				color[i] = 1.0f;
 			numVoxels = 0;
 		}
@@ -49,6 +54,7 @@ public:
 	void loadTF(float data[]);
 	
 	void loadSegmentation(const char* path);
+	void saveSegmentation(const char* path);
 	void computeSegmentation(PytorchModel ptModel);
 	void calcumateSegmentationInfoNumVoxels();
 	

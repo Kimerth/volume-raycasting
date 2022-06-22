@@ -205,31 +205,14 @@ void VectorColorPicker::draw()
 	update_gpu_image();
 }
 
-void VectorColorPicker::loadTF(float data[])
+void VectorColorPicker::load(const char* path)
 {
-	// TODO proper load and safe for TF
+	readTF(path, alpha_control_pts, color_points);
+}
 
-	//loadedFromFile = true;
-
-	//alpha_control_pts.clear();
-	//alpha_control_pts.push_back(ImVec2(0, data[3]));
-
-	//color_points.clear();
-	//color_points.insert(color_points.begin(), data, data + 3);
-
-	//int nb = 1;
-	//for (int i = 2; i < 255; ++i)
-	//{
-	//	alpha_control_pts.push_back(ImVec2(static_cast<float>(i) / 256, data[4 * i + 3]));
-	//	color_points.insert(color_points.end(), data + 4 * i, data + 4 * i + 3);
-	//}
-
-	//alpha_control_pts.push_back(ImVec2(1, data[256 * 4 - 1]));
-	//color_points.insert(color_points.begin(), data + 256 * 4 - 3, data + 256 * 4);
-
-	//std::copy(data, data + 4 * 256, current_colormap);
-
-	//update_gpu_image();
+void VectorColorPicker::save(const char* path)
+{
+	saveTF(path, alpha_control_pts, color_points);
 }
 
 void VectorColorPicker::reset()
@@ -237,7 +220,7 @@ void VectorColorPicker::reset()
 	last_point = -1;
 	selected_point = -1;
 	color_points = { 1, 1, 1, 1, 1, 1, };
-	alpha_control_pts = { ImVec2(0.f, 0), ImVec2(1.f, 3) };
+	alpha_control_pts = { ImVec2(0.f, 1.f), ImVec2(1.f, 1.f) };
 }
 
 void VectorColorPicker::update_gpu_image()

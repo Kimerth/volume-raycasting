@@ -149,7 +149,8 @@ void init()
 	ui.initialize();
 
 	ui.segmentationAvailableFunc([&] { return v.segmentationData != nullptr; });
-	ui.canComputeSegmentationFunc([&] { return ptModel.isLoaded && v.volumeData != nullptr && !v.computingSegmentation; });
+	ui.canLoadSegmentationFunc([&] { return v.volumeData != nullptr && !v.computingSegmentation && !v.smoothingSegmentation; });
+	ui.canComputeSegmentationFunc([&] { return ptModel.isLoaded && v.volumeData != nullptr && !v.computingSegmentation && !v.smoothingSegmentation; });
 	ui.canSmoothSegmentationFunc([&] { return !v.computingSegmentation && !v.smoothingSegmentation && v.segmentationData != nullptr; });
 
 	ui.computeSegmentationFunc([&] { v.computeSegmentation(ptModel); });
@@ -157,12 +158,8 @@ void init()
 	ui.loadShadersFunc([&] { loadShaders(); });
 
 	ui.loadVolumeFunc([&](const char* path) { v.load(path); });
-	ui.loadTFFunc([&]() {
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_1D, v.tfID);
-		s.setInt("tf", 1);
-	});
 	ui.loadSegmentationFunc([&](const char* path) { v.loadSegmentation(path); });
+	ui.saveSegmentationFunc([&](const char* path) { v.saveSegmentation(path); });
 	ui.applySegmentationFunc([&]() { v.applySegmentation(); });
 	ui.getSegmentInfoFunc([&]() { return v.segments; });
 

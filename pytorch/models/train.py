@@ -16,7 +16,6 @@ from .nets import get_net
 
 tqdm = import_tqdm()
 
-# device = torch.device('cpu')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -111,7 +110,6 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
         dependencies["data_loader_val"],
     )
 
-    # TODO get device from config
     log.info(f"Using device: {device}")
 
     torch.autograd.set_detect_anomaly(cfg["anomaly_detection"])  # type: ignore
@@ -120,7 +118,6 @@ def train(cfg: DictConfig, dependencies: dict) -> dict:
         model = dependencies["model"]
         dependencies["model"].train(True)
     else:
-        # model = UNet3D(cfg).to(device)
         model = get_net(cfg).to(device)
 
     try:

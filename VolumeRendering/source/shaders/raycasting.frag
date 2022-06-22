@@ -102,7 +102,7 @@ void main()
 			    tfSample.rgb *= segColor;
 			}
 			else
-                tfSample.a *= int(seg > 0);
+                tfSample.a = 0;
             
 //            vec3 grad = texture(gradsTex, pos).xyz;
 //            vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;
