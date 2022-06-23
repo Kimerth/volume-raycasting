@@ -92,7 +92,7 @@ void Volume::loadSegmentation(const char* path)
 {
     glm::ivec3 seg_size;
     glm::vec3 seg_scale;
-    short* buffer = readVolume(path, seg_size.x, seg_size.y, seg_size.z, seg_scale.x, seg_scale.y, seg_scale.z, false);
+    short* buffer = readVolume(path, seg_size.x, seg_size.y, seg_size.z, seg_scale.x, seg_scale.y, seg_scale.z);
 
     if (seg_size.x != sizeX || seg_size.y != sizeY || seg_size.z != sizeZ)
     {

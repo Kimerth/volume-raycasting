@@ -120,6 +120,7 @@ void render()
 	s.setMat4("viewMatrix", model);
 	s.setMat4("MVP", projection * model);
 
+	s.setFloat("intensityCorrection", ui.intensityCorrection);
 	s.setFloat("exposure", ui.exposure);
 	s.setFloat("gamma", ui.gamma);
 	s.setInt("sampleRate", ui.sampleRate);
@@ -185,10 +186,10 @@ void init()
 		int bin_size = (maxI - minI) / nb_bins;
 
 		for (int i = 0; i < size; ++i)
-			hist[(data[i] - minI) / bin_size]++;
+			hist[(data[i] - minI) / bin_size] += ((float)data[i] + minI) / maxI;
 
-		for (int i = 0; i < nb_bins; ++i)
-			hist[i] = std::log(hist[i] + 1);
+		//for (int i = 0; i < nb_bins; ++i)
+		//	hist[i] = std::log(hist[i] + 1);
 		
 		float max = *std::max_element(hist, hist + nb_bins);
 		for (int i = 0; i < nb_bins; ++i)
@@ -206,6 +207,8 @@ void reshape(int w, int h)
 
 	glViewport(0, 0, ui.windowWidth, ui.windowHeight);
 	projection = glm::perspective(1.57f, (GLfloat)ui.windowWidth / ui.windowHeight, 0.1f, 100.f);
+
+	s.setVec2("screen", ui.windowWidth, ui.windowHeight);
 
 	ImGui_ImplGLUT_ReshapeFunc(w, h);
 }

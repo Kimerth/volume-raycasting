@@ -16,7 +16,7 @@ enum class Format
 
 Format getFileFormat(const char* path);
 
-short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ, bool normalize = true);
+short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
 void saveVolume(const char* path, short* data, const int width, const int height, const int depth);
 
 void readTF(const char* path, std::vector<ImVec2>& alphaPoints, std::vector<float>& colors);

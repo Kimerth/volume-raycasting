@@ -30,7 +30,7 @@ float mean(short* data, int size)
 	return sum / size;
 }
 
-short* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ, bool normalize)
+short* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     nifti_image* nim = nifti_image_read(path, 1);
 
@@ -49,23 +49,6 @@ short* readNIFTI(const char* path, int& width, int& height, int& depth, float& s
         throw std::exception("Unexpected data type");
     }
 
-    // normalize
-    if (normalize)
-    {
-        size_t size = width * height * depth;
-        float avg = mean(data, size);
-	
-        for (size_t i = 0; i < size; i++)
-            data[i] -= avg;
-
-        short min = *std::min_element(data, data + size);
-        short max = *std::max_element(data, data + size);
-        float scale = (SHRT_MAX - SHRT_MIN) / (max - min);
-
-	    for (size_t i = 0; i < size; i++)
-		    data[i] = scale * data[i];
-    }
-
     return data;
 }
 
@@ -78,14 +61,14 @@ void writeNIFTI(const char* path, short* data, const int width, const int height
     nifti_image_write(nim);
 }
 
-short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ, bool normalize)
+short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
 {
     switch (getFileFormat(path))
     {
     case Format::NIFTI:
         try
         {
-            return readNIFTI(path, width, height, depth, scaleX, scaleY, scaleZ, normalize);
+            return readNIFTI(path, width, height, depth, scaleX, scaleY, scaleZ);
         }
         catch(std::exception e)
         {

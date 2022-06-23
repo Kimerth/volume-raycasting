@@ -148,7 +148,7 @@ void Interface::displayUI()
 
 	if (show_tf_window)
 	{
-		ImGui::Begin("Transfer Function", &show_volume_window, ImGuiWindowFlags_MenuBar);
+		ImGui::Begin("Visualization", &show_volume_window, ImGuiWindowFlags_MenuBar);
 		if (ImGui::BeginMenuBar())
 		{
 			if (ImGui::MenuItem("New"))
@@ -167,6 +167,7 @@ void Interface::displayUI()
 		}
 
 		ImGui::SliderInt("Sample Rate", &sampleRate, 50, 300);
+		ImGui::SliderFloat("Intenisty Correction", &intensityCorrection, 0.01, 1, "%.2f");
 		ImGui::SliderFloat("Exposure", &exposure, 1, 10, "%.1f");
 		ImGui::SliderFloat("Gamma", &gamma, 0.75, 1.25, "%.2f");
 

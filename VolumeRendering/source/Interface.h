@@ -59,7 +59,8 @@ public:
 	float translationX, translationY, translationZ;
 	float zoom = 0.5f;
 
-	float exposure = 10, gamma = 1;
+	float intensityCorrection = 0.1;
+	float exposure = 1, gamma = 1;
 	int sampleRate = 100;
 
 	bool autoRotate = false;

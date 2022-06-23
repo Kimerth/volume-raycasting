@@ -2,7 +2,6 @@
 
 #define MAX_PASSES 1000
 #define REFERENCE_SAMPLE_RATE 100
-#define INTENSITY_CORRECTION_FACTOR 0.01
 
 uniform sampler1D tf;
 uniform sampler3D volumeTex;  
@@ -20,6 +19,7 @@ out vec4 fragColor;
 uniform vec3 origin;
 
 uniform int sampleRate;
+uniform float intensityCorrection;
 uniform float exposure;
 uniform float gamma;
 
@@ -108,7 +108,7 @@ void main()
 //            vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;
 //            float coef = max(0.0, dot(N, N));
 
-            intensity = max(0.0, 1 - pow((1 - intensity), opacityCorrectionFactor)) * INTENSITY_CORRECTION_FACTOR;
+            intensity = max(0.0, 1 - pow((1 - intensity), opacityCorrectionFactor)) * intensityCorrection;
             fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, 1) * intensity * tfSample.a;
         }
     }
