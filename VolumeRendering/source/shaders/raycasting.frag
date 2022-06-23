@@ -14,6 +14,7 @@ uniform mat4 viewMatrix;
 
 uniform vec2 screen;
 uniform vec3 scale;
+uniform mat4 xtoi;
 out vec4 fragColor;
 
 uniform vec3 origin;
@@ -43,6 +44,11 @@ struct Intersection{
     vec3 p2;
 };
 
+vec3 transform(vec3 v, mat4 M)
+{
+    return (vec4(v, 0) * M).xyz;
+}
+
 Intersection rayBBIntersection(Ray r, AABB aabb)
 {
 	vec3 invR = 1.0 / r.dir;
@@ -55,8 +61,8 @@ Intersection rayBBIntersection(Ray r, AABB aabb)
     t = min(tmax.xx, tmax.yz);
     float t1 = min(t.x, t.y);
 
-    return Intersection((r.origin + r.dir * t0 + 0.5) / scale,
-                        (r.origin + r.dir * t1 + 0.5) / scale);
+    return Intersection(transform(r.origin + r.dir * t0, xtoi) / scale + 0.5,
+                        transform(r.origin + r.dir * t1, xtoi) / scale + 0.5);
 }
 
 void main()
@@ -65,7 +71,7 @@ void main()
     direction.xy = 2.0 * gl_FragCoord.xy / screen - 1.0;
     direction.x *= screen.x / screen.y;
     direction.z = - 1 / tan(3.14 / 4);
-    direction = (vec4(direction, 0) * viewMatrix).xyz;
+    direction = transform(direction, viewMatrix);
 
     Ray ray = Ray(origin + translation, direction);
     AABB bb = AABB(bbLow, bbHigh);

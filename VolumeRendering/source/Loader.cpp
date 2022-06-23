@@ -30,14 +30,16 @@ float mean(short* data, int size)
 	return sum / size;
 }
 
-short* readNIFTI(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+short* readNIFTI(const char* path, glm::ivec3& size, glm::mat4& xtoi)
 {
     nifti_image* nim = nifti_image_read(path, 1);
 
-    width = nim->nx, height = nim->ny, depth = nim->nz;
+    size.x = nim->nx, size.y = nim->ny, size.z = nim->nz;
 
-    scaleX = nim->dx; scaleY = nim->dy, scaleZ = nim->dz;
-
+    for (int i = 0; i < 4; ++i)
+        for (int j = 0; j < 4; ++j)
+            xtoi[i][j] = nim->qto_ijk.m[i][j];
+    
     short* data;
 
     switch (nim->datatype)
@@ -49,26 +51,30 @@ short* readNIFTI(const char* path, int& width, int& height, int& depth, float& s
         throw std::exception("Unexpected data type");
     }
 
+    delete nim;
+
     return data;
 }
 
-void writeNIFTI(const char* path, short* data, const int width, const int height, const int depth)
+void writeNIFTI(const char* path, short* data, const glm::ivec3 size)
 {
-    int64_t dims[] = { 3, width, height, depth };
+    int64_t dims[] = { 3, size.x, size.y, size.z};
     nifti_image* nim = nifti_make_new_nim(dims, NIFTI_TYPE_INT16, 0);
     nim->data = data;
     nim->fname = (char*)path;
     nifti_image_write(nim);
+
+    delete nim;
 }
 
-short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ)
+short* readVolume(const char* path, glm::ivec3& size, glm::mat4& itox)
 {
     switch (getFileFormat(path))
     {
     case Format::NIFTI:
         try
         {
-            return readNIFTI(path, width, height, depth, scaleX, scaleY, scaleZ);
+            return readNIFTI(path, size, itox);
         }
         catch(std::exception e)
         {
@@ -79,12 +85,12 @@ short* readVolume(const char* path, int& width, int& height, int& depth, float& 
     }
 }
 
-void saveVolume(const char* path, short* data, const int width, const int height, const int depth)
+void saveVolume(const char* path, short* data, const glm::ivec3 size)
 {
     switch (getFileFormat(path))
     {
     case Format::NIFTI:
-        return writeNIFTI(path, data, width, height, depth);
+        return writeNIFTI(path, data, size);
     default:
         break;
     }

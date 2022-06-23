@@ -64,7 +64,8 @@ void loadShaders()
 	s.use();
 
 	s.setVec2("screen", ui.windowWidth, ui.windowHeight);
-	s.setVec3("scale", v.scale);
+	s.setMat4("xtoi", v.xtoi);
+	s.setVec3("scale", v.sizeCorrection);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_3D, v.texID);
@@ -168,10 +169,10 @@ void init()
 		float* hist = new float[nb_bins];
 		memset(hist, 0, nb_bins * sizeof(float));
 
-		if (v.sizeX == 0 || v.sizeY == 0 || v.sizeZ == 0)
+		if (v.size.x == 0 || v.size.y == 0 || v.size.z == 0)
 			return hist;
 
-		size_t size = v.sizeX * v.sizeY * v.sizeZ;
+		size_t size = v.size.x * v.size.y * v.size.z;
 
 		short* data = new short[size];
 
@@ -182,6 +183,9 @@ void init()
 
 		short maxI = *std::max_element(data, data + size);
 		short minI = *std::min_element(data, data + size);
+
+		if (maxI == minI || maxI == 0)
+			return hist;
 
 		int bin_size = (maxI - minI) / nb_bins;
 

@@ -38,8 +38,9 @@ public:
 	GLuint gradsID;
 	GLuint segID;
 	GLuint segColorID;
-	int sizeX, sizeY, sizeZ;
-	glm::vec3 scale;
+	glm::ivec3 size;
+	glm::vec3 sizeCorrection;
+	glm::mat4 xtoi;
 
 	short* volumeData;
 	uchar* segmentationData;

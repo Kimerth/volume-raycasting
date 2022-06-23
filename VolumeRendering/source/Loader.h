@@ -16,8 +16,8 @@ enum class Format
 
 Format getFileFormat(const char* path);
 
-short* readVolume(const char* path, int& width, int& height, int& depth, float& scaleX, float& scaleY, float& scaleZ);
-void saveVolume(const char* path, short* data, const int width, const int height, const int depth);
+short* readVolume(const char* path, glm::ivec3 &size, glm::mat4 &xtoi);
+void saveVolume(const char* path, short* data, const glm::ivec3 size);
 
 void readTF(const char* path, std::vector<ImVec2>& alphaPoints, std::vector<float>& colors);
 void saveTF(const char* path, std::vector<ImVec2> alphaPoints, std::vector<float> colors);

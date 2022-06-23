@@ -50,14 +50,11 @@ void Volume::load(const char* path)
 
         glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-        volumeData = readVolume(path, sizeX, sizeY, sizeZ, scale.x, scale.y, scale.z);
-        int maxSize = std::max({sizeX, sizeY, sizeZ});
-        // TODO not right: look at affine transformation
-        // https://nipy.org/nibabel/coordinate_systems.html#the-affine-matrix-as-a-transformation-between-spaces
-        scale.x *= (float)sizeX / maxSize, scale.y *= (float)sizeY / maxSize, scale.z *= (float)sizeZ / maxSize;
-        scale /= std::max({ scale.x, scale.y, scale.z });
+        volumeData = readVolume(path, size, xtoi);
+        int maxSize = std::max({ size.x, size.y, size.z });
+        sizeCorrection.x = (float)size.x / maxSize, sizeCorrection.y = (float)size.y / maxSize, sizeCorrection.z = (float)size.z / maxSize;
 
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_SHORT, volumeData);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, size.x, size.y, size.z, 0, GL_LUMINANCE, GL_SHORT, volumeData);
 
         glGenTextures(1, &segID);
         glBindTexture(GL_TEXTURE_3D, segID);
@@ -68,9 +65,9 @@ void Volume::load(const char* path)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-        GLubyte* buffer = new GLubyte[sizeX * sizeY * sizeZ];
-        memset(buffer, UCHAR_MAX, sizeX * sizeY * sizeZ);
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
+        GLubyte* buffer = new GLubyte[size.x * size.y * size.z];
+        memset(buffer, UCHAR_MAX, size.x * size.y * size.z);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, size.x, size.y, size.z, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
         delete[] buffer;
     }
 
@@ -84,25 +81,25 @@ void Volume::load(const char* path)
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, sizeX, sizeY, sizeZ, 0, GL_RGB, GL_FLOAT, NULL);
+        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, size.x, size.y, size.z, 0, GL_RGB, GL_FLOAT, NULL);
     }
 }
 
 void Volume::loadSegmentation(const char* path)
 {
     glm::ivec3 seg_size;
-    glm::vec3 seg_scale;
-    short* buffer = readVolume(path, seg_size.x, seg_size.y, seg_size.z, seg_scale.x, seg_scale.y, seg_scale.z);
+    glm::mat4 seg_itox;
+    short* buffer = readVolume(path, seg_size, seg_itox);
 
-    if (seg_size.x != sizeX || seg_size.y != sizeY || seg_size.z != sizeZ)
+    if (seg_size.x != size.x || seg_size.y != size.y || seg_size.z != size.z)
     {
         delete[] buffer;
         return;
     }
 
-    size_t size = sizeX * sizeY * sizeZ;
-    segmentationData = new uchar[size];
-    for (int i = 0; i < size; ++i)
+    size_t sizeT = size.x * size.y * size.z;
+    segmentationData = new uchar[sizeT];
+    for (int i = 0; i < sizeT; ++i)
         segmentationData[i] = (uchar)((buffer[i] + SHRT_MAX) / ((2 * SHRT_MAX) / 5));
 
     delete[] buffer;
@@ -116,13 +113,13 @@ void Volume::loadSegmentation(const char* path)
 
 void Volume::saveSegmentation(const char* path)
 {
-    size_t size = sizeX * sizeY * sizeZ;
+    size_t sizeT = size.x * size.y * size.z;
 
-    short* buffer = new short[size];
-    for (int i = 0; i < size; ++i)
+    short* buffer = new short[sizeT];
+    for (int i = 0; i < sizeT; ++i)
         buffer[i] = smoothedSegmentationData[i] * ((2 * SHRT_MAX) / 5) - SHRT_MAX;
 
-    saveVolume(path, buffer, sizeX, sizeY, sizeZ);
+    saveVolume(path, buffer, size);
 
     delete[] buffer;
 }
@@ -149,17 +146,17 @@ void Volume::applySmoothingLabels(int smoothingRadius)
     if (smoothedSegmentationData != nullptr)
         delete[] smoothedSegmentationData;
 
-    smoothedSegmentationData = new uchar[sizeX * sizeY * sizeZ];
-	std::memcpy(smoothedSegmentationData, segmentationData, sizeX * sizeY * sizeZ);
+    smoothedSegmentationData = new uchar[size.x * size.y * size.z];
+	std::memcpy(smoothedSegmentationData, segmentationData, size.x * size.y * size.z);
 	
     if (smoothingRadius > 0)
     {
         std::thread smoothingThreadObj([](Volume* v, int smoothingRadius) {
             v->smoothingSegmentation = true;
-            for (int x = 0; x < v->sizeX; ++x)
-                for (int y = 0; y < v->sizeY; ++y)
-                    for (int z = 0; z < v->sizeZ; ++z)
-                        smoothLabel(v->smoothedSegmentationData, smoothingRadius, x, y, z, v->sizeX, v->sizeY, v->sizeZ);
+            for (int x = 0; x < v->size.x; ++x)
+                for (int y = 0; y < v->size.y; ++y)
+                    for (int z = 0; z < v->size.z; ++z)
+                        smoothLabel(v->smoothedSegmentationData, smoothingRadius, x, y, z, v->size.x, v->size.y, v->size.z);
             v->smoothingSegmentation = false;
         }, this, smoothingRadius);
 
@@ -175,7 +172,7 @@ void Volume::computeSegmentation(PytorchModel ptModel)
     std::thread segmentThreadObj([](Volume *v, PytorchModel ptModel) {
         v->computingSegmentation = true;
 
-        v->segmentationData = ptModel.forward(v->volumeData, v->sizeX, v->sizeY, v->sizeZ);
+        v->segmentationData = ptModel.forward(v->volumeData, v->size.x, v->size.y, v->size.z);
 		
         v->applySmoothingLabels();
 
@@ -190,17 +187,17 @@ void Volume::computeSegmentation(PytorchModel ptModel)
 
 void Volume::applySegmentation()
 {
-    size_t size = sizeX * sizeY * sizeZ;
-    uchar* segmentationBuffer = new uchar[size];
+    size_t sizeT = size.x * size.y * size.z;
+    uchar* segmentationBuffer = new uchar[sizeT];
 
-    for (int i = 0; i < size; ++i)
+    for (int i = 0; i < sizeT; ++i)
         if (smoothedSegmentationData[i] < 7 && segments[smoothedSegmentationData[i]].enabled)
             segmentationBuffer[i] = UCHAR_MAX * ((float)(smoothedSegmentationData[i] + 1) / 8);
         else
             segmentationBuffer[i] = 0;
 
     glBindTexture(GL_TEXTURE_3D, segID);
-    glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, sizeX, sizeY, sizeZ, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, segmentationBuffer);
+    glTexImage3D(GL_TEXTURE_3D, 0, GL_INTENSITY, size.x, size.y, size.z, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, segmentationBuffer);
 
     delete[] segmentationBuffer;
 }
@@ -305,7 +302,7 @@ void Volume::init()
 
 void Volume::calcumateSegmentationInfoNumVoxels()
 {
-	for(int i = 0; i < sizeX * sizeY * sizeZ; ++i)
+	for(int i = 0; i < size.x * size.y * size.z; ++i)
 		if(segmentationData[i] < 7)
 			segments[segmentationData[i]].numVoxels++;
 }
