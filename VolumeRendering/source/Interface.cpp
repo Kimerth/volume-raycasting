@@ -17,18 +17,51 @@ void Interface::render(float deltaTime)
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGLUT_NewFrame();
 
-	displayUI();
+	display();
 	ImGui::Render();
 
 	if (autoRotate)
 		angleY += ROTATION_SPEED * deltaTime / 1000;
 }
 
-void Interface::displayUI()
+void Interface::display()
+{
+	mainMenuBar();
+
+	if (show_volume_window)
+		volumeWindow();
+
+	if (show_tf_window)
+		tfWindow();
+
+	if (show_settings_editor)
+		settingsEditor.draw(&show_settings_editor);
+}
+
+void Interface::mainMenuBar()
 {
 	if (ImGui::BeginMainMenuBar())
 	{
-		if (ImGui::BeginMenu("Windows"))
+		if (ImGui::BeginMenu("File"))
+		{
+			if (ImGui::BeginMenu("Volume"))
+			{
+				volumeFileMenu();
+
+				ImGui::EndMenu();
+			}
+
+			if (ImGui::BeginMenu("Transfer Function"))
+			{
+				tfFileMenu();
+
+				ImGui::EndMenu();
+			}
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Window"))
 		{
 			ImGui::Checkbox("Show Volume Window", &show_volume_window);
 			ImGui::Checkbox("Show TF Window", &show_tf_window);
@@ -42,158 +75,179 @@ void Interface::displayUI()
 
 		ImGui::EndMainMenuBar();
 	}
+}
 
-	if (show_volume_window)
+void Interface::volumeWindow()
+{
+	ImGui::Begin("Volume", &show_volume_window, ImGuiWindowFlags_MenuBar);
+	if (ImGui::BeginMenuBar())
 	{
-		ImGui::Begin("Volume", &show_volume_window, ImGuiWindowFlags_MenuBar);
-		if (ImGui::BeginMenuBar())
+		if (ImGui::BeginMenu("File"))
 		{
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Load Volume"))
-					ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeLoad", "Choose Volume", nifti_filter, ".");
+			volumeFileMenu();
 
-				if (ImGui::BeginMenu("Segmentation"))
-				{
-					if (ImGui::MenuItem("Load segmentation", 0, false, canLoadSegmentation()))
-						ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationLoad", "Choose Segmentation", nifti_filter, ".");
-
-					if (ImGui::MenuItem("Save segmentation", 0, false, segmentationAvailable()))
-						ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationSave", "Choose Segmentation", nifti_filter, ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
-
-					ImGui::EndMenu();
-				}
-
-				ImGui::EndMenu();
-			}
-			if (ImGui::MenuItem("Compute segmentation", NULL, false, canComputeSegmentation()))
-			{
-				computeSegmentation();
-				loadShaders();
-			}
-
-			ImGui::EndMenuBar();
+			ImGui::EndMenu();
+		}
+		if (ImGui::MenuItem("Compute segmentation", NULL, false, canComputeSegmentation()))
+		{
+			computeSegmentation();
+			loadShaders();
 		}
 
-		if (ImGuiFileDialog::Instance()->Display("ChooseVolumeLoad"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				loadVolume(filePathName.c_str());
-				loadShaders();
-
-				std::string savPath = (std::string(filePathName) + ".sav");
-				if (std::fstream{ savPath })
-					tfWidget.save(savPath.c_str());
-
-				if (tfWidget.hist != nullptr)
-					delete[] tfWidget.hist;
-				tfWidget.hist = getHistogram(tfWidget.nb_bins);
-			}
-
-			ImGuiFileDialog::Instance()->Close();
-		}
-
-		if (ImGuiFileDialog::Instance()->Display("ChooseSegmentationLoad"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				loadSegmentation(filePathName.c_str());
-				loadShaders();
-			}
-
-			ImGuiFileDialog::Instance()->Close();
-		}
-
-		if (ImGuiFileDialog::Instance()->Display("ChooseSegmentationSave"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-			{
-				std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-				saveSegmentation(filePathName.c_str());
-			}
-
-			ImGuiFileDialog::Instance()->Close();
-		}
-
-		if (ImGui::CollapsingHeader("Slicing"))
-		{
-			sliceSlider("x", &bbLow.x, &bbHigh.x, -0.5, 0.5);
-			sliceSlider("y", &bbLow.y, &bbHigh.y, -0.5, 0.5);
-			sliceSlider("z", &bbLow.z, &bbHigh.z, -0.5, 0.5);
-		}
-
-		if (segmentationAvailable())
-		{
-			if (!canSmoothSegmentation())
-				ImGui::BeginDisabled();
-
-			ImGui::SliderInt("Label smoothing radius", &smoothingRadius, 0, 3);
-			if (ImGui::Button("Apply label smoothing"))
-				smoothLabels(smoothingRadius);
-
-			if (!canSmoothSegmentation())
-				ImGui::EndDisabled();
-
-			if (ImGui::CollapsingHeader("Semantic segmentation"))
-			{
-				segmentationPropertyEditor();
-			}
-		}
-
-		ImGui::End();
+		ImGui::EndMenuBar();
 	}
 
-	if (show_tf_window)
+	if (ImGuiFileDialog::Instance()->Display("ChooseVolumeLoad"))
 	{
-		ImGui::Begin("Visualization", &show_volume_window, ImGuiWindowFlags_MenuBar);
-		if (ImGui::BeginMenuBar())
+		if (ImGuiFileDialog::Instance()->IsOk())
 		{
-			if (ImGui::MenuItem("New"))
-				tfWidget.reset();
+			std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+			loadVolume(filePathName.c_str());
+			loadShaders();
 
-			if (ImGui::BeginMenu("File"))
-			{
-				if (ImGui::MenuItem("Open"))
-					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFOpen", "Choose TF", ".sav", ".");
-				if (ImGui::MenuItem("Save"))
-					ImGuiFileDialog::Instance()->OpenDialog("ChoseTFSave", "Choose TF", ".sav", ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
-				ImGui::EndMenu();
-			}
+			std::string savPath = (std::string(filePathName) + ".sav");
+			if (std::fstream{ savPath })
+				tfWidget.save(savPath.c_str());
 
-			ImGui::EndMenuBar();
+			if (tfWidget.hist != nullptr)
+				delete[] tfWidget.hist;
+			tfWidget.hist = getHistogram(tfWidget.nbBins);
 		}
 
-		ImGui::SliderInt("Sample Rate", &sampleRate, 50, 300);
-		ImGui::SliderFloat("Intenisty Correction", &intensityCorrection, 0.01, 1, "%.2f");
-		ImGui::SliderFloat("Exposure", &exposure, 1, 10, "%.1f");
-		ImGui::SliderFloat("Gamma", &gamma, 0.75, 1.25, "%.2f");
-
-		tfWidget.draw();
-
-		if (ImGuiFileDialog::Instance()->Display("ChoseTFOpen"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-				tfWidget.load(ImGuiFileDialog::Instance()->GetFilePathName().c_str());
-
-			ImGuiFileDialog::Instance()->Close();
-		}
-
-		if (ImGuiFileDialog::Instance()->Display("ChoseTFSave"))
-		{
-			if (ImGuiFileDialog::Instance()->IsOk())
-				tfWidget.save(ImGuiFileDialog::Instance()->GetFilePathName().c_str());
-
-			ImGuiFileDialog::Instance()->Close();
-		}
-
-		ImGui::End();
+		ImGuiFileDialog::Instance()->Close();
 	}
 
-	if (show_settings_editor)
-		settingsEditor.draw(&show_settings_editor);
+	if (ImGuiFileDialog::Instance()->Display("ChooseSegmentationLoad"))
+	{
+		if (ImGuiFileDialog::Instance()->IsOk())
+		{
+			std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+			loadSegmentation(filePathName.c_str());
+			loadShaders();
+		}
+
+		ImGuiFileDialog::Instance()->Close();
+	}
+
+	if (ImGuiFileDialog::Instance()->Display("ChooseSegmentationSave"))
+	{
+		if (ImGuiFileDialog::Instance()->IsOk())
+		{
+			std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+			saveSegmentation(filePathName.c_str());
+		}
+
+		ImGuiFileDialog::Instance()->Close();
+	}
+
+	if (ImGui::CollapsingHeader("Rotation"))
+	{
+		ImGui::SliderAngle("Rotation x", &angleX);
+		ImGui::SliderAngle("Rotation y", &angleY);
+	}
+
+	if (ImGui::CollapsingHeader("Translation"))
+	{
+		ImGui::SliderFloat("Translation x", &translationX, -0.5, 0.5, "%.2f");
+		ImGui::SliderFloat("Translation y", &translationY, -0.5, 0.5, "%.2f");
+		ImGui::SliderFloat("Translation z", &translationZ, -0.5, 0.5, "%.2f");
+	}
+
+	if (ImGui::CollapsingHeader("Slicing"))
+	{
+		sliceSlider("Slicing x", &bbLow.x, &bbHigh.x, -0.5, 0.5);
+		sliceSlider("Slicing y", &bbLow.y, &bbHigh.y, -0.5, 0.5);
+		sliceSlider("Slicing z", &bbLow.z, &bbHigh.z, -0.5, 0.5);
+	}
+
+	if (segmentationAvailable())
+	{
+		if (!canSmoothSegmentation())
+			ImGui::BeginDisabled();
+
+		ImGui::SliderInt("Label smoothing radius", &smoothingRadius, 0, 3);
+		if (ImGui::Button("Apply label smoothing"))
+			smoothLabels(smoothingRadius);
+
+		if (!canSmoothSegmentation())
+			ImGui::EndDisabled();
+
+		if (ImGui::CollapsingHeader("Semantic segmentation"))
+		{
+			segmentationPropertyEditor();
+		}
+	}
+
+	ImGui::End();
+}
+
+void Interface::tfWindow()
+{
+	ImGui::Begin("Visualization", &show_volume_window, ImGuiWindowFlags_MenuBar);
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::MenuItem("New"))
+			tfWidget.reset();
+
+		if (ImGui::BeginMenu("File"))
+		{
+			tfFileMenu();
+
+			ImGui::EndMenu();
+		}
+
+		ImGui::EndMenuBar();
+	}
+
+	ImGui::SliderInt("Sample Rate", &sampleRate, 50, 300);
+	ImGui::SliderFloat("Intenisty Correction", &intensityCorrection, 0.01, 1, "%.2f");
+	ImGui::SliderFloat("Exposure", &exposure, 1, 10, "%.1f");
+	ImGui::SliderFloat("Gamma", &gamma, 0.75, 1.25, "%.2f");
+
+	tfWidget.draw();
+
+	if (ImGuiFileDialog::Instance()->Display("ChoseTFOpen"))
+	{
+		if (ImGuiFileDialog::Instance()->IsOk())
+			tfWidget.load(ImGuiFileDialog::Instance()->GetFilePathName().c_str());
+
+		ImGuiFileDialog::Instance()->Close();
+	}
+
+	if (ImGuiFileDialog::Instance()->Display("ChoseTFSave"))
+	{
+		if (ImGuiFileDialog::Instance()->IsOk())
+			tfWidget.save(ImGuiFileDialog::Instance()->GetFilePathName().c_str());
+
+		ImGuiFileDialog::Instance()->Close();
+	}
+
+	ImGui::End();
+}
+
+void Interface::volumeFileMenu()
+{
+	if (ImGui::MenuItem("Load"))
+		ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeLoad", "Choose Volume", nifti_filter, ".");
+
+	if (ImGui::BeginMenu("Segmentation"))
+	{
+		if (ImGui::MenuItem("Load", 0, false, canLoadSegmentation()))
+			ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationLoad", "Choose Segmentation", nifti_filter, ".");
+
+		if (ImGui::MenuItem("Save", 0, false, segmentationAvailable()))
+			ImGuiFileDialog::Instance()->OpenDialog("ChooseSegmentationSave", "Choose Segmentation", nifti_filter, ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
+
+		ImGui::EndMenu();
+	}
+}
+
+void Interface::tfFileMenu()
+{
+	if (ImGui::MenuItem("Load"))
+		ImGuiFileDialog::Instance()->OpenDialog("ChoseTFOpen", "Choose TF", ".sav", ".");
+	if (ImGui::MenuItem("Save"))
+		ImGuiFileDialog::Instance()->OpenDialog("ChoseTFSave", "Choose TF", ".sav", ".", 1, nullptr, ImGuiFileDialogFlags_ConfirmOverwrite);
 }
 
 void Interface::segmentationPropertyEditor()

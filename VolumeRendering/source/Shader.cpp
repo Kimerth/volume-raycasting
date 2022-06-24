@@ -1,12 +1,23 @@
 #include "Shader.h"
 #include <glm/gtc/type_ptr.hpp>
-#include "utils.h"
 #include <iostream>
 #include <vector>
 
 
 GLuint Shader::shader_programme = NULL;
 
+
+std::string textFileRead(const char* fn)
+{
+	std::ifstream ifile(fn);
+	std::string filetext;
+	while (ifile.good()) {
+		std::string line;
+		std::getline(ifile, line);
+		filetext.append(line + "\n");
+	}
+	return filetext;
+}
 
 void Shader::load(const char* vertexPath, const char* fragmentPath)
 {

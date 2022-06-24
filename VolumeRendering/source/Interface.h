@@ -30,7 +30,7 @@ public:
 	void initialize();
 	void render(float deltaTime);
 
-	inline float* getTFColormap() { return tfWidget.current_colormap; }
+	inline float* getTFColormap() { return tfWidget.colormap; }
 
 	inline void segmentationAvailableFunc(const std::function<bool()>& func) { segmentationAvailable = func; };
 	inline void canLoadSegmentationFunc(const std::function<bool()>& func) { canLoadSegmentation = func; };
@@ -46,7 +46,7 @@ public:
 	inline void saveSegmentationFunc(const std::function<void(const char*)>& func) { saveSegmentation = func; };
 	inline void applySegmentationFunc(const std::function<void()>& func) { applySegmentation = func; };
 
-	inline void getHistogramFunc(const std::function<float* (int nb_bins)>& func) { getHistogram = func; };
+	inline void getHistogramFunc(const std::function<float* (int nbBins)>& func) { getHistogram = func; };
 	inline void getSegmentInfoFunc(const std::function<Volume::SegmentInfo* ()>& func) { getSegmentInfo = func; };
 
 	void keyboard(unsigned char key, int x, int y);
@@ -71,7 +71,14 @@ public:
 	int windowWidth = 1240, windowHeight = 800;
 
 private:
-	void displayUI();
+	void display();
+
+	void mainMenuBar();
+	void volumeWindow();
+	void tfWindow();
+
+	void volumeFileMenu();
+	void tfFileMenu();
 
 	void segmentationPropertyEditor();
 	void sliceSlider(const char* label, float* min, float* max, float v_min, float v_max);
@@ -92,7 +99,7 @@ private:
 	std::function<void(const char*)> saveSegmentation;
 	std::function<void()> applySegmentation;
 
-	std::function<float* (int nb_bins)> getHistogram;
+	std::function<float* (int nbBins)> getHistogram;
 	std::function<Volume::SegmentInfo* ()> getSegmentInfo;
 
 	SettingsEditor settingsEditor;

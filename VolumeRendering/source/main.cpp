@@ -97,10 +97,10 @@ void render()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	model = glm::translate(glm::vec3(-ui.translationX, ui.translationY, ui.translationZ));
-	model *= glm::rotate(ui.angleX, glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(ui.angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	model *= glm::rotate(ui.angleY, glm::vec3(0.0f, 1.0f, 0.0f));
 	model *= glm::translate(glm::vec3(-0.5f, -0.5f, -0.5f));
+	model *= glm::translate(glm::vec3(-ui.translationX, ui.translationY, ui.translationZ));
 
 	s.setVec3("translation", glm::vec3(ui.translationX, ui.translationY, ui.translationZ));
 	
@@ -165,9 +165,9 @@ void init()
 	ui.applySegmentationFunc([&]() { v.applySegmentation(); });
 	ui.getSegmentInfoFunc([&]() { return v.segments; });
 
-	ui.getHistogramFunc([&](int nb_bins) {
-		float* hist = new float[nb_bins];
-		memset(hist, 0, nb_bins * sizeof(float));
+	ui.getHistogramFunc([&](int nbBins) {
+		float* hist = new float[nbBins];
+		memset(hist, 0, nbBins * sizeof(float));
 
 		if (v.size.x == 0 || v.size.y == 0 || v.size.z == 0)
 			return hist;
@@ -187,16 +187,16 @@ void init()
 		if (maxI == minI || maxI == 0)
 			return hist;
 
-		int bin_size = (maxI - minI) / nb_bins;
+		int bin_size = (maxI - minI) / nbBins;
 
 		for (int i = 0; i < size; ++i)
 			hist[(data[i] - minI) / bin_size] += ((float)data[i] + minI) / maxI;
 
-		//for (int i = 0; i < nb_bins; ++i)
+		//for (int i = 0; i < nbBins; ++i)
 		//	hist[i] = std::log(hist[i] + 1);
 		
-		float max = *std::max_element(hist, hist + nb_bins);
-		for (int i = 0; i < nb_bins; ++i)
+		float max = *std::max_element(hist, hist + nbBins);
+		for (int i = 0; i < nbBins; ++i)
 			hist[i] = hist[i] / max;
 
 		delete[] data;
