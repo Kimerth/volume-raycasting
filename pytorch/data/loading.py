@@ -1,7 +1,6 @@
 import logging
 import os
 import random
-from pprint import pformat
 from typing import List
 from torchio import SubjectsDataset
 
@@ -12,7 +11,6 @@ from torch.utils.data import DataLoader
 from torchio.data.queue import Queue
 from torchio.data.sampler import GridSampler
 from torchio.transforms import (
-    ZNormalization,
     RandomMotion,
     RandomBiasField,
     RandomNoise,
@@ -50,16 +48,6 @@ def __create_data_loader(
 
 
 def split_dataset(dataset: Dataset, lengths: List[int]) -> List[Dataset]:
-    """
-    Split a dataset into multiple datasets.
-
-    Args:
-        dataset: The dataset to split.
-        lengths: The lengths of the splits.
-
-    Returns:
-        A list of datasets.
-    """
     div_points = [0] + np.cumsum(lengths).tolist()
 
     datasets = []
@@ -74,7 +62,6 @@ def split_dataset(dataset: Dataset, lengths: List[int]) -> List[Dataset]:
 def get_data_loader(cfg: DictConfig, _) -> dict:
     log = logging.getLogger(__name__)
 
-    # maintain consitent preprocessing across datasets
     transform = Compose(
         [
             RandomMotion(),

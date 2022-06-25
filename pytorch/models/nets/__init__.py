@@ -1,8 +1,9 @@
+import torch
 from monai.networks.nets.unet import UNet
 from monai.networks.nets.unetr import UNETR
-from .unet3d import UNet3D
 from omegaconf import DictConfig
-import torch
+
+from .unet3d import UNet3D
 
 
 def get_net(cfg: DictConfig) -> torch.nn.Module:

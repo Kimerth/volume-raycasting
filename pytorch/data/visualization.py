@@ -9,11 +9,8 @@ from tensorboardX import SummaryWriter
 from torchio import GridAggregator, LabelMap, ScalarImage
 from torchio.data.image import LabelMap
 from torchio.data.subject import Subject
-from util import batches_from_sampler, random_subject_from_loader
 from torchio.visualization import import_mpl_plt
-
-from util import metric, metrics_map
-from monai.metrics.cumulative_average import CumulativeAverage
+from util import batches_from_sampler, random_subject_from_loader
 
 
 def squeeze_segmentation(seg):
@@ -34,8 +31,6 @@ def create_gifs(path_in: str, path_out: str):
     imageio.mimsave(path_out, images)
 
 
-# TODO performance considerations
-# matplotlib not thread safe: can't use multitasking
 def plot_subject(subject: Subject, save_plot_path: str):
     if save_plot_path:
         os.makedirs(save_plot_path, exist_ok=True)
@@ -119,9 +114,6 @@ def plot_aggregated_image(
         ),
         f"{save_path}/{epoch}-{subject_id}",
     )
-
-    # FIXME
-    # writer.add_video('training/visualization', out_gif, global_step=epoch)
 
 
 def train_visualizations(

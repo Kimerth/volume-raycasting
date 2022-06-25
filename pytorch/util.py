@@ -1,9 +1,10 @@
-import warnings
-from monai.metrics.confusion_matrix import get_confusion_matrix
-import torch
-from torchio import GridSampler
 import random
+import warnings
+
+import torch
+from monai.metrics.confusion_matrix import get_confusion_matrix
 from torch.utils.data import DataLoader
+from torchio import GridSampler
 
 
 def import_tqdm():
@@ -20,7 +21,7 @@ def import_tqdm():
 
 metrics_map = ["acc", "fpr", "fnr", "precision", "recall", "f1"]
 
-# TODO return dict
+
 def metric(y, y_pred):
     acc = torch.sum(y == y_pred) / torch.numel(y)
 
@@ -34,7 +35,6 @@ def metric(y, y_pred):
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        # FIXME (RuntimeWarning: invalid value encountered in double_scalars)
         f1 = 2 * (precision * recall) / (precision + recall + eps)
 
     fpr = fp / (fp + tn + eps)
