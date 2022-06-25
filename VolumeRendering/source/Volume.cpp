@@ -13,8 +13,8 @@ void Volume::load(const char* path)
         init();
     else
     {
-        GLuint textures[] = { texID, gradsID, segID };
-        glDeleteTextures(3, textures);
+        GLuint textures[] = { texID, segID };
+        glDeleteTextures(2, textures);
     }
 
     {
@@ -42,8 +42,8 @@ void Volume::load(const char* path)
         glGenTextures(1, &texID);
         glBindTexture(GL_TEXTURE_3D, texID);
 
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -59,8 +59,8 @@ void Volume::load(const char* path)
         glGenTextures(1, &segID);
         glBindTexture(GL_TEXTURE_3D, segID);
 
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -69,19 +69,6 @@ void Volume::load(const char* path)
         memset(buffer, UCHAR_MAX, size.x * size.y * size.z);
         glTexImage3D(GL_TEXTURE_3D, 0, GL_LUMINANCE, size.x, size.y, size.z, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, buffer);
         delete[] buffer;
-    }
-
-    {
-        glGenTextures(1, &gradsID);
-        glBindTexture(GL_TEXTURE_3D, gradsID);
-
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-        glTexImage3D(GL_TEXTURE_3D, 0, GL_RGB, size.x, size.y, size.z, 0, GL_RGB, GL_FLOAT, NULL);
     }
 }
 

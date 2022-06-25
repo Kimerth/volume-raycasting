@@ -30,6 +30,7 @@ public:
 
 	inline float* getTFColormap() { return tfWidget.colormap; }
 
+	inline void canLoadVolumeFunc(const std::function<bool()>& func) { canLoadVolume = func; };
 	inline void segmentationAvailableFunc(const std::function<bool()>& func) { segmentationAvailable = func; };
 	inline void canLoadSegmentationFunc(const std::function<bool()>& func) { canLoadSegmentation = func; };
 	inline void canComputeSegmentationFunc(const std::function<bool()>& func) { canComputeSegmentation = func; };
@@ -83,6 +84,7 @@ private:
 
 	ImGuiIO* io;
 
+	std::function<bool()> canLoadVolume;
 	std::function<bool()> segmentationAvailable;
 	std::function<bool()> canLoadSegmentation;
 	std::function<bool()> canComputeSegmentation;

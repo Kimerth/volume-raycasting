@@ -35,7 +35,6 @@ public:
 	GLuint vao;
 	GLuint texID;
 	GLuint tfID;
-	GLuint gradsID;
 	GLuint segID;
 	GLuint segColorID;
 	glm::ivec3 size;

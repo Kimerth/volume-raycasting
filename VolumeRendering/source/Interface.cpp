@@ -239,7 +239,7 @@ void Interface::tfWindow()
 
 void Interface::volumeFileMenu()
 {
-	if (ImGui::MenuItem("Load"))
+	if (ImGui::MenuItem("Load", 0, false, canLoadVolume()))
 		ImGuiFileDialog::Instance()->OpenDialog("ChooseVolumeLoad", "Choose Volume", nifti_filter, ".");
 
 	if (ImGui::BeginMenu("Segmentation"))

@@ -75,17 +75,13 @@ void loadShaders()
 	glBindTexture(GL_TEXTURE_3D, v.segID);
 	s.setInt("segTex", 2);
 
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_3D, v.gradsID);
-	s.setInt("gradsTex", 3);
-
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_1D, v.tfID);
 	s.setInt("tf", 1);
 
-	glActiveTexture(GL_TEXTURE4);
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_1D, v.segColorID);
-	s.setInt("segColors", 4);
+	s.setInt("segColors", 3);
 }
 
 void render() 
@@ -150,6 +146,7 @@ void init()
 
 	ui.initialize();
 
+	ui.canLoadVolumeFunc([&] { return !v.computingSegmentation && !v.smoothingSegmentation; });
 	ui.segmentationAvailableFunc([&] { return v.segmentationData != nullptr; });
 	ui.canLoadSegmentationFunc([&] { return v.volumeData != nullptr && !v.computingSegmentation && !v.smoothingSegmentation; });
 	ui.canComputeSegmentationFunc([&] { return ptModel.isLoaded && v.volumeData != nullptr && !v.computingSegmentation && !v.smoothingSegmentation; });
