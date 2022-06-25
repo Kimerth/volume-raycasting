@@ -20,8 +20,6 @@
 #include "Volume.h"
 #include "Loader.h"
 
-#define ROTATION_SPEED 0.68 // approx 40degrees/sec
-#define TRANSLATION_SPEED 0.1
 #define FRAME_DURATION 32
 
 class Interface
@@ -55,7 +53,7 @@ public:
 	void mouseWheel(int button, int dir, int x, int y);
 	void motion(int x, int y);
 
-	float angleY, angleX = 3.14f;
+	float angleY = 3.14f, angleX = 1.57f;
 	float translationX, translationY, translationZ;
 	float zoom = 0.5f;
 

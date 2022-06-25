@@ -124,7 +124,7 @@ void Volume::saveSegmentation(const char* path)
     delete[] buffer;
 }
 
-void smoothLabel(uchar* labels, int radius, int x, int y, int z, int width, int height, int depth)
+uchar smoothLabel(uchar* labels, int radius, int x, int y, int z, int width, int height, int depth)
 {
     int freq[7];
     std::memset(freq, 0, 7 * sizeof(int));
@@ -135,7 +135,7 @@ void smoothLabel(uchar* labels, int radius, int x, int y, int z, int width, int 
                 if (i >= 0 && i < width && j >= 0 && j < height && k >= 0 && k < depth)
                     freq[labels[k * width * height + j * width + i]] ++;
 
-    labels[z * width * height + y * width + x] = std::distance(freq, std::max_element(freq, freq + 7));
+    return std::distance(freq, std::max_element(freq, freq + 7));
 }
 
 void Volume::applySmoothingLabels(int smoothingRadius)
@@ -156,7 +156,8 @@ void Volume::applySmoothingLabels(int smoothingRadius)
             for (int x = 0; x < v->size.x; ++x)
                 for (int y = 0; y < v->size.y; ++y)
                     for (int z = 0; z < v->size.z; ++z)
-                        smoothLabel(v->smoothedSegmentationData, smoothingRadius, x, y, z, v->size.x, v->size.y, v->size.z);
+                        v->smoothedSegmentationData[z * v->size.x * v->size.y + y * v->size.x + x] =
+                            smoothLabel(v->segmentationData, smoothingRadius, x, y, z, v->size.x, v->size.y, v->size.z);
             v->smoothingSegmentation = false;
         }, this, smoothingRadius);
 

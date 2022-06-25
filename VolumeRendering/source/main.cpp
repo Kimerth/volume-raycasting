@@ -100,7 +100,7 @@ void render()
 	model = glm::rotate(ui.angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	model *= glm::rotate(ui.angleY, glm::vec3(0.0f, 1.0f, 0.0f));
 	model *= glm::translate(glm::vec3(-0.5f, -0.5f, -0.5f));
-	model *= glm::translate(glm::vec3(-ui.translationX, ui.translationY, ui.translationZ));
+	model *= glm::translate(glm::vec3(-ui.translationX, -ui.translationY, -ui.translationZ));
 
 	s.setVec3("translation", glm::vec3(ui.translationX, ui.translationY, ui.translationZ));
 	
@@ -250,6 +250,8 @@ int main(int argc, char** argv)
 	init();
 
 	glutMainLoop();
+
+	ImGui::SaveIniSettingsToDisk(ImGui::GetIO().IniFilename);
 
 	ImGui_ImplOpenGL3_Shutdown();
 	ImGui_ImplGLUT_Shutdown();

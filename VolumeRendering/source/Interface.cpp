@@ -21,7 +21,7 @@ void Interface::render(float deltaTime)
 	ImGui::Render();
 
 	if (autoRotate)
-		angleY += ROTATION_SPEED * deltaTime / 1000;
+		angleY += SettingsEditor::inputSettings.rotationSpeed * deltaTime / 1000;
 }
 
 void Interface::display()
@@ -142,22 +142,34 @@ void Interface::volumeWindow()
 
 	if (ImGui::CollapsingHeader("Rotation"))
 	{
-		ImGui::SliderAngle("Rotation x", &angleX);
-		ImGui::SliderAngle("Rotation y", &angleY);
+		ImGui::PushID("Rotation");
+
+		ImGui::SliderAngle("x", &angleX);
+		ImGui::SliderAngle("y", &angleY);
+
+		ImGui::PopID();
 	}
 
 	if (ImGui::CollapsingHeader("Translation"))
 	{
-		ImGui::SliderFloat("Translation x", &translationX, -0.5, 0.5, "%.2f");
-		ImGui::SliderFloat("Translation y", &translationY, -0.5, 0.5, "%.2f");
-		ImGui::SliderFloat("Translation z", &translationZ, -0.5, 0.5, "%.2f");
+		ImGui::PushID("Translation");
+
+		ImGui::SliderFloat("x", &translationX, -0.5, 0.5, "%.2f");
+		ImGui::SliderFloat("y", &translationY, -0.5, 0.5, "%.2f");
+		ImGui::SliderFloat("z", &translationZ, -0.5, 0.5, "%.2f");
+
+		ImGui::PopID();
 	}
 
 	if (ImGui::CollapsingHeader("Slicing"))
 	{
-		sliceSlider("Slicing x", &bbLow.x, &bbHigh.x, -0.5, 0.5);
-		sliceSlider("Slicing y", &bbLow.y, &bbHigh.y, -0.5, 0.5);
-		sliceSlider("Slicing z", &bbLow.z, &bbHigh.z, -0.5, 0.5);
+		ImGui::PushID("Slicing");
+
+		sliceSlider("x", &bbLow.x, &bbHigh.x, -0.5, 0.5);
+		sliceSlider("y", &bbLow.y, &bbHigh.y, -0.5, 0.5);
+		sliceSlider("z", &bbLow.z, &bbHigh.z, -0.5, 0.5);
+
+		ImGui::PopID();
 	}
 
 	if (segmentationAvailable())
@@ -381,6 +393,8 @@ void Interface::sliceSlider(const char* label, float* min, float* max, float v_m
 
 void Interface::keyboard(unsigned char key, int x, int y)
 {
+	float translationSpeed = SettingsEditor::inputSettings.translationSpeed / FRAME_DURATION;
+
 	if (io != nullptr && io->WantCaptureKeyboard)
 	{
 		ImGui_ImplGLUT_KeyboardFunc(key, x, y);
@@ -392,11 +406,11 @@ void Interface::keyboard(unsigned char key, int x, int y)
 		{
 		case '+':
 		case 'w':
-			translationZ += TRANSLATION_SPEED / FRAME_DURATION;
+			translationZ -= translationSpeed;
 			break;
 		case '-':
 		case 's':
-			translationZ -= TRANSLATION_SPEED / FRAME_DURATION;
+			translationZ += translationSpeed;
 			break;
 		default:
 			break;
@@ -424,20 +438,23 @@ void Interface::keyboard(unsigned char key, int x, int y)
 
 void Interface::specialInput(int key, int x, int y)
 {
+	float translationSpeed = SettingsEditor::inputSettings.translationSpeed / FRAME_DURATION;
+	float rotationSpeed = SettingsEditor::inputSettings.rotationSpeed / FRAME_DURATION;
+
 	if (glutGetModifiers() == GLUT_ACTIVE_ALT)
 		switch (key)
 		{
 		case GLUT_KEY_UP:
-			translationY += TRANSLATION_SPEED / FRAME_DURATION;
+			translationY -= translationSpeed;
 			break;
 		case GLUT_KEY_DOWN:
-			translationY -= TRANSLATION_SPEED / FRAME_DURATION;
+			translationY += translationSpeed;
 			break;
 		case GLUT_KEY_LEFT:
-			translationX += TRANSLATION_SPEED / FRAME_DURATION;
+			translationX -= translationSpeed;
 			break;
 		case GLUT_KEY_RIGHT:
-			translationX -= TRANSLATION_SPEED / FRAME_DURATION;
+			translationX += translationSpeed;
 			break;
 		default:
 			break;
@@ -446,16 +463,16 @@ void Interface::specialInput(int key, int x, int y)
 		switch (key)
 		{
 		case GLUT_KEY_UP:
-			angleX += ROTATION_SPEED / FRAME_DURATION;
+			angleX += rotationSpeed;
 			break;
 		case GLUT_KEY_DOWN:
-			angleX -= ROTATION_SPEED / FRAME_DURATION;
+			angleX -= rotationSpeed;
 			break;
 		case GLUT_KEY_LEFT:
-			angleY -= ROTATION_SPEED / FRAME_DURATION;
+			angleY -= rotationSpeed;
 			break;
 		case GLUT_KEY_RIGHT:
-			angleY += ROTATION_SPEED / FRAME_DURATION;
+			angleY += rotationSpeed;
 			break;
 		default:
 			break;
@@ -494,10 +511,12 @@ void Interface::mouseWheel(int button, int dir, int x, int y)
 
 void Interface::motion(int x, int y)
 {
+	float rotationSpeed = SettingsEditor::inputSettings.rotationSpeed;
+
 	if (io != nullptr && !io->WantCaptureMouse)
 	{
-		angleY += ((float)x - oldX) / windowWidth;
-		angleX += ((float)y - oldY) / windowHeight;
+		angleY += (((float)x - oldX) / windowWidth) * rotationSpeed;
+		angleX += (((float)y - oldY) / windowHeight) * rotationSpeed;
 		oldX = x, oldY = y;
 	}
 

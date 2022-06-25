@@ -120,7 +120,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;USE_BOOKMARK;HAVE_ZLIB;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;HAVE_ZLIB;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;USE_BOOKMARK;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>extern/include;extern/include/RNifti;extern/include/imgui;extern/libtorch/include;extern/libtorch/include/torch/csrc/api/include</AdditionalIncludeDirectories>
       <SupportJustMyCode>false</SupportJustMyCode>
@@ -144,6 +144,8 @@
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;USE_BOOKMARK;HAVE_ZLIB;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>extern/include;extern/include/RNifti;extern/include/imgui;extern/libtorch/include;extern/libtorch/include/torch/csrc/api/include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -158,7 +160,6 @@
     <ClCompile Include="extern\include\imgui\backends\imgui_impl_glut.cpp" />
     <ClCompile Include="extern\include\imgui\backends\imgui_impl_opengl3.cpp" />
     <ClCompile Include="extern\include\imgui\imgui.cpp" />
-    <ClCompile Include="extern\include\imgui\imgui_demo.cpp" />
     <ClCompile Include="extern\include\imgui\imgui_draw.cpp" />
     <ClCompile Include="extern\include\imgui\imgui_tables.cpp" />
     <ClCompile Include="extern\include\imgui\imgui_widgets.cpp" />
@@ -179,11 +180,13 @@
     <ClCompile Include="extern\include\RNifti\zlib\uncompr.c" />
     <ClCompile Include="extern\include\RNifti\zlib\zutil.c" />
     <ClCompile Include="extern\include\RNifti\znzlib\znzlib.c" />
+    <ClCompile Include="source\Interface.cpp" />
     <ClCompile Include="source\Loader.cpp" />
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\PytorchModel.cpp" />
+    <ClCompile Include="source\SettingsEditor.cpp" />
     <ClCompile Include="source\Shader.cpp" />
-    <ClCompile Include="source\transfer_function_widget.cpp" />
+    <ClCompile Include="source\VectorColorPicker.cpp" />
     <ClCompile Include="source\Volume.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -217,16 +220,16 @@
     <ClInclude Include="extern\include\RNifti\zlib\zlib.h" />
     <ClInclude Include="extern\include\RNifti\zlib\zutil.h" />
     <ClInclude Include="extern\include\RNifti\znzlib\znzlib.h" />
+    <ClInclude Include="source\Interface.h" />
     <ClInclude Include="source\Loader.h" />
     <ClInclude Include="source\PytorchModel.h" />
+    <ClInclude Include="source\SettingsEditor.h" />
     <ClInclude Include="source\Shader.h" />
-    <ClInclude Include="source\transfer_function_widget.h" />
-    <ClInclude Include="source\utils.h" />
+    <ClInclude Include="source\VectorColorPicker.h" />
     <ClInclude Include="source\Volume.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="source\shaders\grads.comp" />
     <None Include="source\shaders\raycasting.frag" />
     <None Include="source\shaders\raycasting.vert" />
   </ItemGroup>

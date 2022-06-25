@@ -30,16 +30,13 @@
     <ClCompile Include="source\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\transfer_function_widget.cpp">
+    <ClCompile Include="source\VectorColorPicker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\Volume.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\imgui\imgui.cpp">
-      <Filter>Other External Dependencies</Filter>
-    </ClCompile>
-    <ClCompile Include="extern\include\imgui\imgui_demo.cpp">
       <Filter>Other External Dependencies</Filter>
     </ClCompile>
     <ClCompile Include="extern\include\imgui\imgui_draw.cpp">
@@ -114,15 +111,18 @@
     <ClCompile Include="extern\include\RNifti\zlib\zutil.c">
       <Filter>Other External Dependencies</Filter>
     </ClCompile>
+    <ClCompile Include="source\Interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\SettingsEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\transfer_function_widget.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="source\utils.h">
+    <ClInclude Include="source\VectorColorPicker.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\Volume.h">
@@ -224,11 +224,14 @@
     <ClInclude Include="source\Loader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\Interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SettingsEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="source\shaders\grads.comp">
-      <Filter>Source Files\Shaders</Filter>
-    </None>
     <None Include="source\shaders\raycasting.frag">
       <Filter>Source Files\Shaders</Filter>
     </None>
