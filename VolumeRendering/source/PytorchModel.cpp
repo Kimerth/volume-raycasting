@@ -33,7 +33,10 @@ void PytorchModel::loadModel(const char* path)
 
 uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 {
-    int inputSize[3], patchSize[3];
+	// iW, iH, iD = input image size
+    int inputSize[3];
+    // pW, pH, pD = output image size
+    int patchSize[3];
     memcpy(inputSize, SettingsEditor::segmentationSettings.inputSize, 3 * sizeof(int));
     memcpy(patchSize, SettingsEditor::segmentationSettings.patchSize, 3 * sizeof(int));
 
@@ -43,6 +46,7 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 
     size_t size = width * height * depth;
 
+	// [W, H, D]
     torch::Tensor dataTensor = torch::from_blob(
         data,
         { 1, 1, depth, height, width },
@@ -58,6 +62,7 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
     
     std::cout << dataTensor.sizes() << std::endl;
 
+	// [iW, iH, iD]
     dataTensor = F::interpolate(
         dataTensor,
         F::InterpolateFuncOptions()
@@ -84,17 +89,17 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
     }
     std::vector<torch::Tensor> patchData;
     for (torch::Tensor& patch : patches)
-        // 1, 32, 32, 32
+        // [1, pW, pH, pD]
         patchData.push_back(patch.unsqueeze(0));
 
-    // [B, 1, 32, 32, 32]
+    // [B, 1, pW, pH, pD]
     torch::Tensor nnData = torch::stack(patchData);
 
     std::cout << nnData.sizes() << std::endl;
 
     std::vector<torch::jit::IValue> nnInput{ nnData };
 
-    // expect [B, L, 32, 32, 32] ; L = nb labels
+    // expect [B, L, pW, pH, pD] ; L = nb labels
     torch::Tensor outputTensor = model.forward(nnInput).toTensor();
 
     std::cout << outputTensor.sizes() << std::endl;
@@ -126,7 +131,7 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
 
     outputTensor = outputTensor.transpose(2, 4);
 
-    // expect [L, W, H, D]
+    // [L, W, H, D]
     outputTensor = F::interpolate(
         outputTensor,
         F::InterpolateFuncOptions()
@@ -143,6 +148,7 @@ uchar* PytorchModel::forward(short* data, int width, int height, int depth)
     outputTensor = torch::mul(outputTensor, torch::arange(1, nbLabels + 1).to(device).reshape({ 1, nbLabels, 1, 1, 1 }));
     std::cout << outputTensor.sizes() << std::endl;
 
+    // [W, H, D]
     outputTensor = std::get<0>(torch::max(outputTensor, 1));
     std::cout << outputTensor.sizes() << std::endl;
 

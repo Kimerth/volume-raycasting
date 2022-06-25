@@ -109,10 +109,6 @@ void main()
 			}
 			else
                 tfSample.a = 0;
-            
-//            vec3 grad = texture(gradsTex, pos).xyz;
-//            vec3 N = normalize(viewMatrix * vec4(grad, 0)).xyz;
-//            float coef = max(0.0, dot(N, N));
 
             intensity = max(0.0, 1 - pow((1 - intensity), opacityCorrectionFactor)) * intensityCorrection;
             fragColor += (1.0 - fragColor.a) * vec4(tfSample.rgb, 1) * intensity * tfSample.a;
