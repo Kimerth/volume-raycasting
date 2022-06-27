@@ -195,7 +195,7 @@ void Interface::volumeWindow()
 
 void Interface::tfWindow()
 {
-	ImGui::Begin("Visualization", &show_volume_window, ImGuiWindowFlags_MenuBar);
+	ImGui::Begin("Visualization", &show_tf_window, ImGuiWindowFlags_MenuBar);
 	if (ImGui::BeginMenuBar())
 	{
 		if (ImGui::MenuItem("New"))
