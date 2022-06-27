@@ -91,7 +91,7 @@ void Volume::loadSegmentation(const char* path)
 	
     applySmoothingLabels();
 	
-    calcumateSegmentationInfoNumVoxels();
+    calculateSegmentationInfoNumVoxels();
 
     applySegmentation();
 }
@@ -162,7 +162,7 @@ void Volume::computeSegmentation(PytorchModel ptModel)
 		
         v->applySmoothingLabels();
 
-        v->calcumateSegmentationInfoNumVoxels();
+        v->calculateSegmentationInfoNumVoxels();
         v->applySegmentation();
 
         v->computingSegmentation = false;
@@ -284,7 +284,7 @@ void Volume::init()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, veridxdat);
 }
 
-void Volume::calcumateSegmentationInfoNumVoxels()
+void Volume::calculateSegmentationInfoNumVoxels()
 {
 	for(int i = 0; i < size.x * size.y * size.z; ++i)
 		if(segmentationData[i] < 7)

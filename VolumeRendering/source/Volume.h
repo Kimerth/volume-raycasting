@@ -56,7 +56,7 @@ public:
 	void loadSegmentation(const char* path);
 	void saveSegmentation(const char* path);
 	void computeSegmentation(PytorchModel ptModel);
-	void calcumateSegmentationInfoNumVoxels();
+	void calculateSegmentationInfoNumVoxels();
 	
 	void applySegmentation();
 	void applySegmentationColors();
