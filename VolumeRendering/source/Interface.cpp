@@ -146,6 +146,7 @@ void Interface::volumeWindow()
 
 		ImGui::SliderAngle("x", &angleX);
 		ImGui::SliderAngle("y", &angleY);
+		ImGui::SliderAngle("z", &angleZ);
 
 		ImGui::PopID();
 	}

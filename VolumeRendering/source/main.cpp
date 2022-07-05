@@ -95,6 +95,7 @@ void render()
 
 	model = glm::rotate(ui.angleX, glm::vec3(1.0f, 0.0f, 0.0f));
 	model *= glm::rotate(ui.angleY, glm::vec3(0.0f, 1.0f, 0.0f));
+	model *= glm::rotate(ui.angleZ, glm::vec3(0.0f, 0.0f, 1.0f));
 	model *= glm::translate(glm::vec3(-0.5f, -0.5f, -0.5f));
 	model *= glm::translate(glm::vec3(-ui.translationX, -ui.translationY, -ui.translationZ));
 

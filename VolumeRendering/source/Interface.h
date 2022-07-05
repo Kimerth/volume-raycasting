@@ -54,7 +54,7 @@ public:
 	void mouseWheel(int button, int dir, int x, int y);
 	void motion(int x, int y);
 
-	float angleY = 3.14f, angleX = 1.57f;
+	float angleY = 3.14f, angleX = 1.57f, angleZ = 0.0f;
 	float translationX, translationY, translationZ;
 	float zoom = 0.5f;
 
