@@ -1,0 +1,13 @@
+defaults:
+  - base_model
+
+in_channels: 1
+out_channels: 6
+init_lr: 0.02
+scheduer_step_size: 20
+total_epochs: 1000
+scheduer_gamma: 0.9
+img_size: 32
+dropout: 0.5
+res_block: False
+net_name: UNETR

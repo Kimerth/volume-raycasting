@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\Shaders">
+      <UniqueIdentifier>{3a804a5d-7be4-4ab2-a0b3-582ee444803c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Other External Dependencies">
+      <UniqueIdentifier>{21a65d06-a211-47d0-9688-2833f9c53f59}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\Loader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\VectorColorPicker.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Volume.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\imgui\imgui.cpp">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\imgui\imgui_draw.cpp">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\imgui\backends\imgui_impl_glut.cpp">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\imgui\backends\imgui_impl_opengl3.cpp">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\imgui\imgui_tables.cpp">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\imgui\imgui_widgets.cpp">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\imguiFD\ImGuiFileDialog.cpp">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="source\PytorchModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\adler32.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\compress.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\crc32.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\deflate.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\gzclose.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\gzlib.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\gzread.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\gzwrite.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\infback.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\inffast.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\inflate.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\inftrees.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\niftilib\nifti2_io.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\trees.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\uncompr.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\znzlib\znzlib.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="extern\include\RNifti\zlib\zutil.c">
+      <Filter>Other External Dependencies</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Interface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\SettingsEditor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="source\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\VectorColorPicker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Volume.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\imgui.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\backends\imgui_impl_glut.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\backends\imgui_impl_opengl3.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\imgui_internal.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imguiFD\ImGuiFileDialog.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imguiFD\ImGuiFileDialogConfig.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\imstb_rectpack.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\imstb_textedit.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\imgui\imstb_truetype.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="source\PytorchModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\crc32.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\deflate.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\gzguts.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\inffast.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\inffixed.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\inflate.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\inftrees.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti1.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti2.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti2_image.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\niftilib\nifti2_io.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage_impl.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage_matrix.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti\NiftiImage_print.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\zutil.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\zconf.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\zlib.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\znzlib\znzlib.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\RNifti.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="extern\include\RNifti\zlib\trees.h">
+      <Filter>Other External Dependencies</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Loader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Interface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SettingsEditor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="source\shaders\raycasting.frag">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="source\shaders\raycasting.vert">
+      <Filter>Source Files\Shaders</Filter>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+</Project>

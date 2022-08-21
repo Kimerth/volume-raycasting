@@ -1,3 +1,0 @@
-base_path: "${oc.env:TOP_PROJECT_PATH}/externals/data/IXITiny/"
-batch: 1
-dataset: IXITiny

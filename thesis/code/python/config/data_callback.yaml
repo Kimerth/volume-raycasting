@@ -1,0 +1,5 @@
+# @package _global_
+hydra:
+  callbacks:
+    data_callback:
+      _target_: run.DataCallback

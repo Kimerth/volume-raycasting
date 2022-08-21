@@ -16,8 +16,7 @@
 				"program": "run.py",
 				"console": "integratedTerminal",
 				"args": [
-					"hydra.verbose=[__main__, hydra, data, train]",
-                	"data=[generic, ct_org]"
+					"hydra.verbose=[__main__, hydra, data, train]"
 				]
 			}
 		]

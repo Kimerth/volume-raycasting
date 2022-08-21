@@ -1,6 +1,9 @@
+defaults:
+  - base_data
+
 base_path: "${oc.env:TOP_PROJECT_PATH}/externals/data/tcia-ct-scan-dataset/"
 scan_pattern: "nrrds/*/radiographer/0522c*/CT_IMAGE.nrrd"
-pt_path: "${data.base_path}/pt/radiographer"
+cache_path: "${jobs.load_data.base_path}/pt/radiographer"
 kernel_size: [2,2,2]
 patch_size: [64, 64, 32]
 labels_path: segmentations/

@@ -51,6 +51,16 @@ Volume Rendering/res/
 **/output
 **/outputs
 
-externals/
-external/
-extern/
+*.tgz
+*.gz
+*.zip
+*.tar
+
+README.txt
+
+libtorch/
+
+*.pt
+*.ini
+
+**/build

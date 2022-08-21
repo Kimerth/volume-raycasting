@@ -1,0 +1,11 @@
+\begin{abstract}
+
+Folosind metodele de diagnosticare neinvazive precum tomografie computerizată sau rezonanță magnetică nucleară, rezultă un volum de date structurat, tridimensional, valorile punctelor reprezentând intesnități ce variază pentru diferite tipuri de țesuturi. Metoda de vizualizare \textit{ray casting} (proiecție a razelor) permite, spre deosebire de metodele de vizualizare pe suprafață, vizualizarea interiorului volumului fară folosirea metodei \textit{clipping planes} (planuri de tăiere a obiectului ce permit excluderea subvolumelor din vizualizare). În redarea volumului, funcțiile de transfer sunt folosite pentru a determina proprietățile voxelului în culoare și opacitate folosind valorile luminanței.
+
+În această lucrare este propusă o implementare a unei aplicații de vizualizare a datelor medicale folosind tehnica \textit{ray casting}. Folosind această aplicație, pot fi create funcții de transfer unidimensionale care atribuie pentru diferite valori ale intensității în volumul de date, culoare și transparență.
+
+Deoarece diferite organe pot avea țesuturi asemănătoare, așadar valori ale intensității asemănătoare, este dificil de construit o funcție de transfer unidimensională care să facă distincție clară între două sau mai multe regiuni similare. O soluție propusă în această lucrare este construirea unei măști de segmentare semantică cu ajutorul unei rețele neuronale. Aplicația permite atribuirea de culori și transparență pentru fiecare clasă de segmentare disponibilă, aceste valori fiind combinate cu cele din funcția de transfer.
+
+Scopul acestui proiect este implementarea unei aplicații pentru vizualizarea datelor medicale volumetrice folosind metoda ray casting și oferind posibilitatea de încărcare sau modelare a funcțiilor de transfer unidimensionale. Pe lângă acestea, redarea poate fi îmbunătățită prin încărcarea sau crearea automată a unei măști de segmentare semantică. Atunci când aceste tehnici sunt aplicate pe un set de date volumetrice obținut prin imagistică medicală, poate fi obținută o reprezentare semnificativă ce poate ajuta un specialist în diagnosticarea pacienților sau un student la facultatea de medicină să vizualizeze corpul uman.
+
+\end{abstract}
