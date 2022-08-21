@@ -1,0 +1,6 @@
+queue_length: 5
+base_path: ???
+batch: ???
+patch_size: ???
+plot_number: 1
+save_plot_dir: "metrics/data_samples"

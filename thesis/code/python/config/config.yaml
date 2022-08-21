@@ -1,0 +1,11 @@
+defaults:
+  - jobs:
+    - load_data
+    # - load_model
+    - train_model
+    - test_model
+    - deploy
+  - /hydra/callbacks:
+    - data_callback
+  - override hydra/job_logging: colorlog
+  - override hydra/hydra_logging: colorlog

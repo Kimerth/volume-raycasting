@@ -1,0 +1,104 @@
+%% this document uses the memoir style, A4 paper with the default font size of
+% 12pt and is setup for two sided printing
+\documentclass[a4paper,12pt,twoside]{memoir}
+% the tuiasithesis style packacage
+\usepackage{unicode-math}
+\usepackage{tuiasithesis}
+% the package for dummy text
+\usepackage{lipsum} % dummy text
+
+\usepackage{graphicx}
+\usepackage[ruled,vlined]{algorithm2e}
+\usepackage{hyperref}
+\usepackage{caption}
+
+\usepackage{tikz}
+\usetikzlibrary{matrix,calc}
+
+\usepackage{indentfirst}
+
+\usepackage{appendix}
+
+\usepackage{hyperref}
+
+% \newcommand{\cref}[1]{capitolul~\ref{#1}} 
+% \newcommand{\Cref}[1]{Capitolul~\ref{#1}} 
+
+\renewcommand{\chapterautorefname}{Capitolul}
+
+% the start of the document
+\begin{document}
+
+% \setmainfont{TeX Gyre Termes}
+\setmainfont{CMU Serif}
+
+\selectlanguage{romanian}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FRONTMATTER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \frontmatter
+% \pagestyle{xtitlepagestyle}% Set page style to 'xtitlepagestyle'
+% % title page
+% \input{chapters/titlepage}
+
+\pagestyle{xpagestyle}% Set page style to 'xpagestyle'
+% abstract
+\tocless\input{chapters/abstract}
+\cleardoublepage
+
+% table of contents
+\tocless\tableofcontents
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% MAINMATTER %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\mainmatter
+\pagestyle{xpagestyle}% Set page style to 'xpagestyle'
+\pagenumbering{arabic}
+% \pagenumbering{gobble}
+ 
+\chapter{Introducere}
+\label{ch:introduction}
+\input{chapters/introduction}
+\cleardoublepage
+ 
+\chapter{Fundamentarea teoretică şi documentarea bibliografică}
+\label{ch:fundamentals}
+\input{chapters/fundamentals}
+\cleardoublepage
+
+\chapter{Proiectarea aplicaţiei}
+\label{ch:design}
+\input{chapters/design}
+\cleardoublepage
+
+\chapter{Implementarea aplicaţiei}
+\label{ch:implementation}
+\input{chapters/implementation}
+\cleardoublepage
+
+\chapter{Testarea aplicaţiei şi rezultate experimentale}
+\label{ch:results}
+\input{chapters/results}
+\cleardoublepage
+
+\chapter{Concluzii}
+\label{ch:conclusion}
+\input{chapters/conclusion}
+\cleardoublepage
+
+\backmatter
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+% appendices
+\appendix
+\pagestyle{xappendixpagestyle}% Set page style to 'xappendixpagestyle'
+%\chapter[will appear in TOC][will appear in header]{will appear in heading}
+\chapter{Anexe}
+\label{ch:anexe}
+\input{chapters/appendix}
+
+\end{document}

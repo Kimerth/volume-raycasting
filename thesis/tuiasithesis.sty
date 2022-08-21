@@ -1,0 +1,151 @@
+%% load english an romanian (with proper diacritics)
+
+\RequirePackage[english,romanian]{babel}
+
+%% set margins
+\setlrmarginsandblock{2cm}{2cm}{*}
+\setulmarginsandblock{2cm}{2cm}{*}
+\checkandfixthelayout
+\setlength{\evensidemargin}{\oddsidemargin}
+
+%% set paragraph indent
+\setlength{\parindent}{1.5cm}
+
+%% set caption font size
+\captionnamefont{\small}
+\captiontitlefont{\small}
+
+\newcommand{\nocontentsline}[3]{}
+\newcommand{\tocless}[2]{\bgroup\let\addcontentsline=\nocontentsline#1{#2}\egroup}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% header and footer styles
+\makepagestyle{xpagestyle}% define 'xpagestyle' page style
+  \makeevenhead{xpagestyle}{\xthesisauthorheader}{}{}% even page header
+  %Use \leftmark/\rightmark instead of \thechapter/\thesection. See p. 120 of the memoir manual for details.
+  \makeoddhead{xpagestyle}{}{}{\leftmark}% odd page header
+  \makeevenfoot{xpagestyle}{}{\thepage}{}% even page footer
+  \makeoddfoot{xpagestyle}{}{\thepage}{}% odd page footer
+  
+%% header and footer styles for the title page
+\makepagestyle{xtitlepagestyle}% define 'xpagestyle' page style
+  \makeevenhead{xtitlepagestyle}{}{}{}% even page header
+  \makeoddhead{xtitlepagestyle}{}{}{}% odd page header
+  \makeevenfoot{xtitlepagestyle}{}{}{}% even page footer
+  \makeoddfoot{xtitlepagestyle}{}{}{}% odd page footer
+
+%% header and footer styles
+\makepagestyle{xappendixpagestyle}% define 'xpagestyle' page style
+  \makeevenhead{xappendixpagestyle}{\leftmark}{}{}% even page header
+  %Use \leftmark/\rightmark instead of \thechapter/\thesection. See p. 120 of the memoir manual for details.
+  \makeoddhead{xappendixpagestyle}{}{}{\MakeUppercase{\@chapapp \ \thechapter}}% odd page header
+  \makeevenfoot{xappendixpagestyle}{}{\thepage}{}% even page footer
+  \makeoddfoot{xappendixpagestyle}{}{\thepage}{}% odd page footer
+  \makepsmarks{xappendixpagestyle}{
+  	%\createmark{chapter}{left}{shownumber}{\@chapapp\ }{. \ }
+  	\createmark{chapter}{left}{nonumber}{}{}
+  }
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% variable defaults
+\gdef\xthesisuniversity{UNIVERSITATEA TEHNICĂ ``GHEORGHE ASACHI'' DIN IAȘI\\}
+\gdef\xthesisfaculty{Facultatea de Automatică și Calculatoare\\}
+
+\gdef\xthesistitle{Vizualizarea imaginilor medicale}
+\gdef\xthesissubtitle{}
+
+\gdef\xthesisauthor{Motfolea Silviu-Andrei}
+\gdef\xthesisauthorheader{Motfolea Silviu-Andrei}
+\gdef\xthesisadvisor{Ș.l.dr.ing. Paul-Corneliu Herghelegiu}
+
+\gdef\xthesisyear{2022}
+\gdef\xthesiscity{IAȘI}
+
+\gdef\xthesistype{Lucrare de licență}
+
+%% variables
+\newcommand{\thesisuniversity}[2]{\xdef\xthesisuniversity{#1}}
+\newcommand{\thesisfaculty}[2]{\xdef\xthesisfaculty{#1}}
+\newcommand{\thesistitle}[2]{\xdef\xthesistitle{#1}}
+\newcommand{\thesissubtitle}[2]{\xdef\xthesissubtitle{#1}}
+
+\newcommand{\thesisauthor}[2]{\xdef\xthesisauthor{#1}}
+\newcommand{\thesisauthorheader}[1]{\xdef\xthesisauthorheader{#1}}
+\newcommand{\thesisadvisor}[2]{\xdef\xthesisadvisor{#1}}
+
+\newcommand{\thesisyear}[1]{\xdef\xthesisyear{#1}}
+\newcommand{\thesiscity}[1]{\xdef\xthesiscity{#1}}
+
+\newcommand{\thesistype}[2]{\xdef\xthesistype{#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% color: add support for expressing colour models. Grey can be used
+%% to great effect to emphasize other parts of a graphic or text.
+%% For an excellent set of examples, see Tufte's "Visual Display of
+%% Quantitative Information" or "Envisioning Information".
+%\usepackage{color}
+\usepackage{xcolor}
+\definecolor{greytext}{gray}{0.5}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[bookmarks,bookmarksnumbered,%
+    %citebordercolor={0.8 0.8 0.8},filebordercolor={0.8 0.8 0.8},%
+    %linkbordercolor={0.8 0.8 0.8},urlbordercolor={0.8 0.8 0.8},%
+    allbordercolors={0.8 0.8 0.8},breaklinks,
+    pagebackref,linktocpage%
+    ]{hyperref}
+    
+\renewcommand\backrefpagesname{\(\rightarrow\) pg.}
+\renewcommand\backref{\textcolor{greytext} \backrefpagesname\ }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%   LISTINGS   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage{minted}
+\setminted{
+    % Line numbers not flowing out of the margin
+    numbersep=5pt,
+    xleftmargin=12pt,
+    %
+    % Better listing breaking
+    breakafter=-/\{,
+    breakbefore=\\
+    %
+    % Alternative: Rely on pygment's tokenizer. Doehttps://ac.tuiasi.ro/wp-content/uploads/2019/12/Ghid_de_redactarea_a_proiectului_de_diploma_in_LibreOfficev1.4.pdfs not work well with LaTeX and comments
+    % breakbytoken=true,
+    % breakbytokenanywhere=true
+    linenos=true,
+    tabsize=4,
+    breaklines=true,
+    fontsize=\small
+}
+\usemintedstyle{vs}
+
+\usepackage{fontspec}
+
+\setmonofont{[Consolas.ttf]}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% other settings
+\setcounter{tocdepth}{2}% change how deep the table of contents displays automatically
+\setcounter{secnumdepth}{2}% depth of section numberings
+\abstractintoc% add the abstract to TOC
+
+%%%%?????????????????????????????????????????????????
+\sloppy %from the breakurl package - keeps the text inside the boundaries at the expence of sometimes extra spacing
+
+\newcommand\textalign[2][]{%
+\ifx#1l\relax
+  \makebox[0pt][l]{#2}%
+\else
+  \ifx#1r\relax
+    \makebox[0pt][r]{#2}%
+  \else  
+    \ifx#1c\relax
+      \makebox[0pt][c]{#2}%
+    \fi\fi\fi
+}
