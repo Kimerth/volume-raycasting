@@ -63,3 +63,4 @@ libtorch/
 *.pt
 *.ini
 
+**/build
